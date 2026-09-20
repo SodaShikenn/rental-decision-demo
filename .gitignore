@@ -1,4 +1,6 @@
 config.js
+.env
+.venv/
 .DS_Store
 output/
 .playwright-cli/

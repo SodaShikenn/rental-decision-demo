@@ -2,6 +2,8 @@
 
 [日本語](README.md) | [English](README.en.md)
 
+**[▶ Live Demoを開く](https://sodashikenn.github.io/rental-decision-demo/)**
+
 ![NEST のデモ画面](assets/demo.png)
 
 NESTは、家賃・間取り・駅徒歩だけでは比較しにくい賃貸候補を、利用者の日常動線、優先順位、妥協条件に照らして整理するフロントエンド・プロトタイプです。

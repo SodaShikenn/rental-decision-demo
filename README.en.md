@@ -2,6 +2,8 @@
 
 [日本語](README.md) | [English](README.en.md)
 
+**[▶ Open the Live Demo](https://sodashikenn.github.io/rental-decision-demo/)**
+
 ![NEST demo interface](assets/demo.png)
 
 NEST is a front-end prototype for comparing rental homes through daily routines, priorities, and acceptable trade-offs—not only rent, floor plan, and distance from a station.

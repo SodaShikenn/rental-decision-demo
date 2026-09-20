@@ -44,11 +44,7 @@ cp .env.example .env
 
 This is currently a static front end, so it does not read `.env` yet. The file is reserved for a future server layer that connects Routes, Places, licensed property data, or an LLM.
 
-To test map rendering, copy `config.example.js` to `config.js` and add a browser key restricted by HTTP referrer and API scope. Both `config.js` and `.env` are ignored by Git.
-
-```bash
-cp config.example.js config.js
-```
+The public `config.js` contains only a blank key. To test map rendering locally, temporarily add a browser key restricted by HTTP referrer and API scope, and never commit a real key. Server-side secrets belong in the Git-ignored `.env` file.
 
 ## Integrations required for a real service
 
@@ -81,6 +77,7 @@ Official references: [Maps JavaScript API](https://developers.google.com/maps/do
 ├── index.html           # Page structure
 ├── styles.css          # Responsive visual design
 ├── app.js              # Scoring, ranking, and chat logic
+├── config.js           # Blank public Maps configuration
 ├── config.example.js   # Browser-side Maps configuration example
 ├── .env.example        # Future server-side configuration example
 └── assets/demo.png     # README preview

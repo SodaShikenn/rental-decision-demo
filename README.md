@@ -44,11 +44,7 @@ cp .env.example .env
 
 現状は静的なフロントエンドであり、`.env` はまだ読み込みません。Routes、Places、物件データ、LLMなどをサーバー側に接続する際の安全な受け皿として用意しています。
 
-地図表示だけを試す場合は、`config.example.js` を `config.js` にコピーし、HTTPリファラーと利用APIを制限したブラウザ用キーを設定します。`config.js` と `.env` はGit管理対象外です。
-
-```bash
-cp config.example.js config.js
-```
+公開デモの `config.js` には空のキーだけを置いています。地図表示をローカルで試す場合は、HTTPリファラーと利用APIを制限したブラウザ用キーを一時的に設定し、実キーをコミットしないでください。サーバー側の秘密情報はGit管理対象外の `.env` に置きます。
 
 ## 実サービスに必要な連携
 
@@ -81,6 +77,7 @@ cp config.example.js config.js
 ├── index.html           # 画面構造
 ├── styles.css          # レスポンシブUI
 ├── app.js              # 評価、再順位付け、チャット
+├── config.js           # 公開用の空のMaps設定
 ├── config.example.js   # ブラウザ用Maps設定例
 ├── .env.example        # 将来のサーバー連携用設定例
 └── assets/demo.png     # README用プレビュー

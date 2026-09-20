@@ -10,6 +10,9 @@ The goal is not to output a single opaque “best” property. It helps a user u
 
 ## What the demo shows
 
+- Uploads and previews PNG, JPEG, or WEBP rental sheets locally in the browser
+- Lets the user review and edit sample-extracted rent, address, station, layout, floor area, and construction year
+- Adds the uploaded listing as a provisional candidate while clearly marking route and neighborhood data as missing
 - Re-ranks candidates from a monthly budget and up to two non-negotiable priorities
 - Compares commute time, late-night shopping, quietness, and workspace suitability
 - Explains the fit, trade-offs, and questions to check during a viewing
@@ -17,7 +20,7 @@ The goal is not to output a single opaque “best” property. It helps a user u
 - Answers trade-off questions such as “What if I reduce the rent by ¥10,000?”
 - Displays Google Maps when a Maps JavaScript API key is configured
 
-The current chat is rule-based so that its reasoning remains easy to inspect. All properties, routes, rent histories, reviews, and facility scores are fictional demo data.
+The current image analysis uses fixed sample extraction values for this rental-sheet format, and the uploaded image never leaves the browser. A production version would send the image to a server-side Vision/OCR endpoint and return extracted values, confidence scores, and evidence regions. The current chat is rule-based so that its reasoning remains easy to inspect. All properties, routes, rent histories, reviews, and facility scores are fictional demo data.
 
 ## Run locally
 
@@ -50,6 +53,7 @@ cp config.example.js config.js
 |Purpose|Candidate integration|Design requirement|
 |---|---|---|
 |Property inventory|Licensed or contract-authorized property feed|Track property ID, listing date, address, rent, and floor plan|
+|Rental-sheet structuring|Server-side Vision/OCR endpoint|Process images temporarily and return field-level confidence and evidence regions for human confirmation|
 |Address resolution|Geocoding API|Convert an address or Place ID into coordinates|
 |Map display|Maps JavaScript API|Restrict the browser key by HTTP referrer and API scope|
 |Commute and daily routes|Routes API|Compare candidate–destination pairs with `computeRouteMatrix`, retaining weekday, departure time, and travel mode as evidence|
@@ -83,6 +87,7 @@ Official references: [Maps JavaScript API](https://developers.google.com/maps/do
 ## Verified interactions
 
 - Re-ranking after preference changes
+- Image upload, preview, sample extraction, and provisional-candidate insertion
 - Synchronized explanation, rent chart, and reviews after candidate selection
 - Chat responses to trade-off questions
 - Responsive desktop and mobile layouts

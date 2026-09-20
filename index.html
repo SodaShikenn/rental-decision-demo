@@ -50,6 +50,58 @@
         </aside>
       </section>
 
+      <section class="intake section-shell" aria-labelledby="intakeTitle">
+        <div class="intake-intro">
+          <p class="eyebrow">INPUT / LISTING SHEET</p>
+          <h2 id="intakeTitle">募集図面を、<br />比較できる情報へ。</h2>
+          <p>
+            画像型の物件資料を取り込み、賃料・住所・間取り・面積などを確認可能な項目へ変換します。
+            確定前に人が原本と照合する設計です。
+          </p>
+          <div class="intake-flow" aria-label="画像入力から比較までの流れ">
+            <span>画像</span><i>→</i><span>抽出・確認</span><i>→</i><span>経路・周辺情報</span><i>→</i><span>比較</span>
+          </div>
+        </div>
+
+        <div class="intake-workflow">
+          <div class="upload-column">
+            <label class="upload-zone" for="listingUpload">
+              <input class="upload-input" id="listingUpload" type="file" accept="image/png,image/jpeg,image/webp" />
+              <span class="upload-placeholder" id="uploadPlaceholder">
+                <b>募集図面を選択</b>
+                <small>PNG / JPG / WEBP</small>
+              </span>
+              <img id="listingPreview" alt="アップロードした募集図面のプレビュー" hidden />
+            </label>
+            <button class="secondary-action" id="analyzeListing" type="button" disabled>画像を読み取る →</button>
+            <p class="privacy-note">画像はブラウザ内でプレビューし、このデモから外部へ送信しません。</p>
+          </div>
+
+          <div class="extraction-empty" id="extractionEmpty">
+            <span>02 / CONFIRM</span>
+            <strong>解析後、抽出項目を<br />原本と照合します。</strong>
+            <p>物件名、賃料、住所、最寄駅、間取り、面積、竣工年を表示し、誤読を修正してから候補へ追加します。</p>
+          </div>
+
+          <form class="extraction-card" id="extractionForm" hidden>
+            <div class="card-topline"><span>SAMPLE EXTRACTION</span><span>要原本確認</span></div>
+            <div class="extraction-status" id="intakeStatus">画像を選択してください。</div>
+            <div class="extraction-grid">
+              <label>物件・部屋名<input id="extractedName" value="モノハウス 104号室" /></label>
+              <label>月額賃料<input id="extractedRent" type="number" value="95000" min="0" /></label>
+              <label class="wide">住所<input id="extractedAddress" value="東京都世田谷区代田5-35-30" /></label>
+              <label>最寄駅<input id="extractedStation" value="下北沢駅 徒歩2分" /></label>
+              <label>間取り<input id="extractedLayout" value="1K" /></label>
+              <label>専有面積（㎡）<input id="extractedArea" type="number" value="21.37" min="0" step="0.01" /></label>
+              <label>竣工年<input id="extractedYear" type="number" value="2001" min="1900" /></label>
+            </div>
+            <p class="extraction-note">現在はこの形式を想定した固定サンプル抽出です。実運用ではサーバー側のVision/OCR APIへ接続し、信頼度と出典領域を保持します。</p>
+            <button class="primary-action compact" type="submit">確認して暫定候補に追加 <span>→</span></button>
+          </form>
+        </div>
+        <p class="intake-message" id="intakeMessage" aria-live="polite"></p>
+      </section>
+
       <section class="workspace section-shell" aria-label="賃貸候補を比較するワークスペース">
         <aside class="control-panel">
           <div class="panel-heading">
@@ -94,7 +146,7 @@
         <div class="decision-area">
           <div class="decision-header">
             <div>
-              <p class="eyebrow">SHORTLIST / 03</p>
+              <p class="eyebrow">SHORTLIST / <span id="shortlistCount">03</span></p>
               <h2>候補を、暮らしに照らす</h2>
             </div>
             <p id="decisionSummary" class="decision-summary"></p>
@@ -132,10 +184,10 @@
         <div class="insight-content">
           <article class="selected-card" id="selectedCard"></article>
           <article class="chart-card">
-            <div class="card-topline"><span>DEMO DATA</span><span>過去12か月の掲載賃料</span></div>
+            <div class="card-topline"><span>DEMO DATA</span><span id="chartPeriod">過去12か月の掲載賃料</span></div>
             <h3 id="chartTitle">掲載賃料の推移</h3>
             <div class="rent-chart" id="rentChart" aria-label="掲載賃料の推移グラフ"></div>
-            <p class="chart-footnote">掲載価格の推移を想定したデモデータです。実取引賃料ではありません。</p>
+            <p class="chart-footnote" id="chartFootnote">掲載価格の推移を想定したデモデータです。実取引賃料ではありません。</p>
           </article>
           <article class="review-card">
             <div class="card-topline"><span>DEMO REVIEWS</span><span id="reviewCount">2 件</span></div>

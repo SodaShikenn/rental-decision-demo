@@ -70,15 +70,17 @@ const state = {
 
 const yen = (value) => new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY", maximumFractionDigits: 0 }).format(value);
 const byId = (id) => properties.find((property) => property.id === id);
+const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
 
 function scoreProperty(property) {
   const budgetScore = property.rent <= state.budget ? 25 : Math.max(0, 25 - (property.rent - state.budget) / 700);
-  const commuteValue = Math.max(0, 10 - Math.max(0, property.commute - 20) / 3);
+  const commuteValue = property.enriched === false ? 5 : Math.max(0, 10 - Math.max(0, property.commute - 20) / 3);
   let score = budgetScore + commuteValue * 1.2;
   state.priorities.forEach((priority) => {
-    score += (priority === "commute" ? commuteValue : property[priority]) * 2.5;
+    const value = priority === "commute" ? commuteValue : (property[priority] ?? 5);
+    score += value * 2.5;
   });
-  if (state.weekend) score += property.weekend * 0.6;
+  if (state.weekend) score += (property.weekend ?? 5) * 0.6;
   return Math.round(Math.min(99, score));
 }
 
@@ -89,21 +91,25 @@ function rankedProperties() {
 function renderCandidates() {
   const ranked = rankedProperties();
   const candidateGrid = document.querySelector("#candidateGrid");
-  candidateGrid.innerHTML = ranked.map((property, index) => `
-    <button type="button" class="candidate ${property.id === state.selectedId ? "selected" : ""}" data-property="${property.id}">
-      <span class="candidate-rank">0${index + 1}</span><span class="candidate-score">${scoreProperty(property)} / 99</span>
-      <h3>${property.name}</h3>
-      <p class="area">${property.area}</p>
-      <p class="rent">${yen(property.rent)} <small>/ 月</small></p>
-      <div class="candidate-stats">
-        <span>通勤<b>${property.commute}分</b></span>
-        <span>夜の買い物<b>${property.late}/10</b></span>
-      </div>
-    </button>
-  `).join("");
+  candidateGrid.innerHTML = ranked.map((property, index) => {
+    const provisional = property.enriched === false;
+    return `
+      <button type="button" class="candidate ${property.id === state.selectedId ? "selected" : ""}" data-property="${escapeHTML(property.id)}">
+        <span class="candidate-rank">${String(index + 1).padStart(2, "0")}</span><span class="candidate-score">${provisional ? "暫定 " : ""}${scoreProperty(property)} / 99</span>
+        <h3>${escapeHTML(property.name)}</h3>
+        <p class="area">${escapeHTML(property.area)}</p>
+        <p class="rent">${yen(property.rent)} <small>/ 月</small></p>
+        <div class="candidate-stats">
+          <span>通勤<b>${provisional ? "未取得" : `${property.commute}分`}</b></span>
+          <span>周辺情報<b>${provisional ? "未取得" : `${property.late}/10`}</b></span>
+        </div>
+      </button>
+    `;
+  }).join("");
 
   candidateGrid.querySelectorAll("[data-property]").forEach((element) => element.addEventListener("click", () => selectProperty(element.dataset.property)));
   document.querySelector("#decisionSummary").textContent = `予算 ${yen(state.budget)} / ${[...state.priorities].map(priorityLabel).join("・")} を優先中`;
+  document.querySelector("#shortlistCount").textContent = String(properties.length).padStart(2, "0");
 }
 
 function priorityLabel(key) {
@@ -112,6 +118,7 @@ function priorityLabel(key) {
 
 function renderSelected() {
   const property = byId(state.selectedId);
+  const provisional = property.enriched === false;
   const activePriorities = [...state.priorities];
   const priorityDetails = activePriorities.map((priority) => {
     if (priority === "commute") return `通勤 ${property.commute}分`;
@@ -120,25 +127,41 @@ function renderSelected() {
     return `作業空間 ${property.space}/10`;
   }).join("、");
   const priorityNames = activePriorities.map(priorityLabel).join("・");
+  const fitText = provisional
+    ? `画像から抽出した賃料・間取りのみで暫定評価しています。「${priorityNames}」の実測データは未取得です。`
+    : `優先した「${priorityNames}」では、${priorityDetails}です。`;
+  const whyText = provisional
+    ? `${yen(property.rent)}、${escapeHTML(property.area)}を原本確認用の候補情報として追加しました。`
+    : `${property.tags.map(escapeHTML).join("、")}は、現在の暮らし方と合う要素です。`;
   document.querySelector("#selectedCard").innerHTML = `
     <p class="eyebrow">CURRENTLY SELECTED / ${String(rankedProperties().findIndex((item) => item.id === property.id) + 1).padStart(2, "0")}</p>
-    <h3>${property.name}</h3>
-    <p>${property.route}</p>
+    <h3>${escapeHTML(property.name)}</h3>
+    <p>${escapeHTML(property.route)}</p>
     <div class="reason-list">
-      <div class="reason"><b>FIT</b><span>優先した「${priorityNames}」では、${priorityDetails}です。</span></div>
-      <div class="reason"><b>WHY</b><span>${property.tags.join("、")}は、現在の暮らし方と合う要素です。</span></div>
-      <div class="reason"><b>CHECK</b><span>${property.tradeoff}</span></div>
+      <div class="reason"><b>FIT</b><span>${fitText}</span></div>
+      <div class="reason"><b>WHY</b><span>${whyText}</span></div>
+      <div class="reason"><b>CHECK</b><span>${escapeHTML(property.tradeoff)}</span></div>
     </div>
   `;
   renderChart(property);
-  document.querySelector("#chartTitle").textContent = `${property.name}｜掲載賃料の推移`;
+  document.querySelector("#chartTitle").textContent = provisional ? `${property.name}｜賃料履歴は未取得` : `${property.name}｜掲載賃料の推移`;
+  document.querySelector("#chartPeriod").textContent = provisional ? "現在の募集賃料のみ" : "過去12か月の掲載賃料";
+  document.querySelector("#chartFootnote").textContent = provisional
+    ? "掲載・成約履歴の提供元へ接続するまで、推移は評価に使用しません。"
+    : "掲載価格の推移を想定したデモデータです。実取引賃料ではありません。";
   document.querySelector("#reviewCount").textContent = `${property.reviews.length} 件`;
-  document.querySelector("#reviews").innerHTML = property.reviews.map((review) => `
-    <div class="review"><div class="review-meta"><span>${review.from}</span><span>DEMO</span></div><span>${review.text}</span></div>
-  `).join("");
+  document.querySelector("#reviews").innerHTML = property.reviews.length
+    ? property.reviews.map((review) => `
+      <div class="review"><div class="review-meta"><span>${escapeHTML(review.from)}</span><span>DEMO</span></div><span>${escapeHTML(review.text)}</span></div>
+    `).join("")
+    : '<div class="empty-data">再利用許諾済みの居住者レビューは未取得です。</div>';
 }
 
 function renderChart(property) {
+  if (property.hasRentHistory === false) {
+    document.querySelector("#rentChart").innerHTML = '<div class="empty-data">画像から確認できるのは現在の募集賃料のみです。履歴データの接続が必要です。</div>';
+    return;
+  }
   const values = property.rents;
   const min = Math.min(...values) - 2;
   const max = Math.max(...values) + 2;
@@ -182,16 +205,88 @@ function respondToChat(question) {
   const affordable = [...properties].sort((a, b) => a.rent - b.rent)[0];
   const lower = question.toLowerCase();
   if (lower.includes("1万円") || lower.includes("安く")) {
+    if (affordable.enriched === false) {
+      return `家賃だけで比較すると<strong>${escapeHTML(affordable.name)}</strong>です。ただし、通勤と周辺施設は未取得のため、現時点では暫定候補です。`;
+    }
     return `家賃を抑えるなら<strong>${affordable.name}</strong>です。${yen(best.rent - affordable.rent)}安くなりますが、通勤は${affordable.commute - best.commute}分長くなります。`;
   }
   if (lower.includes("買い物") || lower.includes("夜")) {
-    const nightBest = [...properties].sort((a, b) => b.late - a.late)[0];
+    const nightBest = properties.filter((property) => property.enriched !== false).sort((a, b) => b.late - a.late)[0];
     return `夜の買い物を最優先するなら<strong>${nightBest.name}</strong>です。利便性は${nightBest.late}/10ですが、${nightBest.tradeoff}`;
   }
   if (lower.includes("理由") || lower.includes("なぜ")) {
+    if (best.enriched === false) return `<strong>${escapeHTML(best.name)}</strong>は家賃・間取りだけの暫定評価です。経路と周辺施設を取得するまで最終順位にはできません。`;
     return `<strong>${best.name}</strong>は、${priorityLabel([...state.priorities][0])}と${priorityLabel([...state.priorities][1] || "space")}の両方でバランスが良く、予算との差額も小さいためです。`;
   }
   return `現在の条件では<strong>${best.name}</strong>が最有力です。「1万円安くするなら？」「夜の買い物を優先すると？」のように、妥協したい条件を聞いてください。`;
+}
+
+function setupListingIntake() {
+  const upload = document.querySelector("#listingUpload");
+  const preview = document.querySelector("#listingPreview");
+  const placeholder = document.querySelector("#uploadPlaceholder");
+  const analyzeButton = document.querySelector("#analyzeListing");
+  const form = document.querySelector("#extractionForm");
+  const emptyState = document.querySelector("#extractionEmpty");
+  const message = document.querySelector("#intakeMessage");
+  let previewUrl;
+
+  upload.addEventListener("change", () => {
+    const [file] = upload.files;
+    if (!file) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(file);
+    preview.src = previewUrl;
+    preview.hidden = false;
+    placeholder.hidden = true;
+    analyzeButton.disabled = false;
+    message.textContent = `${file.name} をブラウザ内で読み込みました。`;
+  });
+
+  analyzeButton.addEventListener("click", () => {
+    emptyState.hidden = true;
+    form.hidden = false;
+    document.querySelector("#intakeStatus").textContent = "サンプル抽出値を表示しています。黄色い募集図面の原本と照合し、必要に応じて修正してください。";
+    message.textContent = "抽出結果は未確定です。確認後に候補へ追加できます。";
+  });
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = document.querySelector("#extractedName").value.trim() || "画像から追加した物件";
+    const rent = Math.max(0, Number(document.querySelector("#extractedRent").value) || 0);
+    const address = document.querySelector("#extractedAddress").value.trim();
+    const station = document.querySelector("#extractedStation").value.trim();
+    const layout = document.querySelector("#extractedLayout").value.trim();
+    const area = Number(document.querySelector("#extractedArea").value) || 0;
+    const year = document.querySelector("#extractedYear").value.trim();
+    const district = address.match(/東京都([^区]+区)/)?.[1] || "所在地要確認";
+    const imported = {
+      id: "uploaded-listing",
+      name,
+      area: `${district} / ${layout || "間取り要確認"} / ${area || "面積要確認"}${area ? "㎡" : ""}`,
+      rent,
+      commute: null,
+      late: null,
+      quiet: null,
+      space: null,
+      weekend: null,
+      enriched: false,
+      route: "経路API接続後に計算",
+      tags: [station || "最寄駅要確認", year ? `${year}年竣工` : "竣工年要確認", "画像から抽出"],
+      tradeoff: "画像の読み取り結果を原本と照合し、Routes APIとPlaces APIで通勤・周辺施設を補完する必要があります。",
+      hasRentHistory: false,
+      rents: [],
+      reviews: [],
+    };
+    const existingIndex = properties.findIndex((property) => property.id === imported.id);
+    if (existingIndex >= 0) properties.splice(existingIndex, 1, imported);
+    else properties.push(imported);
+    state.selectedId = imported.id;
+    renderCandidates();
+    renderSelected();
+    message.textContent = `${name}を暫定候補に追加しました。未取得項目は順位上で明示しています。`;
+    document.querySelector(".workspace").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function initialiseGoogleMaps() {
@@ -221,6 +316,7 @@ function initialiseGoogleMaps() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupListingIntake();
   const budget = document.querySelector("#budget");
   budget.addEventListener("input", () => { state.budget = Number(budget.value); document.querySelector("#budgetOutput").value = yen(state.budget); });
   document.querySelector("#priorityChips").addEventListener("click", (event) => {

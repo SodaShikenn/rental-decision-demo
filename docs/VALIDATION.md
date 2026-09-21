@@ -6,7 +6,9 @@ This log distinguishes implemented behavior, deterministic checks, and actual pr
 | --- | --- | --- |
 | `npm test` | 96 frontend + 95 backend passed; 2 optional real-OCR tests skipped | Logic and provider contracts pass with stubs; not a model accuracy benchmark. |
 | Browser workflow | Desktop/mobile, destination confirmation, partial commute failure, leisure confirmation, scenario frequency, review-to-question, personal observation, memo, private-share defaults and HTML download | Google responses stubbed; no synthetic results are shipped as live observations. |
+| UI polish checks | `npm run smoke:ui` passed: keyboard/focus, Escape/outside dismissal, interrupted native dialogs, reduced motion, open/closed sheet resizing, 320/390/760 px touch layouts, 16 px form inputs, dark mode. `npm run smoke:browser` and 96 frontend tests passed again after UI changes. | Chromium and touch emulation; real phone keyboard/safe-area/gesture checks remain open. [Design decisions](UI_DESIGN.md). |
 | Compose configuration | `docker compose ... config --quiet` passed; local Docker daemon was unavailable | API image build is left to CI; no local image-build claim. |
+| GitHub CI for the feature release | [Run 35641505498](https://github.com/SodaShikenn/rental-helper/actions/runs/35641505498) passed frontend, backend and Docker build/Compose jobs | The image built on GitHub; the public API has not been deployed. |
 | Local sharing | Real backend: create → separate reader → revoke → reader receives not-found | SQLite and revocation work locally; not a public backend deployment. |
 | Live destination search | Google returned 新宿駅 | Place search is accessible with the configured key. |
 | Live Tokyo transit | Public address 東京都渋谷区神南1丁目19-11 → 新宿駅, next-day schedule: **no routes returned** | Transit coverage is unresolved. The UI reports this and links to Maps; it does not substitute walking-to-station or invented routes. |

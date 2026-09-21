@@ -59,9 +59,12 @@ npm test                 # logic + API contracts; no live provider calls
 npm ci                   # optional development formatter
 npm run format:check
 npm run smoke:browser    # start dev:web and dev:server first
+npm run smoke:ui         # interaction checks; only dev:web required
 ```
 
 The [browser smoke scenario](../scripts/browser-smoke.js) stubs provider results but creates, reads and revokes an actual local-backend share. The [runner](../scripts/run-browser-smoke.mjs) uses a separate temporary browser session. It fails on reported CLI errors, including those with exit status zero. Do not confuse this with live Google/Gemini verification.
+
+For interface work, start with [UI design decisions](UI_DESIGN.md). Cross-feature motion and touch behavior live in `web/static/interactions.css`; its small `web/shared/interactions.js` companion owns presentation state only. The workspace controller owns responsive panel placement; business rules stay in the feature modules.
 
 ## How to add a feature
 

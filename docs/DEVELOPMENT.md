@@ -143,6 +143,8 @@ The default test suite uses provider stubs and does not require live API keys. S
 
 With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
 
+With just the frontend running, `npm run smoke:ui` checks native dialog/focus behavior, keyboard and reduced-motion paths, touch field sizing, responsive panel restoration and dark mode. These are Chromium/emulated-touch checks; physical phone behavior remains a separate check. See [interface craft](UI_DESIGN.md) for the design rationale and file ownership.
+
 `npm ci && npm run format:check` checks the new feature modules with pinned Prettier. `npm run format` formats them. Backend feature code follows Ruff formatting (`uvx --from ruff==0.12.12 ruff format server/providers server/apps/commute server/apps/leisure server/apps/reviews server/apps/sharing`).
 
 Other commands:
@@ -155,7 +157,7 @@ npm run record:sheets -- --gemini
 
 `smoke` exercises a running API with a fixture. `record:sheets` regenerates recorded demo data using real OCR and checked ground-truth mappings. `--gemini` invokes the live model and evaluates mappings against fixtures; it can incur charges and rewrites generated data. Original `assets/Apt*.jpg` files are ignored; published derivatives in `web/static/sheets/` mask contact details.
 
-Current README screenshots were captured from the actual local UI. The workspace/discovery/memo walkthrough uses contextual numeric questions, with a confirmed flexible ¥110,000 monthly limit. It is not a synthetic Gemini response. See [product validation](../PRODUCT.md#validation-and-release-state) for live-provider limitations.
+README screenshots were captured from the actual local UI. The comparison screenshot shows the latest interface before answering; the discovery/memo walkthrough shows a confirmed flexible ¥110,000 monthly limit. They use contextual numeric questions, not a synthetic Gemini response. See [product validation](../PRODUCT.md#validation-and-release-state) for live-provider limitations.
 
 ## Deployment state
 

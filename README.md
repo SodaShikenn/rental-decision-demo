@@ -19,7 +19,7 @@ Rental Helper brings candidate facts and sources together, asks focused question
 | If you are… | Start here |
 | --- | --- |
 | A recruiter | [Three-step walkthrough](#try-the-three-step-journey), then [skills demonstrated](#what-this-project-demonstrates). |
-| A product or design reviewer | [Product principles and current progress](PRODUCT.md), then [upcoming user journeys](ROADMAP.md). |
+| A product or design reviewer | [Product principles](PRODUCT.md), [interface decisions and interaction checks](docs/UI_DESIGN.md), then [upcoming user journeys](ROADMAP.md). |
 | An engineering reviewer | [8-step code tour](docs/CODE_TOUR.md), [architecture and setup](docs/DEVELOPMENT.md), and [validation](docs/VALIDATION.md). |
 
 ## Try the three-step journey

@@ -47,6 +47,7 @@ Work-destination and leisure questions follow candidate comparison. A workplace 
 - Numeric questions use known values from the displayed candidates and the current concern. Tentative choices require a second importance confirmation. Confirmed pills can reopen that question.
 - The AI receives the selected concern, displayed candidate evidence, available Maps observations and confirmed context. A changed concern or pair invalidates the displayed reply and cancels pending requests; stale retries cannot cross contexts.
 - On mobile, questions open in a modal bottom panel with Escape/close and focus return. Moving back to desktop restores the panel beside the comparison.
+- Occasional overlays use short directional transitions; keyboard actions and reduced-motion preferences remain immediate. Touch controls use capability-gated hover, readable input sizes and safe-area spacing. [Interface decisions](docs/UI_DESIGN.md) document ownership and validation.
 - Confirmed priorities remain global to the shortlist. Equipment/contract choices and the final memo cover all candidates. View and mobile pair selection are temporary; user work remains saved.
 
 ## Evidence contract

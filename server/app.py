@@ -92,6 +92,8 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(maps_router)
     from apps.advisor import router as advisor_router
     app.include_router(advisor_router)
+    from apps.commute import router as commute_router
+    app.include_router(commute_router)
 
 
 def register_error_handlers(app: FastAPI) -> None:

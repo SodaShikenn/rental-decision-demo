@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="static/workspace.css" />
     <script src="env.js"></script>
     <script type="module" src="app.js"></script>
+    <link rel="stylesheet" href="static/features.css" />
   </head>
   <body>
     <a class="skip-link" href="#compareTable">比較表へ移動</a>
@@ -77,7 +78,7 @@
               <section class="maps-section" id="surroundings" aria-labelledby="mapsSectionTitle" hidden>
                 <div class="section-head"><h3 id="mapsSectionTitle">実際の徒歩経路で確かめる</h3><span class="section-meta" translate="no">Google Maps</span></div>
                 <p class="section-hint">掲載値を残して、取得した時間・距離と比較します。</p><div id="mapsCandidates" class="maps-cards"></div>
-                <p class="context-limitation">勤務先への通勤経路・余暇の好みに合わせた施設比較は、今後対応予定です。</p>
+                <div id="commuteMount"></div>
               </section>
               <section class="preferences-section" id="preferences" aria-labelledby="preferencesTitle" hidden>
                 <h3 id="preferencesTitle">気になる条件を選ぶ</h3>

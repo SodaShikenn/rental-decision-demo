@@ -1,37 +1,15 @@
 """Fresh provider observations, never replacements for listing claims or proof of truth."""
 import asyncio
 import math
-import unicodedata
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 import httpx
 from helper import AppError
+from providers.google_maps import request, normalized, distance
 
 PLACE_FIELDS = 'places.id,places.displayName,places.formattedAddress,places.location,places.googleMapsUri,places.businessStatus,places.types,places.attributions'
 TYPES = {'station': ['train_station', 'subway_station'], 'supermarket': ['supermarket'], 'convenience_store': ['convenience_store']}
-
-
-def normalized(value):
-    return ''.join(unicodedata.normalize('NFKC', value).split()).removesuffix('駅')
-
-
-def distance(a, b):
-    lat1, lat2 = math.radians(a['latitude']), math.radians(b['latitude'])
-    dlat = lat2 - lat1
-    dlon = math.radians(b['longitude'] - a['longitude'])
-    return 6371000 * 2 * math.asin(min(1, math.sqrt(math.sin(dlat / 2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlon / 2)**2)))
-
-
-async def request(client, method, url, **kwargs):
-    try:
-        response = await client.request(method, url, **kwargs)
-        if response.status_code != 200:
-            raise ValueError('provider rejected request')
-        return response.json()
-    except (httpx.HTTPError, ValueError):
-        # Provider responses and URLs may contain credentials; never expose them.
-        raise AppError(502, 'maps_unavailable', 'Google Maps に接続できませんでした。時間をおいて再確認してください。') from None
 
 
 def comparison(claim, route):

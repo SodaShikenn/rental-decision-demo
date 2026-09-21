@@ -1,5 +1,5 @@
 const DB_NAME = 'rental-helper-session';
-const KEYS = ['properties', 'settings', 'priorities', 'rentOverrides', 'pickOverrides', 'answers', 'memoEdit', 'memoEditVersion', 'sheetsVersion', 'advisor'];
+const KEYS = ['properties', 'settings', 'priorities', 'rentOverrides', 'pickOverrides', 'answers', 'memoEdit', 'memoEditVersion', 'sheetsVersion', 'advisor', 'observations'];
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);

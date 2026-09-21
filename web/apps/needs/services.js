@@ -388,6 +388,7 @@ export function buildTenantMemo(state) {
     const labels = question.options.filter((option) => Array.isArray(answer) ? answer.includes(option.value) : answer === option.value).map((option) => option.label);
     return labels.length ? [`・${question.text} → ${labels.join("・")}`] : [];
   });
-  const text = [priorityMemo(state.priorities), ...(chosen.length ? ["", "■ 自分で選んだ設備・条件", ...chosen] : []), ...(responses.length ? ["", "■ 確認したい暮らし・契約条件", ...responses] : []), ...(memo.ask.length ? ["", ASK_HEADING, ...memo.ask] : [])].join("\n");
+  const own = (state.observations ?? []).filter(o => state.properties.some(p => p.id === o.candidateId)).map(o => `・${state.properties.find(p => p.id === o.candidateId).name}（${o.date}）：${o.text}`);
+  const text = [priorityMemo(state.priorities), ...(chosen.length ? ["", "■ 自分で選んだ設備・条件", ...chosen] : []), ...(responses.length ? ["", "■ 確認したい暮らし・契約条件", ...responses] : []), ...(memo.ask.length ? ["", ASK_HEADING, ...memo.ask] : []), ...(own.length ? ["", "■ 自分の内見記録（掲載情報・口コミとは別）", ...own] : [])].join("\n");
   return { ...memo, text };
 }

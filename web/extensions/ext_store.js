@@ -10,6 +10,7 @@ export function createStore({ properties, settings }) {
   const listeners = new Map();
   const state = {
     priorities: emptyPriorities(),
+    observations: [],
     workspace: { dimension: 'cost', pair: [], mobile: false },
     advisor: { history: [], reply: null, fingerprint: "", usesMaps: false },
     // Sheets in the order they were added. Nothing reorders them.
@@ -37,6 +38,10 @@ export function createStore({ properties, settings }) {
   return {
     state,
     emit,
+    setObservations(observations) {
+      state.observations = observations;
+      emit("change");
+    },
     setWorkspace(patch) {
       state.workspace = { ...state.workspace, ...patch };
       emit('workspace');
@@ -72,6 +77,7 @@ export function createStore({ properties, settings }) {
       revoke(property.sheet?.image);
       state.properties = state.properties.filter((existing) => existing.id !== id);
       delete state.rentOverrides[id];
+      state.observations = (state.observations ?? []).filter(o => o.candidateId !== id);
       state.sheetsVersion += 1;
       emit("change");
     },

@@ -96,6 +96,8 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(commute_router)
     from apps.leisure import router as leisure_router
     app.include_router(leisure_router)
+    from apps.reviews import router as reviews_router
+    app.include_router(reviews_router)
 
 
 def register_error_handlers(app: FastAPI) -> None:

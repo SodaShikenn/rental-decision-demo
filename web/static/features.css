@@ -24,3 +24,10 @@
 .feature-section [role=status] { margin-block: 12px; font-size: 12px; }
 .feature-section a { font-size: 12px; overflow-wrap: anywhere; }
 @media (max-width: 760px) { .feature-form { grid-template-columns: repeat(2,minmax(0,1fr)); } .inline-form { flex-wrap: wrap; } .inline-form label { flex-basis: 100%; } }
+
+.feature-section > label { display: grid; gap: 8px; font-size: 12px; }
+.feature-section select { max-width: 100%; min-height: 44px; padding: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 5px; font: inherit; }
+.review-author { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 12px; }
+.review-author img { border-radius: 50%; }
+.review-entry > p { white-space: pre-wrap; font-size: 13px; margin-block: 12px; overflow-wrap: anywhere; }
+.context-question > .button { margin-bottom: 12px; white-space: normal; text-align: left; }

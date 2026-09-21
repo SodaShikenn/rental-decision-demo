@@ -44,7 +44,7 @@ export function initApp(app) {
     const choice=event.target.closest('[data-commute-choice]');
     if(choice){ tentative=choice.dataset.commuteChoice; $('#commuteConfirm').innerHTML=tentative==='later'?'<p>今は決めずに、ほかの条件も比べましょう。</p>':`<p>「${OBJECTIVES[tentative]}」を希望に加えますか？</p><button class="button" data-commute-level="must">必須として確認</button> <button class="button" data-commute-level="prefer">できればとして確認</button>`;return; }
     const level=event.target.closest('[data-commute-level]');if(!level||!result||!OBJECTIVES[tentative])return;
-    const note=commutePreference(result,tentative,level.dataset.commuteLevel); saveNote(store,note.text,note.level,note.source); $('#commuteConfirm').textContent='希望と条件メモに反映しました。';
+    const note=commutePreference(result,tentative,level.dataset.commuteLevel); saveNote(store,note.text,note.level,note.source,note.details); $('#commuteConfirm').textContent='希望と条件メモに反映しました。';
   });
   store.on('change',()=>{const next=candidateFingerprint(store.state);if(next!==candidates){candidates=next;invalidate();$('#commuteStatus').textContent='候補が変わりました。再確認してください。';}});
 }

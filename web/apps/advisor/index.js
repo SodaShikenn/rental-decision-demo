@@ -3,12 +3,17 @@ import { EXTRACTION_API_URL } from '../../config.js';
 import { LEVELS, formatPriority } from '../priorities/services.js';
 import { advisorEvidence, advisorInput, confirmProposal, requestAdvice } from './services.js';
 
+import { journeyEvidence } from "../scenarios/services.js";
 import { visibleCandidates } from "../workspace/services.js";
 
 export function initApp(app) {
   const { store } = app.extensions;
   let busy = false, controller, sequence = 0, retryHistory = store.state.advisor.pendingHistory ?? null;
-  const evidence = () => advisorEvidence(visibleCandidates(store.state.properties, store.state.workspace), app.extensions.mapsObservations?.() ?? []);
+  const evidence = () => {
+    const properties = visibleCandidates(store.state.properties, store.state.workspace);
+    return [...advisorEvidence(properties, app.extensions.mapsObservations?.() ?? []),
+      ...journeyEvidence(properties, app.extensions.commuteObservation?.(), app.extensions.leisureObservation?.())].slice(0,80);
+  };
   const fingerprintOf = () => JSON.stringify({ focus: store.state.workspace.dimension, evidence: evidence() });
   if (store.state.advisor.fingerprint !== fingerprintOf()) {
     retryHistory = null;
@@ -101,6 +106,6 @@ export function initApp(app) {
     }
     render();
   };
-  store.on('change', changed); store.on('workspace', changed); store.on('maps-updated', changed); store.on('advisor', render);
+  store.on('change', changed); store.on('workspace', changed); store.on('maps-updated', changed); store.on('context-updated', changed); store.on('advisor', render);
   render();
 }

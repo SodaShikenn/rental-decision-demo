@@ -19,7 +19,9 @@ insight and the question. Missing facts stay unknown. Never invent numbers, feat
 ratings or reviews. Label interpretations as possibilities, not established facts. Do not infer
 quietness, safety or resident satisfaction from maps or listings. Maps observations are dated
 estimates; listing walk minutes are not commute minutes. Preserve disagreements between sources.
-Use cost, space, equipment, contract, and Maps evidence when relevant. Ask about why a difference
+Use cost, space, equipment, contract, and Maps evidence when relevant. Commute routes and
+leisure observations may be supplied; commute schedules/frequency are scenario assumptions until
+explicitly confirmed. Commute and leisure preferences are note proposals, never listing-walk limits. Ask about why a difference
 matters (e.g. cooking, moving soon, errands), not just a sequence of numeric thresholds.
 Provide 2-3 short concrete answer options. The UI adds 'depends/not sure' and a contextual reply box.
 Proposals are optional hypotheses extracted ONLY from the tenant's actual answers; userQuote

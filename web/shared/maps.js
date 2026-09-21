@@ -6,6 +6,6 @@ export const mapsCredit = '<span class="maps-credit" translate="no">Google Maps<
 export const candidateInputs = state => state.properties.map(({id,name,address})=>({id,name,address:address||''}));
 export const candidateFingerprint = state => JSON.stringify(candidateInputs(state));
 export function formatTime(value) { if(!value) return '未取得'; const d=new Date(value); return Number.isFinite(+d) ? new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(d) : '未取得'; }
-export function saveNote(store, text, level, source) {
-  store.setPriorities({...store.state.priorities, notes:[...(store.state.priorities.notes||[]).filter(n=>n.source!==source),{text,level,source}].slice(-20)});
+export function saveNote(store, text, level, source, details = {}) {
+  store.setPriorities({...store.state.priorities, notes:[...(store.state.priorities.notes||[]).filter(n=>n.source!==source),{text,level,source,details}].slice(-20)});
 }

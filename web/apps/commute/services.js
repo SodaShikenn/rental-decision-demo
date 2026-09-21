@@ -14,5 +14,5 @@ export function commuteQuestion(result) {
   return {evidence:routes.map(r=>`${r.name}：片道${r.minutes}分`).join('／'), text:`片道${Math.min(...values)}${new Set(values).size>1?`〜${Math.max(...values)}`:''}分。この通勤で何を優先したいですか？`};
 }
 export function commutePreference(result, objective, level) {
-  return {text:`通勤は週${result.schedule.daysPerWeek}日を想定し、${OBJECTIVES[objective]}ことを${level==='must'?'重視':'できれば希望'}。経路・時刻はその都度再確認する。`,level,source:'commute'};
+  return {text:`通勤は週${result.schedule.daysPerWeek}日を想定し、${OBJECTIVES[objective]}ことを${level==='must'?'重視':'できれば希望'}。経路・時刻はその都度再確認する。`,level,source:'commute',details:{objective,daysPerWeek:result.schedule.daysPerWeek}};
 }

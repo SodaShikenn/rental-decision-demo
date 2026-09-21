@@ -5,7 +5,7 @@ export function availableInterests(result) {
 export function leisurePreference(key,frequency,level) {
   if(!CATEGORIES[key]||!['weekly','monthly','rarely'].includes(frequency)||!['must','prefer'].includes(level)) throw new Error('希望を確認してください。');
   const how={weekly:'週に数回',monthly:'月に数回',rarely:'たまに'}[frequency];
-  return {text:`${CATEGORIES[key]}を${how}使いたい。徒歩で通いやすいことを${level==='must'?'重視':'できれば希望'}。営業時間や用途への適合は現地で確認する。`,level,source:`leisure:${key}`};
+  return {text:`${CATEGORIES[key]}を${how}使いたい。徒歩で通いやすいことを${level==='must'?'重視':'できれば希望'}。営業時間や用途への適合は現地で確認する。`,level,source:`leisure:${key}`,details:{frequency,kind:key}};
 }
 export function nearestKnown(result,id,kind) {
   const group=result?.candidates.find(c=>c.id===id)?.groups.find(g=>g.kind===kind);

@@ -19,6 +19,8 @@ This log distinguishes implemented behavior, deterministic checks, and actual pr
 
 No claim of tenant-study results, resident identity verification, guaranteed route coverage or production readiness is made.
 
+The deployed-UI check also exposed a pre-existing new-link entry crash: the controller evaluated a candidate fingerprint before a candidate existed. A browser regression reproduced the failure before the cached-research guard was corrected; the same scenario passed afterward, including opening/closing the link dialog and restoring trigger focus.
+
 ## Provider contracts consulted
 
 - [Google transit routes](https://developers.google.com/maps/documentation/routes/transit-route): time selection, alternatives and transit preferences; fares may be absent.

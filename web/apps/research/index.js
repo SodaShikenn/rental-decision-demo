@@ -28,7 +28,7 @@ export function initApp(app) {
     $("#researchSuggestions").hidden = true;
     $("#researchLinks").innerHTML = property ? searchLinks(property).map(({ label, url }) => `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`).join("") : "";
     $("#researchRun").disabled = false;
-    if (property?.monthlyResearch?.fingerprint === monthlyFingerprint(property)) {
+    if (property?.monthlyResearch && property.monthlyResearch.fingerprint === monthlyFingerprint(property)) {
       const saved = property.monthlyResearch;
       $("#researchStatus").textContent = saved.message || "自動調査の結果です。再検索もできます。";
       if (saved.listings) { result = saved; renderResults(); }

@@ -15,6 +15,21 @@ async (page) => {
     });
 
   await page.locator("#compareRows .cell").first().waitFor();
+  // A new link has no candidate or research fingerprint yet.
+  await page.locator("#addLink").click();
+  check(
+    await open("#researchDialog"),
+    "New-link intake opens without an existing candidate",
+  );
+  check(
+    await page.locator("#linkFallback").isVisible(),
+    "New-link intake offers saving an unparsed link",
+  );
+  await page.keyboard.press("Escape");
+  check(
+    (await activeId()) === "addLink",
+    "Link intake restores focus to its trigger",
+  );
   const more = page.locator(".more-inputs > summary");
   await more.click();
   await page.keyboard.press("Escape");

@@ -13,6 +13,7 @@ This pass applies [Emil Kowalski's design engineering skill](https://github.com/
 | Small nested form fonts | Touch inputs/selects/textareas are at least 16 px; date controls have sufficient width | Avoid iOS input zoom without disabling user zoom. |
 | Mobile panel content immediately moves away on close | It remains through the CSS exit and returns to the inspector on desktop | Avoid an empty exit frame; preserve content on resize. |
 | Additional-input disclosure stays open after selection | Close on action, outside click or Escape; restore focus on Escape | Finish the interaction without leaving stray controls open. |
+| New-link intake evaluates a fingerprint without a candidate | Only read cached research when it exists | Keep the primary link-entry dialog available for a new candidate. |
 
 ## Ownership
 

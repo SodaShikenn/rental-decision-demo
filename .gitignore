@@ -3,6 +3,9 @@
 .DS_Store
 output/
 .playwright-cli/
-server/node_modules/
-server/.dev.vars
-server/.wrangler/
+__pycache__/
+.pytest_cache/
+handoff.md
+# Original listing sheets. The site publishes derived copies in web/static/sheets/ (downscaled,
+# contact details masked), built by server/commands/record_sheets.py.
+assets/Apt*.jpg

@@ -1,9 +1,12 @@
-// Extraction data definitions (≈ models.py): the fields a listing sheet yields, the sample
-// reading used without an extraction server, and a shape check for server responses.
+// Extraction data definitions (≈ models.py): the fields a listing sheet yields, the reading modes,
+// and a shape check for server responses.
+import { SHEETS } from "../../data/sheets.js";
 
 export const EXTRACTION_FIELDS = [
   { key: "propertyName", label: "物件・部屋名", type: "text" },
   { key: "rent", label: "月額賃料（円）", type: "number", step: "1" },
+  // 0 is a real value here: a fee included in the rent (管理費込).
+  { key: "managementFee", label: "管理費・共益費（円）", type: "number", step: "1", allowZero: true },
   { key: "address", label: "住所", type: "text", wide: true },
   { key: "station", label: "最寄駅", type: "text" },
   { key: "layout", label: "間取り", type: "text" },
@@ -11,26 +14,13 @@ export const EXTRACTION_FIELDS = [
   { key: "constructionYear", label: "竣工年", type: "number", step: "1" },
 ];
 
-export const MODE_LABELS = { sample: "SAMPLE EXTRACTION", mock: "MOCK EXTRACTION", live: "CLAUDE EXTRACTION" };
+// live: this server just read the image. recorded: a reading made earlier of a sheet published with
+// the site (web/data/sheets.js). mock: the server's fixed test reading; the image is not read.
+export const MODE_LABELS = { live: "OCR（Docling）+ Gemini の読み取り結果", recorded: "記録済みの読み取り結果 · OCR は実測", mock: "モック応答 · 画像は未解析" };
 export const WARNING_LABELS = { inconsistent_values: "不一致", illegible: "判読困難", multiple_candidates: "候補複数", other: "注意" };
 
-const sampleField = (value) => ({ value, confidence: null, evidence: null, sourceText: null });
-
-/** Fixed values for the demonstrated sheet format, shown when no extraction server is configured. */
-export const SAMPLE_EXTRACTION = {
-  documentId: null,
-  meta: { mode: "sample", model: null, extractedAt: null },
-  fields: {
-    propertyName: sampleField("モノハウス 104号室"),
-    rent: sampleField(95000),
-    address: sampleField("東京都世田谷区代田5-35-30"),
-    station: sampleField("下北沢駅 徒歩2分"),
-    layout: sampleField("1K"),
-    areaSqm: sampleField(21.37),
-    constructionYear: sampleField(2001),
-  },
-  warnings: [],
-};
+/** The sheet offered as "サンプル図面": its image and its recorded reading. */
+export const SAMPLE_SHEET = SHEETS.find((sheet) => sheet.id === "monohouse");
 
 export const fieldLabel = (key) => EXTRACTION_FIELDS.find((field) => field.key === key)?.label ?? key;
 

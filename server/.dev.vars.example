@@ -1,5 +1,0 @@
-# Copy to .dev.vars for `npm run dev`. .dev.vars is ignored by Git.
-# mock: return the fixture reading without calling Claude (no API key or cost).
-# live: call Claude with ANTHROPIC_API_KEY (each extraction is billed).
-EXTRACTION_MODE=mock
-ANTHROPIC_API_KEY=

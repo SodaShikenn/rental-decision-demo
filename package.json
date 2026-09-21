@@ -1,17 +1,20 @@
 {
-  "name": "rental-decision-demo",
+  "name": "rental-helper",
   "private": true,
-  "description": "NEST: explainable rental decisions. Static front end (web/) plus a Cloudflare Worker extraction server (server/).",
+  "description": "Rental Helper: read rental listing sheets with Docling OCR, compare candidates with evidence, and check pre-contract terms and move-in costs. Static front end (web/) plus a FastAPI server (server/), runnable together with Docker.",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev:web": "python3 -m http.server 4173 --bind 127.0.0.1 --directory web",
-    "dev:server": "npm --prefix server run dev",
+    "dev:server": "cd server && .venv/bin/uvicorn app:create_app --factory --reload --port 8000",
     "test": "npm run test:web && npm run test:server",
     "test:web": "node --test \"web/tests/**/*.test.js\"",
-    "test:server": "npm --prefix server test",
-    "smoke": "npm --prefix server run smoke"
+    "test:server": "cd server && .venv/bin/python -m pytest",
+    "smoke": "cd server && .venv/bin/python -m commands.smoke",
+    "record:sheets": "cd server && .venv/bin/python -m commands.record_sheets",
+    "up": "docker compose -f docker/docker-compose.yml up --build",
+    "down": "docker compose -f docker/docker-compose.yml down"
   }
 }

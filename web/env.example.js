@@ -2,7 +2,7 @@
 window.RENTAL_DEMO_ENV = {
   // Google Maps JavaScript API key restricted by HTTP referrer and API scope.
   googleMapsApiKey: "",
-  // Extraction server base URL, e.g. "https://nest-listing-extractor.<account>.workers.dev",
-  // or "http://localhost:8787" while running `npm run dev:server`. Blank uses sample extraction.
+  // Extraction server base URL, e.g. "https://rental-helper-api.example.com", or "http://localhost:8000" while
+  // running `npm run dev:server`. Blank shows only the sample sheet's recorded reading. (docker compose supplies its own env.js.)
   extractionApiUrl: "",
 };

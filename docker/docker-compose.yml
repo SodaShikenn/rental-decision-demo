@@ -1,0 +1,33 @@
+# Run the whole app locally: front end (nginx) and extraction API (FastAPI) on one origin.
+#   cp server/.env.example server/.env        # EXTRACTION_MODE=mock by default: no key, no cost
+#   docker compose -f docker/docker-compose.yml up --build
+#   open http://localhost:8080                  (API reference: http://localhost:8080/docs)
+name: rental-helper
+
+services:
+  api:
+    build: ../server
+    env_file:
+      - path: ../server/.env
+        required: false
+    environment:
+      ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      # Only nginx can reach this container, so trust its X-Forwarded-For for client IPs.
+      FORWARDED_ALLOW_IPS: "*"
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  web:
+    image: nginx:1.31-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ../web:/usr/share/nginx/html:ro
+      # Point the front end at the API on the same origin instead of the committed blank env.js.
+      - ./web/env.js:/usr/share/nginx/html/env.js:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

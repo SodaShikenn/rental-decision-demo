@@ -1,0 +1,708 @@
+{
+  "description": "Real listing sheets used as the demo candidates, with ground truth checked against each original. `fields` and `costs` (money terms besides rent and the fee) hold the checked values; `lines` quotes the OCR text each value is read from; a quote must match one Docling line (equal text first, then substring, both NFKC-folded; when several lines match, the one nearest the value's other quotes). `source` is the original image; `image` is the copy published with the site, downscaled like the browser does before upload, with `mask` boxes [x1, y1, x2, y2] (in the copy's pixels) painted over contact details. Used by commands/record_sheets.py.",
+  "sheets": [
+    {
+      "id": "monohouse",
+      "source": "assets/Apt1.jpg",
+      "image": "web/static/sheets/monohouse.jpg",
+      "mask": [],
+      "fields": {
+        "propertyName": {
+          "value": "モノハウス 104号室",
+          "lines": [
+            "モノハウス",
+            "104号室"
+          ]
+        },
+        "rent": {
+          "value": 95000,
+          "lines": [
+            "95,000円"
+          ]
+        },
+        "managementFee": {
+          "value": 0,
+          "lines": [
+            "管理費:込"
+          ]
+        },
+        "address": {
+          "value": "東京都世田谷区代田5-35-30",
+          "lines": [
+            "所在地"
+          ]
+        },
+        "station": {
+          "value": "小田急線「下北沢」駅 徒歩2分",
+          "lines": [
+            "小田急線「下北沢」駅徒歩2分"
+          ]
+        },
+        "layout": {
+          "value": "1K",
+          "lines": [
+            "間取り"
+          ]
+        },
+        "areaSqm": {
+          "value": 21.37,
+          "lines": [
+            "専有面積"
+          ]
+        },
+        "constructionYear": {
+          "value": 2001,
+          "lines": [
+            "竣工"
+          ]
+        }
+      },
+      "warnings": [
+        {
+          "code": "inconsistent_values",
+          "message": "専有面積が物件概要（21.37㎡）と間取り図（22.37㎡）で異なります。間取り図の坪表記（6.45坪 ≈ 21.32㎡）は物件概要の値に近いです。",
+          "fields": [
+            "areaSqm"
+          ]
+        }
+      ],
+      "costs": [
+        {
+          "kind": "deposit",
+          "label": "敷金",
+          "amount": 1,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "敷金：1ヶ月"
+          ]
+        },
+        {
+          "kind": "amortization",
+          "label": "敷金償却",
+          "amount": 1,
+          "unit": "months",
+          "timing": "moveOut",
+          "lines": [
+            "敷金償却"
+          ]
+        },
+        {
+          "kind": "keyMoney",
+          "label": "礼金",
+          "amount": 0,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "礼金"
+          ]
+        },
+        {
+          "kind": "renewal",
+          "label": "更新料（新家賃の1ヶ月）",
+          "amount": 1,
+          "unit": "months",
+          "timing": "renewal",
+          "lines": [
+            "更新料"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "火災保険",
+          "amount": 18000,
+          "unit": "yen",
+          "timing": "initial",
+          "required": true,
+          "lines": [
+            "火災保険"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 初回保証料（賃料等の50%）",
+          "amount": 50,
+          "unit": "percent",
+          "timing": "initial",
+          "required": true,
+          "lines": [
+            "初回保証料"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 月額保証料（支払総額の1%）",
+          "amount": 1,
+          "unit": "percent",
+          "timing": "monthly",
+          "required": true,
+          "lines": [
+            "月額保証料"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "鍵交換費用",
+          "amount": 16500,
+          "unit": "yen",
+          "timing": "initial",
+          "lines": [
+            "16,500円"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "louvre-shoto",
+      "source": "assets/Apt2.jpg",
+      "image": "web/static/sheets/louvre-shoto.jpg",
+      "mask": [
+        [
+          1574,
+          553,
+          1726,
+          582
+        ],
+        [
+          1597,
+          672,
+          1648,
+          705
+        ],
+        [
+          1574,
+          706,
+          1732,
+          737
+        ]
+      ],
+      "fields": {
+        "propertyName": {
+          "value": "ルーブル渋谷松濤 408号室",
+          "lines": [
+            "ルーブル渋谷松濤",
+            "408号室"
+          ]
+        },
+        "rent": {
+          "value": 105000,
+          "lines": [
+            "105,000円"
+          ]
+        },
+        "managementFee": {
+          "value": 5000,
+          "lines": [
+            "管理費",
+            "5,000円"
+          ]
+        },
+        "address": {
+          "value": "東京都渋谷区富ヶ谷2丁目20-18",
+          "lines": [
+            "東京都渋谷区富ヶ谷"
+          ]
+        },
+        "station": {
+          "value": "小田急電鉄小田原線「代々木八幡駅」徒歩10分",
+          "lines": [
+            "代々木八幡"
+          ]
+        },
+        "layout": {
+          "value": "1K",
+          "lines": [
+            "1K"
+          ]
+        },
+        "areaSqm": {
+          "value": 20.25,
+          "lines": [
+            "20.25"
+          ]
+        },
+        "constructionYear": {
+          "value": 2001,
+          "lines": [
+            "2001年10月"
+          ]
+        }
+      },
+      "warnings": [],
+      "costs": [
+        {
+          "kind": "deposit",
+          "label": "敷金",
+          "amount": 0,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "敷金",
+            "0ヶ月"
+          ]
+        },
+        {
+          "kind": "keyMoney",
+          "label": "礼金",
+          "amount": 1,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "礼金",
+            "1.0ヶ月"
+          ]
+        },
+        {
+          "kind": "renewal",
+          "label": "更新料（新賃料の1.5ヶ月）",
+          "amount": 1.5,
+          "unit": "months",
+          "timing": "renewal",
+          "lines": [
+            "更新料",
+            "1.5ヶ月"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 初回保証料（総賃料の100%）",
+          "amount": 100,
+          "unit": "percent",
+          "timing": "initial",
+          "required": true,
+          "lines": [
+            "初回保証料"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 年間保証料",
+          "amount": 15000,
+          "unit": "yen",
+          "timing": "yearly",
+          "required": true,
+          "lines": [
+            "初回保証料"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "引落手数料",
+          "amount": 330,
+          "unit": "yen",
+          "timing": "monthly",
+          "required": true,
+          "lines": [
+            "引落手数料"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "鍵交換代",
+          "amount": 33000,
+          "unit": "yen",
+          "timing": "initial",
+          "lines": [
+            "鍵交換代",
+            "33,000円"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "クリーニング代",
+          "amount": 70000,
+          "unit": "yen",
+          "timing": "initial",
+          "lines": [
+            "クリーニング代",
+            "70,000円"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "抗菌代（エアコン洗浄）",
+          "amount": 16500,
+          "unit": "yen",
+          "timing": "initial",
+          "lines": [
+            "抗菌代",
+            "16,500円"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "リノシークラブ（火災保険等）",
+          "amount": 22000,
+          "unit": "yen",
+          "timing": "initial",
+          "lines": [
+            "リノシークラブ",
+            "22,000円"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "24時間サポート代（2年）",
+          "amount": 16500,
+          "unit": "yen",
+          "timing": "initial",
+          "lines": [
+            "24時間",
+            "16,500円"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bresport",
+      "source": "assets/Apt3.jpg",
+      "image": "web/static/sheets/bresport.jpg",
+      "mask": [],
+      "fields": {
+        "propertyName": {
+          "value": "Bresport（ブレスポート）",
+          "lines": [
+            "Bresport("
+          ]
+        },
+        "rent": {
+          "value": 125000,
+          "lines": [
+            "125,000円"
+          ]
+        },
+        "managementFee": {
+          "value": 5000,
+          "lines": [
+            "125,000円"
+          ]
+        },
+        "address": {
+          "value": "世田谷区北沢4-16-24 3F",
+          "lines": [
+            "4-16-24"
+          ]
+        },
+        "station": {
+          "value": "小田急・京王井の頭線 下北沢駅 徒歩8分",
+          "lines": [
+            "小田急・京王井の頭線",
+            "下北沢駅徒歩8分"
+          ]
+        },
+        "layout": {
+          "value": "1K+WIC",
+          "lines": [
+            "1K+WIC"
+          ]
+        },
+        "areaSqm": {
+          "value": 28.8,
+          "lines": [
+            "28.80"
+          ]
+        },
+        "constructionYear": {
+          "value": 2019,
+          "lines": [
+            "2019年3月"
+          ]
+        }
+      },
+      "warnings": [],
+      "costs": [
+        {
+          "kind": "deposit",
+          "label": "敷金",
+          "amount": 1,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "敷金：1ヶ月"
+          ]
+        },
+        {
+          "kind": "keyMoney",
+          "label": "礼金",
+          "amount": 0,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "礼金：なし"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 初回（賃料等の50%）",
+          "amount": 50,
+          "unit": "percent",
+          "timing": "initial",
+          "required": true,
+          "lines": [
+            "個人(日本国籍)"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 月次保証料（1%）",
+          "amount": 1,
+          "unit": "percent",
+          "timing": "monthly",
+          "required": true,
+          "lines": [
+            "個人(日本国籍)"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "緊急駆付けサポート",
+          "amount": 15000,
+          "unit": "yen",
+          "timing": "initial",
+          "taxExcluded": true,
+          "required": true,
+          "lines": [
+            "駆付け"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "契約事務手数料",
+          "amount": 25000,
+          "unit": "yen",
+          "timing": "initial",
+          "taxExcluded": true,
+          "required": true,
+          "lines": [
+            "契約事務手数料"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "総合保険サポート",
+          "amount": 1000,
+          "unit": "yen",
+          "timing": "monthly",
+          "required": true,
+          "lines": [
+            "総合保険"
+          ]
+        },
+        {
+          "kind": "renewal",
+          "label": "更新料（新賃料の1ヶ月）",
+          "amount": 1,
+          "unit": "months",
+          "timing": "renewal",
+          "lines": [
+            "更新："
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "更新事務手数料",
+          "amount": 25000,
+          "unit": "yen",
+          "timing": "renewal",
+          "taxExcluded": true,
+          "lines": [
+            "更新："
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "駐輪場",
+          "amount": 500,
+          "unit": "yen",
+          "timing": "monthly",
+          "required": false,
+          "lines": [
+            "駐輪場"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "granpaseo-4",
+      "source": "assets/Apt4.jpg",
+      "image": "web/static/sheets/granpaseo-4.jpg",
+      "mask": [],
+      "fields": {
+        "propertyName": {
+          "value": "GRAN PASEO明大前Ⅳ",
+          "lines": [
+            "PASEO明大前"
+          ]
+        },
+        "rent": {
+          "value": null,
+          "lines": []
+        },
+        "managementFee": {
+          "value": 10000,
+          "lines": [
+            "1K:10,000円"
+          ]
+        },
+        "address": {
+          "value": "東京都世田谷区羽根木2-28-19",
+          "lines": [
+            "羽根木2-28-19"
+          ]
+        },
+        "station": {
+          "value": "井の頭線「東松原」駅 徒歩5分",
+          "lines": [
+            "東松原"
+          ]
+        },
+        "layout": {
+          "value": "1K",
+          "lines": [
+            "1K21.74"
+          ]
+        },
+        "areaSqm": {
+          "value": 21.74,
+          "lines": [
+            "1K21.74"
+          ]
+        },
+        "constructionYear": {
+          "value": 2026,
+          "lines": [
+            "築年月"
+          ]
+        }
+      },
+      "warnings": [
+        {
+          "code": "multiple_candidates",
+          "message": "1K〜2LDKの複数タイプを載せた建物の図面です。間取り・専有面積・共益費は最小の1Kタイプの値です。検討するタイプに合わせて確認してください。",
+          "fields": [
+            "layout",
+            "areaSqm",
+            "managementFee"
+          ]
+        }
+      ],
+      "costs": [
+        {
+          "kind": "deposit",
+          "label": "敷金",
+          "amount": 0,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "敷金0ヶ月・礼金0ヶ月"
+          ]
+        },
+        {
+          "kind": "keyMoney",
+          "label": "礼金",
+          "amount": 0,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "敷金0ヶ月・礼金0ヶ月"
+          ]
+        },
+        {
+          "kind": "freeRent",
+          "label": "フリーレント（共益費を含む）",
+          "amount": 2,
+          "unit": "months",
+          "timing": "initial",
+          "lines": [
+            "レント"
+          ]
+        },
+        {
+          "kind": "renewal",
+          "label": "更新料（新賃料の1ヶ月）",
+          "amount": 1,
+          "unit": "months",
+          "timing": "renewal",
+          "lines": [
+            "【賃貸条件】"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "火災保険（2年間）",
+          "amount": 20000,
+          "unit": "yen",
+          "timing": "initial",
+          "required": true,
+          "lines": [
+            "火災保険"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 初回保証料（総賃料の50%）",
+          "amount": 50,
+          "unit": "percent",
+          "timing": "initial",
+          "required": true,
+          "lines": [
+            "火災保険"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 年間保証料",
+          "amount": 10000,
+          "unit": "yen",
+          "timing": "yearly",
+          "required": true,
+          "lines": [
+            "火災保険"
+          ]
+        },
+        {
+          "kind": "guarantor",
+          "label": "保証会社 月次保証料",
+          "amount": 550,
+          "unit": "yen",
+          "timing": "monthly",
+          "required": true,
+          "lines": [
+            "火災保険"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "Meiho Plus24",
+          "amount": 1320,
+          "unit": "yen",
+          "timing": "monthly",
+          "lines": [
+            "Plus24"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "駐輪場",
+          "amount": 330,
+          "unit": "yen",
+          "timing": "monthly",
+          "required": false,
+          "lines": [
+            "Plus24"
+          ]
+        },
+        {
+          "kind": "fee",
+          "label": "退去時クリーニング費用（タイプにより38,500〜66,000円）",
+          "amount": 38500,
+          "unit": "yen",
+          "timing": "moveOut",
+          "lines": [
+            "ニング費用"
+          ]
+        }
+      ]
+    }
+  ]
+}

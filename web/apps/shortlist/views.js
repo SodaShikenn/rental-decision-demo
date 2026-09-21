@@ -1,61 +1,209 @@
-// Shortlist DOM: routine controls, candidate cards, and mock-map pins.
+// Shortlist DOM: the condition bar, the comparison table, and the schematic map.
 import { MAX_PRIORITIES } from "../../config.js";
-import { $, $$, escapeHTML, yen } from "../../helper.js";
-import { isProvisional, priorityLabel, rankProperties, scoreProperty } from "./services.js";
+import { $, $$, escapeHTML, man } from "../../helper.js";
+import { estimateCosts } from "../costs/services.js";
+import { LANDMARK, SITUATIONS, SORTS, STATIONS } from "./models.js";
+import { isProvisional, monthlyCost, priorityLabel, relevantChecks, scoreProperty, sortProperties, stationName, stationPosition, walkMinutes } from "./services.js";
 
-function candidateCard(property, index, { selectedId, preferences }) {
-  const provisional = isProvisional(property);
-  return `
-    <button type="button" class="candidate ${property.id === selectedId ? "selected" : ""}" data-property="${escapeHTML(property.id)}">
-      <span class="candidate-rank">${String(index + 1).padStart(2, "0")}</span><span class="candidate-score">${provisional ? "暫定 " : ""}${scoreProperty(property, preferences)} / 99</span>
-      <h3>${escapeHTML(property.name)}</h3>
-      <p class="area">${escapeHTML(property.area)}</p>
-      <p class="rent">${property.rent == null ? "賃料 未取得" : `${yen(property.rent)} <small>/ 月</small>`}</p>
-      <div class="candidate-stats">
-        <span>通勤<b>${provisional ? "未取得" : `${property.commute}分`}</b></span>
-        <span>周辺情報<b>${provisional ? "未取得" : `${property.late}/10`}</b></span>
-      </div>
-    </button>
-  `;
+const unknown = '<span class="unknown">未取得</span>';
+const singleColumn = () => window.matchMedia("(max-width: 1079px)").matches;
+const shortMan = (value) => man(value).replace("万円", "万");
+
+function costCell(property) {
+  const cost = monthlyCost(property);
+  if (cost == null) return unknown;
+  const { rent, managementFee } = property;
+  const detail = managementFee == null ? "管理費未取得" : managementFee === 0 ? "管理費込み" : `賃料${shortMan(rent)}＋管理費${shortMan(managementFee)}`;
+  return `${man(cost)}<span class="cell-sub">${detail}</span>`;
 }
 
-export function renderCandidates(app) {
+function layoutCell(property) {
+  const layout = property.layout ? escapeHTML(property.layout) : unknown;
+  const area = property.areaSqm ? `${property.areaSqm}㎡` : unknown;
+  return `${layout} · ${area}`;
+}
+
+function walkCell(property) {
+  const minutes = walkMinutes(property.station);
+  const station = stationName(property.station);
+  return `${minutes == null ? unknown : `徒歩${minutes}分`}${station ? `<span class="cell-sub">${escapeHTML(station)}駅</span>` : ""}`;
+}
+
+function yearCell({ constructionYear }) {
+  if (!constructionYear) return unknown;
+  const age = new Date().getFullYear() - constructionYear;
+  return `${constructionYear}年<span class="cell-sub">${age <= 0 ? "新築" : `築${age}年`}</span>`;
+}
+
+function initialCostCell(property, preferences, adjustment) {
+  const { initial, rentAssumed } = estimateCosts(property, preferences, adjustment);
+  if (!initial.complete) return `<span class="unknown" title="賃料が図面にないため、分かる項目だけの合計です">一部のみ</span><span class="cell-sub">${man(initial.amount)}＋未取得</span>`;
+  return `${man(initial.amount)}${rentAssumed ? '<span class="cell-sub">仮の賃料で計算</span>' : ""}`;
+}
+
+function rowMarkup(property, { selectedId, preferences, costAdjustments }) {
+  const selected = property.id === selectedId;
+  const score = scoreProperty(property, preferences);
+  const priority = (key) => (preferences.priorities.has(key) ? " is-priority" : "");
+  const added = property.provenance && !property.provenance.seeded;
+  const relevant = relevantChecks(property, preferences.situations);
+  return `
+    <tr data-property="${escapeHTML(property.id)}"${selected ? ' class="is-selected"' : ""}>
+      <td class="cell-name" data-label="物件">
+        <button class="row-button" type="button"${selected ? ' aria-current="true"' : ""}>${escapeHTML(property.name)}</button>
+        <span class="cell-sub">${escapeHTML(property.district ?? "所在地要確認")}${added ? '<span class="tag">募集図面から追加</span>' : ""}${relevant.length ? `<span class="tag tag--attention" title="${escapeHTML(relevant.map((check) => check.title).join("、"))}">あなたに関係する確認 ${relevant.length}件</span>` : ""}</span>
+      </td>
+      <td class="num" data-label="月額">${costCell(property)}</td>
+      <td class="num" data-label="初期費用（目安）">${initialCostCell(property, preferences, costAdjustments[property.id])}</td>
+      <td class="${priority("space")}" data-label="間取り・面積">${layoutCell(property)}</td>
+      <td class="num${priority("walk")}" data-label="駅徒歩">${walkCell(property)}</td>
+      <td class="num${priority("age")}" data-label="築年">${yearCell(property)}</td>
+      <td class="num cell-score" data-label="条件との一致度">${isProvisional(property, preferences) ? '<span class="tag" title="図面にない値を中立値で計算しています">暫定</span>' : ""}<span class="score">${score}</span><span class="score-bar"><span style="width:${score}%"></span></span></td>
+    </tr>`;
+}
+
+function renderSummary(ordered, { preferences }) {
+  const priorities = [...preferences.priorities].map(priorityLabel);
+  const situations = SITUATIONS.filter((situation) => preferences.situations.has(situation.key)).map((situation) => situation.label);
+  $("#shortlistCount").textContent = `${ordered.length}件`;
+  $("#decisionSummary").textContent = [
+    `月額の上限 ${man(preferences.budget)}`,
+    priorities.length ? `譲れない条件：${priorities.join("・")}` : "譲れない条件なし",
+    situations.length ? `あなたの状況：${situations.join("・")}` : null,
+  ].filter(Boolean).join(" · ");
+  const relevant = ordered.reduce((sum, property) => sum + relevantChecks(property, preferences.situations).length, 0);
+  $("#rankingStatus").textContent = [
+    "条件を変えると、その場で並べ替えます。一致度は選んだ条件から計算した目安で、決めるのはあなたです。",
+    situations.length ? `あなたの状況に関係する確認事項は、候補全体で${relevant}件です（物件名の下と詳細パネルに表示）。` : "「あなたの状況」を選ぶと、関係する確認事項を先に示します。",
+  ].join("");
+  $$("th[data-criterion]").forEach((th) => th.setAttribute("data-priority", String(preferences.priorities.has(th.dataset.criterion))));
+}
+
+// A fixed frame around the known stations, so the geography stays put as candidates change.
+const LATS = Object.values(STATIONS).map(([lat]) => lat);
+const LNGS = Object.values(STATIONS).map(([, lng]) => lng);
+const FRAME = { north: Math.max(...LATS), south: Math.min(...LATS), west: Math.min(...LNGS), east: Math.max(...LNGS) };
+const PAD = { x: 7, y: 16 }; // percent left free at the edges for labels
+
+function toMap([lat, lng]) {
+  return {
+    x: PAD.x + ((lng - FRAME.west) / (FRAME.east - FRAME.west)) * (100 - 2 * PAD.x),
+    y: PAD.y + ((FRAME.north - lat) / (FRAME.north - FRAME.south)) * (100 - 2 * PAD.y),
+  };
+}
+
+function renderMap(app, ordered, { selectedId }) {
+  const placed = ordered.filter(stationPosition);
+  const unplaced = ordered.filter((property) => !stationPosition(property)).map((property) => property.name);
+  const { maps } = app.extensions;
+  maps.setPins(placed.map((property) => {
+    const [lat, lng] = stationPosition(property);
+    return { lat, lng, label: String(ordered.indexOf(property) + 1), title: property.name };
+  }));
+  $("#mapApiNote").textContent = [
+    `候補を最寄駅の位置に置いた${maps.live ? "地図" : "概略図"}です。住所の位置特定（Geocoding）は未接続のため、実際の所在地とは駅からの徒歩距離ぶんずれます。`,
+    unplaced.length ? `位置未取得：${unplaced.join("、")}（最寄駅が地図の範囲外、または未取得）` : "",
+  ].join(" ");
+
+  const pins = $("#mapPins");
+  if (!pins) return; // replaced by Google Maps
+  const style = ({ x, y }) => `left:${x.toFixed(1)}%;top:${y.toFixed(1)}%`;
+  const stations = new Set(placed.map((property) => stationName(property.station)));
+  const drawn = new Map(); // station name → pins already stacked under it
+  pins.innerHTML = [
+    ...[...stations, ...(stations.has(LANDMARK) ? [] : [LANDMARK])].map((name) => {
+      const landmark = !stations.has(name);
+      const point = toMap(STATIONS[name]);
+      return `<span class="map-station${landmark ? " is-landmark" : ""}${point.x > 62 ? " is-left" : ""}" style="${style(point)}">${escapeHTML(name)}${landmark ? "（目印）" : "駅"}</span>`;
+    }),
+    ...placed.map((property) => {
+      const station = stationName(property.station);
+      const stack = drawn.get(station) ?? 0;
+      drawn.set(station, stack + 1);
+      const point = toMap(STATIONS[station]);
+      const position = { x: point.x, y: point.y + 13 + stack * 13 };
+      const order = ordered.indexOf(property) + 1;
+      const selected = property.id === selectedId;
+      const side = point.x > 62 ? " pin--left" : "";
+      return `<button class="pin${side}${selected ? " is-selected" : ""}" type="button" data-property="${escapeHTML(property.id)}" style="${style(position)}" aria-label="表の${order}番目 ${escapeHTML(property.name)}（${escapeHTML(station)}駅）"${selected ? ' aria-current="true"' : ""}><span class="pin-rank">${order}</span>${escapeHTML(property.name)}</button>`;
+    }),
+  ].join("");
+}
+
+export function renderShortlist(app) {
   const { state } = app.extensions.store;
-  const ranked = rankProperties(state.properties, state.preferences);
-  $("#candidateGrid").innerHTML = ranked.map((property, index) => candidateCard(property, index, state)).join("");
-  $("#decisionSummary").textContent = `予算 ${yen(state.preferences.budget)} / ${[...state.preferences.priorities].map(priorityLabel).join("・")} を優先中`;
-  $("#shortlistCount").textContent = String(state.properties.length).padStart(2, "0");
+  const ordered = sortProperties(state.properties, state.preferences, state.costAdjustments);
+  $("#candidateRows").innerHTML = ordered.map((property) => rowMarkup(property, state)).join("");
+  renderSummary(ordered, state);
+  renderMap(app, ordered, state);
+}
+
+/** Briefly highlight a candidate that was just added. */
+export function flashRow(id) {
+  $(`#candidateRows tr[data-property="${CSS.escape(id)}"]`)?.classList.add("is-new");
+}
+
+function syncPriorityControls(priorities) {
+  const full = priorities.size >= MAX_PRIORITIES;
+  $$("#priorityChips .toggle[data-priority]").forEach((toggle) => {
+    const pressed = priorities.has(toggle.dataset.priority);
+    toggle.setAttribute("aria-pressed", String(pressed));
+    toggle.disabled = full && !pressed;
+  });
+  $("#priorityHint").textContent = full ? "2つ選択中。変えるには選択を外してください" : `${MAX_PRIORITIES}つまで選べます`;
 }
 
 export function bindControls(app) {
   const { store } = app.extensions;
-  const { preferences } = store.state;
+  const select = (id) => {
+    store.select(id);
+    if (singleColumn()) $("#detailPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-  $("#candidateGrid").addEventListener("click", (event) => {
-    const card = event.target.closest("[data-property]");
-    if (card) store.select(card.dataset.property);
+  $("#candidateRows").addEventListener("click", (event) => {
+    const row = event.target.closest("tr[data-property]");
+    if (row) select(row.dataset.property);
   });
-  $$(".map-pin[data-property]").forEach((pin) => pin.addEventListener("click", () => store.select(pin.dataset.property)));
+  $("#mockMap").addEventListener("click", (event) => {
+    const pin = event.target.closest(".pin[data-property]");
+    if (pin) select(pin.dataset.property);
+  });
 
   const budget = $("#budget");
   budget.addEventListener("input", () => {
-    preferences.budget = Number(budget.value);
-    $("#budgetOutput").value = yen(preferences.budget);
+    $("#budgetOutput").value = man(Number(budget.value));
+    store.updatePreferences((preferences) => {
+      preferences.budget = Number(budget.value);
+    });
+  });
+  const sort = $("#sortBy");
+  sort.innerHTML = SORTS.map(({ key, label }) => `<option value="${key}"${key === store.state.preferences.sortBy ? " selected" : ""}>${label}</option>`).join("");
+  sort.addEventListener("change", () => {
+    store.updatePreferences((preferences) => {
+      preferences.sortBy = sort.value;
+    });
+  });
+  const situations = $("#situationChips");
+  situations.innerHTML = SITUATIONS.map(({ key, label }) => `<button class="toggle" type="button" data-situation="${key}" aria-pressed="${store.state.preferences.situations.has(key)}">${label}</button>`).join("");
+  situations.addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-situation]");
+    if (!toggle) return;
+    store.updatePreferences(({ situations: chosen }) => {
+      const key = toggle.dataset.situation;
+      if (chosen.has(key)) chosen.delete(key);
+      else chosen.add(key);
+    });
+    toggle.setAttribute("aria-pressed", String(store.state.preferences.situations.has(toggle.dataset.situation)));
   });
   $("#priorityChips").addEventListener("click", (event) => {
-    const button = event.target.closest("button");
-    if (!button) return;
-    const key = button.dataset.priority;
-    if (preferences.priorities.has(key)) preferences.priorities.delete(key);
-    else if (preferences.priorities.size < MAX_PRIORITIES) preferences.priorities.add(key);
-    $$(".priority-chip").forEach((chip) => chip.classList.toggle("active", preferences.priorities.has(chip.dataset.priority)));
+    const toggle = event.target.closest(".toggle[data-priority]");
+    if (!toggle || toggle.disabled) return;
+    store.updatePreferences(({ priorities }) => {
+      const key = toggle.dataset.priority;
+      if (priorities.has(key)) priorities.delete(key);
+      else if (priorities.size < MAX_PRIORITIES) priorities.add(key);
+    });
+    syncPriorityControls(store.state.preferences.priorities);
   });
-  $("#weekend").addEventListener("change", (event) => {
-    preferences.weekend = event.target.checked;
-  });
-  $("#recalculate").addEventListener("click", () => {
-    const [best] = rankProperties(store.state.properties, preferences);
-    store.select(best.id);
-    store.emit("recalculated", best);
-  });
+  syncPriorityControls(store.state.preferences.priorities);
 }

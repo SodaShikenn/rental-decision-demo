@@ -1,0 +1,10 @@
+# PyTorch is pulled in by Docling (layout model). The Dockerfile installs CPU-only wheels first.
+docling==2.129.0
+onnxruntime==1.30.0
+google-genai==2.24.0
+httpx==0.28.1
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.13.5
+python-multipart==0.0.32
+python-dotenv==1.2.3

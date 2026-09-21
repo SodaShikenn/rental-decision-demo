@@ -1,55 +1,39 @@
 // Intake logic (≈ services.py): image preparation, the extraction request, review rules, and
 // turning a confirmed reading into a candidate. Importing this module has no side effects,
 // so the pure functions are unit-tested in web/tests.
-import { EXTRACTION_TIMEOUT_MS, MAX_IMAGE_EDGE, MAX_VISUAL_TOKENS, REVIEW_CONFIDENCE_THRESHOLD, UPLOAD_MAX_BYTES } from "../../config.js";
+import { EXTRACTION_TIMEOUT_MS, MAX_IMAGE_EDGE, REVIEW_CONFIDENCE_THRESHOLD, UPLOAD_MAX_BYTES } from "../../config.js";
 import { formatTime } from "../../helper.js";
 import { EXTRACTION_FIELDS, fieldLabel, isExtractionResult } from "./models.js";
 
 export class IntakeError extends Error {}
 
-/** Round half to even, matching the API's resize rule at exact .5 ties. */
-export function roundTiesToEven(value) {
-  const floor = Math.floor(value);
-  if (value - floor !== 0.5) return Math.round(value);
-  return floor % 2 === 0 ? floor : floor + 1;
+/** Scale down (never up) so the long edge is at most `maxEdge`. */
+export function resizedSize(width, height, maxEdge = MAX_IMAGE_EDGE) {
+  const scale = Math.min(1, maxEdge / Math.max(width, height));
+  return [Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))];
 }
 
-/** The largest aspect-preserving size Claude accepts without resizing (reference rule from the vision docs). */
-export function resizedSize(width, height, maxEdge = MAX_IMAGE_EDGE, maxTokens = MAX_VISUAL_TOKENS) {
-  const fits = (w, h) => Math.ceil(w / 28) * 28 <= maxEdge && Math.ceil(h / 28) * 28 <= maxEdge && Math.ceil(w / 28) * Math.ceil(h / 28) <= maxTokens;
-  if (fits(width, height)) return [width, height];
-  if (height > width) {
-    const [resizedH, resizedW] = resizedSize(height, width, maxEdge, maxTokens);
-    return [resizedW, resizedH];
-  }
-  const aspectRatio = width / height;
-  let lo = 1;
-  let hi = width;
-  while (lo + 1 < hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (fits(mid, Math.max(roundTiesToEven(mid / aspectRatio), 1))) lo = mid;
-    else hi = mid;
-  }
-  return [lo, Math.max(roundTiesToEven(lo / aspectRatio), 1)];
-}
+const encode = (canvas, type, quality) =>
+  new Promise((resolve, reject) => canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("encode"))), type, quality));
 
 /**
- * Shrink the image to fit the model's limits (browser only). PNG and WEBP that already fit are sent
- * unchanged; everything else is redrawn as JPEG, which also bakes in any EXIF rotation so the server
- * and the preview see the same pixels.
+ * Prepare the image for upload (browser only). An image that already fits is sent unchanged: every
+ * re-encode costs OCR accuracy, red print most of all, and the server applies EXIF rotation itself.
+ * A larger one is scaled down and sent as PNG, or as high-quality JPEG when PNG would be too big.
  */
 export async function prepareImage(file) {
   const bitmap = await createImageBitmap(file);
   try {
     const [width, height] = resizedSize(bitmap.width, bitmap.height);
-    const unchanged = width === bitmap.width && height === bitmap.height;
-    if (unchanged && file.size <= UPLOAD_MAX_BYTES && ["image/png", "image/webp"].includes(file.type)) return { blob: file, name: file.name };
+    if (width === bitmap.width && height === bitmap.height && file.size <= UPLOAD_MAX_BYTES) return { blob: file, name: file.name };
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
-    const blob = await new Promise((resolve, reject) => canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("encode"))), "image/jpeg", 0.92));
-    return { blob, name: `${file.name.replace(/\.[^.]+$/, "")}.jpg` };
+    const base = file.name.replace(/\.[^.]+$/, "");
+    const png = await encode(canvas, "image/png");
+    if (png.size <= UPLOAD_MAX_BYTES) return { blob: png, name: `${base}.png` };
+    return { blob: await encode(canvas, "image/jpeg", 0.95), name: `${base}.jpg` };
   } finally {
     bitmap.close();
   }
@@ -76,9 +60,8 @@ export async function requestExtraction(endpoint, blob, name, { fetchImpl = fetc
   }
 }
 
-/** Fields a person must confirm before the reading can affect ranking. Sample readings are not gated. */
+/** Fields a person must confirm before the reading can affect ranking. */
 export function fieldsNeedingReview(result, threshold = REVIEW_CONFIDENCE_THRESHOLD) {
-  if (result.meta.mode === "sample") return new Set();
   const flagged = new Set(result.warnings.flatMap((warning) => warning.fields));
   EXTRACTION_FIELDS.forEach(({ key }) => {
     const { value, confidence } = result.fields[key];
@@ -87,18 +70,27 @@ export function fieldsNeedingReview(result, threshold = REVIEW_CONFIDENCE_THRESH
   return flagged;
 }
 
-export const extractionNote = (result) => ({
-  sample: "現在はこの形式を想定した固定サンプル値です。画像の内容は読み取っていません。解析サーバー（server/）を設定すると、Claudeによる読み取り結果・信頼度・根拠領域を表示します。",
-  mock: "解析サーバーのモック応答です（テスト用の架空図面に対応する固定値）。アップロードした画像は読み取っていません。",
-  live: `${result.meta.model} による読み取り結果です。信頼度はモデルの自己申告で較正されていません。根拠領域は目安です。色付きの項目は原本と照合してから追加してください。`,
-})[result.meta.mode];
+const mappingText = (model) => (model ? `${model} が項目に対応付け` : "項目の対応付けは手作業");
+
+export function extractionNote({ meta }) {
+  if (meta.mode === "mock") return "解析サーバーのモック応答です（テスト用の架空図面に対応する固定値）。選んだ画像の内容は読み取っていません。";
+  const confidence = "信頼度は OCR エンジンが行ごとにつけた値で、値が根拠の行の文字と一致しない場合は下げています。";
+  if (meta.mode === "recorded") {
+    return `この図面を ${meta.ocr} で事前に読み取った記録です（${formatTime(meta.extractedAt)}、${mappingText(meta.model)}）。${confidence}`;
+  }
+  return `${meta.ocr ?? "OCR"} で文字を読み取り、${meta.model} が項目に対応付けました。${confidence}`;
+}
 
 export function provenanceText(provenance) {
   const method = {
-    sample: "サンプル値（画像は未解析）",
+    live: `AI抽出（${provenance.model}）`,
+    recorded: `記録済みの読み取り（OCR 実測・${mappingText(provenance.model)}）`,
     mock: "モック応答（画像は未解析）",
-    live: `Claude抽出（${provenance.model}）`,
   }[provenance.mode];
+  if (provenance.seeded) {
+    const edits = provenance.editedFields.length ? ` / 照合で修正: ${provenance.editedFields.map(fieldLabel).join("・")}` : "";
+    return `募集図面画像 / ${method}・記録時に原本と照合 / 記録 ${formatTime(provenance.extractedAt)}${edits}`;
+  }
   const times = provenance.extractedAt
     ? `抽出 ${formatTime(provenance.extractedAt)}・確認 ${formatTime(provenance.confirmedAt)}`
     : `確認 ${formatTime(provenance.confirmedAt)}`;
@@ -106,37 +98,48 @@ export function provenanceText(provenance) {
   return `募集図面画像 / ${method}・人が確認 / ${times}${edits}`;
 }
 
+/** City or ward from a Japanese address: "東京都世田谷区代田5-35-30" → "世田谷区". */
+export function districtFromAddress(address) {
+  return address?.match(/^(?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?(.+?[市区町村])/)?.[1] ?? null;
+}
+
 /**
- * Build a provisional candidate from a confirmed reading. `values` are what the person confirmed
- * (null for unknown); any difference from the reading is recorded as a human edit.
+ * Build a candidate from a confirmed reading. `values` are what the person confirmed (null for
+ * unknown); any difference from the reading is recorded as an edit. `image` is the sheet the reading
+ * came from, kept so each value can be shown next to its evidence.
  */
-export function buildCandidate(result, values, confirmedAt) {
-  const { propertyName, rent, address, station, layout, areaSqm, constructionYear } = values;
-  const district = address?.match(/東京都([^区]+区)/)?.[1] || "所在地要確認";
+export function buildCandidate(result, values, confirmedAt, { id = "uploaded-listing", image = null, seeded = false } = {}) {
+  const { propertyName, rent, managementFee, address, station, layout, areaSqm, constructionYear } = values;
   return {
-    id: "uploaded-listing",
+    id,
     name: propertyName || "名称未取得の物件",
-    area: `${district} / ${layout || "間取り要確認"} / ${areaSqm ? `${areaSqm}㎡` : "面積要確認"}`,
+    district: districtFromAddress(address),
+    address: address || null,
+    station: station || null,
+    layout: layout || null,
+    areaSqm: areaSqm || null,
     rent,
-    commute: null,
-    late: null,
-    quiet: null,
-    space: null,
-    weekend: null,
-    enriched: false,
-    route: "経路API接続後に計算",
-    tags: [station || "最寄駅要確認", constructionYear ? `${constructionYear}年竣工` : "竣工年要確認", result.meta.mode === "live" ? "画像から抽出" : "サンプル値"],
-    tradeoff: `${rent === null ? "賃料が未取得のため、予算評価は中立値で仮置きしています。" : ""}画像の読み取り結果を原本と照合し、Routes APIとPlaces APIで通勤・周辺施設を補完する必要があります。`,
-    hasRentHistory: false,
-    rents: [],
-    reviews: [],
+    managementFee,
+    constructionYear: constructionYear || null,
+    // Money terms (for the move-in estimate) and clauses to check, as read from the sheet.
+    costs: result.costs ?? [],
+    checks: result.checks ?? [],
+    sheet: image ? { image, fields: result.fields, lines: result.lines ?? [] } : null,
+    // What the sheet itself says needs checking. "other" warnings are about the reading and are
+    // settled when the values are confirmed.
+    sheetWarnings: result.warnings.filter((warning) => warning.code !== "other"),
     provenance: {
       mode: result.meta.mode,
       model: result.meta.model,
       documentId: result.documentId,
       extractedAt: result.meta.extractedAt,
       confirmedAt,
+      seeded,
       editedFields: EXTRACTION_FIELDS.map(({ key }) => key).filter((key) => values[key] !== result.fields[key].value),
     },
   };
 }
+
+/** A candidate from a recorded sheet, with the values checked against the original when it was recorded. */
+export const candidateFromSheet = (sheet) =>
+  buildCandidate(sheet.reading, sheet.confirmed, sheet.reading.meta.extractedAt, { id: sheet.id, image: sheet.image, seeded: true });

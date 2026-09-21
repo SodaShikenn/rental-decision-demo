@@ -1,4 +1,4 @@
-# Run the front-end and server test suites on every push and pull request.
+# Test the front end and the server, and check that the Docker setup builds, on every push and PR.
 name: Tests
 
 on:
@@ -9,16 +9,36 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: server/package-lock.json
-      - name: Install server dependencies
-        run: npm ci --prefix server
-      - name: Test front end and server
-        run: npm test
+      - run: npm run test:web
+
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: server/requirements*.txt
+      - name: Install server dependencies (CPU-only PyTorch first, as in the Dockerfile)
+        run: |
+          python -m venv server/.venv
+          server/.venv/bin/pip install torch==2.14.0 torchvision==0.29.0 --index-url https://download.pytorch.org/whl/cpu
+          server/.venv/bin/pip install -r server/requirements-dev.txt
+      - run: npm run test:server
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the API image
+        run: docker build --tag rental-helper-api server
+      - name: Validate the compose file
+        run: docker compose -f docker/docker-compose.yml config --quiet

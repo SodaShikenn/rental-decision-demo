@@ -3,16 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="日常動線とトレードオフから賃貸候補を比較する、説明可能な分析チャットボットのデモです。"
-    />
-    <title>NEST | 賃貸意思決定デモ</title>
+    <meta name="description" content="賃貸の募集図面を読み取り、候補を条件で比べ、契約前の注意点と初期費用まで示すツールです。" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Rental Helper｜賃貸比較</title>
     <link rel="icon" href="static/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="static/app.css" />
@@ -20,211 +18,265 @@
     <script type="module" src="app.js"></script>
   </head>
   <body>
-    <div class="noise" aria-hidden="true"></div>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="NEST ホーム">
-        <span class="brand-mark">N</span>
-        <span>NEST<span class="brand-muted">/decision</span></span>
+    <a class="skip-link" href="#shortlistTitle">候補一覧へ移動</a>
+
+    <header class="app-header">
+      <a class="brand" href="./">
+        <svg class="brand-mark" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M24 26H26V2H2V26H14" />
+          <path d="M2 11H12" />
+          <path d="M14 26V16" stroke-width="1.5" />
+          <path d="M14 16A10 10 0 0 1 24 26" stroke-width="1.5" />
+        </svg>
+        <span class="brand-name">Rental Helper</span>
+        <span class="brand-product">賃貸比較</span>
       </a>
-      <p class="header-note">賃貸意思決定支援 / prototype 01</p>
+      <p class="brand-tagline">募集図面を読み取り、候補を比べ、契約前の注意点と初期費用まで確かめます。</p>
+      <button class="button header-glossary" id="glossaryOpen" type="button">用語辞典</button>
+      <a class="status-link" href="#capabilities" id="statusSummary">
+        <span class="status-link-label">機能の状態</span>
+      </a>
     </header>
 
-    <main id="top">
-      <section class="hero section-shell">
-        <div class="hero-copy">
-          <p class="eyebrow">EXPLAINABLE RENTAL SEARCH</p>
-          <h1>条件検索の先へ。<br /><em>暮らし方</em>から、住まいを選ぶ。</h1>
-          <p class="hero-lede">
-            家賃や駅徒歩だけでなく、通勤、夜の買い物、帰宅時間、静けさを一緒に比較。
-            候補ごとの利点と妥協点を、対話で言語化するデモです。
-          </p>
-          <div class="hero-meta">
-            <span><i></i> 物件・賃料履歴・レビューはデモデータ</span>
-            <span>Google Maps API は任意接続</span>
+    <p class="env-notice" role="note">
+      <strong>デモ環境</strong>
+      <span>候補は実際の募集図面から読み取った記録時点の値で、募集状況は確認していません。各機能の状態は</span>
+      <span class="chip chip--live">稼働中</span>
+      <span class="chip chip--demo">デモ</span>
+      <span class="chip chip--planned">未接続</span>
+      <span>で示しています。</span>
+    </p>
+
+    <main class="page">
+      <form class="conditions panel" id="conditions" aria-labelledby="conditionsTitle">
+        <h2 class="visually-hidden" id="conditionsTitle">比較の条件</h2>
+        <div class="field field--budget">
+          <label class="field-label" for="budget">月額の上限（賃料＋管理費）</label>
+          <div class="budget-row">
+            <input id="budget" type="range" min="90000" max="160000" step="5000" value="130000" />
+            <output id="budgetOutput" for="budget">13万円</output>
           </div>
         </div>
-        <aside class="question-card" aria-label="今週の問い">
-          <span class="question-index">01 / QUESTION</span>
-          <p>「駅から近い」より、<br />自分の夜を楽にする<br />物件はどれだろう？</p>
-          <span class="question-arrow">↘</span>
-        </aside>
-      </section>
+        <fieldset class="field">
+          <legend>譲れない条件<span class="field-hint" id="priorityHint">2つまで選べます</span></legend>
+          <div class="toggles" id="priorityChips">
+            <button class="toggle" type="button" data-priority="walk" aria-pressed="true">駅近</button>
+            <button class="toggle" type="button" data-priority="space" aria-pressed="true">広さ</button>
+            <button class="toggle" type="button" data-priority="age" aria-pressed="false">築浅</button>
+            <span class="toggle toggle--unavailable" aria-disabled="true">通勤時間<span data-capability="routes"></span></span>
+            <span class="toggle toggle--unavailable" aria-disabled="true">周辺の環境<span data-capability="places"></span></span>
+          </div>
+        </fieldset>
+        <fieldset class="field field--situations">
+          <legend>あなたの状況<span class="field-hint">当てはまるものを選ぶと、関係する確認事項と費用を先に示します</span></legend>
+          <div class="toggles" id="situationChips"></div>
+        </fieldset>
+        <p class="ranking-status" id="rankingStatus" aria-live="polite"></p>
+      </form>
 
-      <section class="intake section-shell" aria-labelledby="intakeTitle">
-        <div class="intake-intro">
-          <p class="eyebrow">INPUT / LISTING SHEET</p>
-          <h2 id="intakeTitle">募集図面を、<br />比較できる情報へ。</h2>
-          <p>
-            画像型の物件資料を取り込み、賃料・住所・間取り・面積などを確認可能な項目へ変換します。
-            確定前に人が原本と照合する設計です。
-          </p>
-          <div class="intake-flow" aria-label="画像入力から比較までの流れ">
-            <span>画像</span><i>→</i><span>抽出・確認</span><i>→</i><span>経路・周辺情報</span><i>→</i><span>比較</span>
+      <section class="intake panel" id="intake" data-state="idle" aria-labelledby="intakeTitle">
+        <div class="intake-bar">
+          <div class="intake-heading">
+            <h2 id="intakeTitle">募集図面から候補を追加</h2>
+            <p>募集図面の画像（PNG・JPEG・WEBP）をここにドロップするか、選択してください。読み取った値は、原本と照合してから候補に加わります。手元に図面がなければ、実際の募集図面（モノハウス 104号室）で試せます。</p>
+          </div>
+          <div class="intake-actions">
+            <span data-capability="extraction"></span>
+            <button class="button" id="useSampleSheet" type="button">サンプル図面で試す</button>
+            <input class="visually-hidden" id="listingUpload" type="file" accept="image/png,image/jpeg,image/webp" />
+            <label class="button button--primary" for="listingUpload">画像を選択</label>
           </div>
         </div>
-
-        <div class="intake-workflow">
-          <div class="upload-column">
-            <label class="upload-zone" for="listingUpload">
-              <input class="upload-input" id="listingUpload" type="file" accept="image/png,image/jpeg,image/webp" />
-              <span class="upload-placeholder" id="uploadPlaceholder">
-                <b>募集図面を選択</b>
-                <small>PNG / JPG / WEBP</small>
-              </span>
-              <span class="preview-frame" id="previewFrame" hidden>
-                <img id="listingPreview" alt="アップロードした募集図面のプレビュー" />
+        <ol class="steps" id="intakeSteps" aria-label="追加の手順">
+          <li data-step="select">画像を選ぶ</li>
+          <li data-step="read">読み取る</li>
+          <li data-step="review">原本と照合</li>
+          <li data-step="add">候補に追加</li>
+        </ol>
+        <div class="intake-body" id="intakeBody" hidden>
+          <div class="intake-source">
+            <div class="preview">
+              <span class="preview-frame" id="previewFrame">
+                <img id="listingPreview" alt="選択した募集図面" />
                 <span class="evidence-highlight" id="evidenceHighlight" hidden></span>
               </span>
-            </label>
-            <button class="secondary-action" id="analyzeListing" type="button" disabled>画像を読み取る →</button>
-            <p class="privacy-note" id="privacyNote">画像はブラウザ内でプレビューし、このデモから外部へ送信しません。</p>
-          </div>
-
-          <div class="extraction-empty" id="extractionEmpty">
-            <span>02 / CONFIRM</span>
-            <strong id="extractionEmptyTitle">解析後、抽出項目を<br />原本と照合します。</strong>
-            <p id="extractionEmptyText">物件名、賃料、住所、最寄駅、間取り、面積、竣工年を表示し、誤読を修正してから候補へ追加します。</p>
-            <div class="extraction-error" id="extractionError" hidden>
-              <p id="extractionErrorText"></p>
-              <button class="secondary-action" id="useSampleExtraction" type="button">サンプル値で試す</button>
             </div>
+            <p class="file-name" id="fileName"></p>
+            <div class="source-actions">
+              <button class="button button--primary" id="analyzeListing" type="button">読み取る</button>
+              <button class="button" id="cancelIntake" type="button">取り消す</button>
+            </div>
+            <p class="privacy-note" id="privacyNote"></p>
           </div>
-
-          <form class="extraction-card" id="extractionForm" hidden>
-            <div class="card-topline"><span id="extractionModeLabel">SAMPLE EXTRACTION</span><span id="extractionReviewLabel">要原本確認</span></div>
-            <div class="extraction-status" id="intakeStatus">画像を選択してください。</div>
-            <ul class="extraction-warnings" id="extractionWarnings" hidden></ul>
-            <div class="extraction-grid" id="extractionGrid"></div>
-            <p class="extraction-note" id="extractionNote"></p>
-            <button class="primary-action compact" id="confirmExtraction" type="submit">確認して暫定候補に追加 <span>→</span></button>
-          </form>
+          <div class="intake-result">
+            <div class="result-empty" id="extractionEmpty">
+              <p class="result-empty-title" id="extractionEmptyTitle"></p>
+              <p id="extractionEmptyText"></p>
+              <div class="extraction-error" id="extractionError" role="alert" hidden>
+                <p id="extractionErrorText"></p>
+              </div>
+              <button class="button" id="emptySample" type="button" hidden>サンプル図面で試す</button>
+            </div>
+            <form class="review-form" id="extractionForm" hidden>
+              <div class="review-head">
+                <span class="review-mode" id="extractionModeLabel"></span>
+                <span class="review-count" id="extractionReviewLabel"></span>
+              </div>
+              <p class="review-status" id="intakeStatus"></p>
+              <ul class="review-warnings" id="extractionWarnings" hidden></ul>
+              <div class="review-grid" id="extractionGrid"></div>
+              <div class="review-checks" id="extractionChecks" hidden></div>
+              <p class="review-note" id="extractionNote"></p>
+              <div class="review-actions">
+                <button class="button button--primary" id="confirmExtraction" type="submit">照合した内容で候補に追加</button>
+              </div>
+            </form>
+          </div>
         </div>
         <p class="intake-message" id="intakeMessage" aria-live="polite"></p>
       </section>
 
-      <section class="workspace section-shell" aria-label="賃貸候補を比較するワークスペース">
-        <aside class="control-panel">
-          <div class="panel-heading">
-            <p class="eyebrow">YOUR ROUTINE</p>
-            <h2>生活の前提を置く</h2>
-            <p>数字だけでは捉えにくい優先順位を、比較ロジックに反映します。</p>
+      <div class="workspace">
+        <section class="shortlist panel" aria-labelledby="shortlistTitle">
+          <div class="section-head">
+            <h2 id="shortlistTitle">候補<span class="count" id="shortlistCount"></span></h2>
+            <label class="sort-control" for="sortBy">並び順<select id="sortBy"></select></label>
+            <p class="section-meta" id="decisionSummary"></p>
           </div>
-
-          <label class="field-label" for="budget">
-            月額の上限
-            <output id="budgetOutput" for="budget">¥130,000</output>
-          </label>
-          <input id="budget" type="range" min="90000" max="160000" value="130000" step="5000" />
-
-          <label class="field-label" for="destination">
-            主な目的地（デモ）
-            <span class="input-wrap"><span>⌖</span><input id="destination" value="虎ノ門ヒルズ" /></span>
-          </label>
-          <p class="field-help">現在は固定の想定ルートです。実装時は住所検索と経路APIに接続します。</p>
-
-          <fieldset class="priority-group">
-            <legend>譲れないこと <span>最大2つ</span></legend>
-            <div class="priority-chips" id="priorityChips">
-              <button class="priority-chip active" data-priority="commute" type="button">短い通勤</button>
-              <button class="priority-chip active" data-priority="late" type="button">夜の買い物</button>
-              <button class="priority-chip" data-priority="quiet" type="button">静けさ</button>
-              <button class="priority-chip" data-priority="space" type="button">作業空間</button>
+          <div class="table-wrap">
+            <table class="candidates">
+              <thead>
+                <tr>
+                  <th scope="col">物件</th>
+                  <th class="num" scope="col">月額</th>
+                  <th class="num" scope="col">初期費用<span class="th-sub">目安</span></th>
+                  <th scope="col" data-criterion="space">間取り・面積</th>
+                  <th class="num" scope="col" data-criterion="walk">駅徒歩</th>
+                  <th class="num" scope="col" data-criterion="age">築年</th>
+                  <th class="num" scope="col">条件との一致度</th>
+                </tr>
+              </thead>
+              <tbody id="candidateRows"></tbody>
+            </table>
+          </div>
+          <p class="table-note">
+            <span>★ は譲れない条件。値はすべて募集図面の記載です。通勤時間</span><span data-capability="routes"></span>
+            <span>と周辺の環境</span><span data-capability="places"></span><span>は、推測せず比較から外しています。</span>
+          </p>
+          <details class="formula">
+            <summary>一致度の計算方法</summary>
+            <div class="formula-body">
+              <p>選んだ条件にどれだけ合うかで並べ替えるための仮の式で、おすすめの順ではありません。利用者による検証はまだ行っていません。譲れない条件が2つのとき最大85点です。</p>
+              <ul>
+                <li>予算：月額（賃料＋管理費）が上限以内なら25点。超過1万円ごとに約14点を減点</li>
+                <li>駅近：徒歩5分以内で10点。1分長くなるごとに1点減（15分で0点）</li>
+                <li>広さ：15㎡で0点。1㎡ごとに0.5点（35㎡以上で10点）</li>
+                <li>築浅：新築で10点。3年古くなるごとに1点減（築30年で0点）</li>
+                <li>譲れない条件に選んだ項目は×2.5、それ以外は×1で合計</li>
+                <li>図面にない値は中立値（5点）で計算し、候補に「暫定」と表示</li>
+              </ul>
             </div>
+          </details>
+          <figure class="map">
+            <figcaption class="map-head"><span>位置関係</span><span data-capability="maps"></span></figcaption>
+            <div class="map-canvas" id="mockMap" role="group" aria-label="候補の最寄駅の位置関係（概略図）">
+              <div id="mapPins"></div>
+            </div>
+            <p class="map-note" id="mapApiNote"></p>
+          </figure>
+        </section>
+
+        <aside class="detail panel" id="detailPanel" aria-labelledby="detailTitle"></aside>
+      </div>
+
+      <section class="costs panel" id="costsPanel" aria-labelledby="costsTitle">
+        <div class="section-head">
+          <h2 id="costsTitle">初期費用の試算<span data-capability="costs"></span></h2>
+          <p class="section-meta">図面の費用項目に、図面に載らない仲介手数料と前家賃を加えた目安です。正式な金額は見積書で確認してください。</p>
+        </div>
+        <div class="costs-controls">
+          <div class="field">
+            <label class="field-label" for="moveIn">入居予定日</label>
+            <input id="moveIn" type="date" />
+          </div>
+          <fieldset class="field">
+            <legend>仲介手数料（＋税）<span class="field-hint">図面には載りません</span></legend>
+            <div class="segmented" id="brokerageOptions"></div>
           </fieldset>
-
-          <label class="switch-row" for="weekend">
-            <span><strong>週末の外出が多い</strong><small>週末の路線利便性を加味</small></span>
-            <input id="weekend" type="checkbox" checked />
-            <span class="switch" aria-hidden="true"></span>
-          </label>
-
-          <button class="primary-action" id="recalculate" type="button">
-            この暮らしで再比較 <span>→</span>
-          </button>
-        </aside>
-
-        <div class="decision-area">
-          <div class="decision-header">
-            <div>
-              <p class="eyebrow">SHORTLIST / <span id="shortlistCount">03</span></p>
-              <h2>候補を、暮らしに照らす</h2>
-            </div>
-            <p id="decisionSummary" class="decision-summary"></p>
+        </div>
+        <div class="costs-body">
+          <div class="costs-compare">
+            <h3>候補ごとの初期費用</h3>
+            <ol class="compare-list" id="costsCompare"></ol>
           </div>
-
-          <div class="map-card" id="mapCard">
-            <div id="mockMap" class="mock-map" aria-label="候補物件と目的地の概略地図">
-              <div class="grid-lines"></div>
-              <div class="route-line route-line-a"></div>
-              <div class="route-line route-line-b"></div>
-              <button class="map-pin pin-home" type="button" data-property="kiyosumi"><span>01</span><b>清澄白河</b></button>
-              <button class="map-pin pin-home pin-two" type="button" data-property="musashi"><span>02</span><b>武蔵小山</b></button>
-              <button class="map-pin pin-home pin-three" type="button" data-property="koenji"><span>03</span><b>高円寺</b></button>
-              <div class="map-pin pin-destination"><span>⌖</span><b>虎ノ門ヒルズ</b></div>
-              <div class="map-legend"><span class="legend-line"></span> 平日朝の想定ルート</div>
-            </div>
-            <div class="map-overlay" id="mapOverlay">
-              <strong>Google Maps 接続は未設定です</strong>
-              <span>デモ用マップと想定経路を表示しています。</span>
-              <button id="connectMaps" type="button">接続方法を見る</button>
-            </div>
-            <div class="map-api-note" id="mapApiNote" aria-live="polite"></div>
-          </div>
-
-          <div class="candidate-grid" id="candidateGrid"></div>
+          <div class="costs-detail" id="costsDetail" aria-live="polite"></div>
         </div>
       </section>
 
-      <section class="insights section-shell" aria-label="選択根拠を確認する">
-        <div class="section-intro">
-          <p class="eyebrow">WHY THIS RANKING</p>
-          <h2>結論だけでなく、<br />理由も見える。</h2>
-          <p>候補をクリックすると、優先条件に対する得失と、検討すべき情報を確認できます。</p>
+      <section class="chat panel" aria-labelledby="chatTitle">
+        <div class="section-head">
+          <h2 id="chatTitle">候補について質問する<span data-capability="chat"></span></h2>
+          <p class="section-meta">決まった質問に、今の条件と候補データから答えます。</p>
         </div>
-        <div class="insight-content">
-          <article class="selected-card" id="selectedCard"></article>
-          <article class="chart-card">
-            <div class="card-topline"><span>DEMO DATA</span><span id="chartPeriod">過去12か月の掲載賃料</span></div>
-            <h3 id="chartTitle">掲載賃料の推移</h3>
-            <div class="rent-chart" id="rentChart" aria-label="掲載賃料の推移グラフ"></div>
-            <p class="chart-footnote" id="chartFootnote">掲載価格の推移を想定したデモデータです。実取引賃料ではありません。</p>
-          </article>
-          <article class="review-card">
-            <div class="card-topline"><span>DEMO REVIEWS</span><span id="reviewCount">2 件</span></div>
-            <h3>過去居住者の声</h3>
-            <div id="reviews"></div>
-          </article>
+        <div class="chat-body">
+          <div class="chat-suggestions">
+            <p>よくある質問</p>
+            <div class="suggestion-list" id="promptSuggestions">
+              <button type="button">初期費用が安いのは？</button>
+              <button type="button">契約前の注意点は？</button>
+              <button type="button">1万円安くするなら？</button>
+              <button type="button">駅近を優先すると？</button>
+              <button type="button">並び順の理由は？</button>
+              <button type="button">敷金償却とは？</button>
+            </div>
+          </div>
+          <div class="chat-window">
+            <div class="messages" id="messages" aria-live="polite"></div>
+            <form class="chat-input" id="chatForm">
+              <label class="visually-hidden" for="chatInput">質問</label>
+              <input id="chatInput" placeholder="例：駅近を優先すると？" autocomplete="off" />
+              <button class="button button--primary" type="submit">送信</button>
+            </form>
+          </div>
         </div>
       </section>
 
-      <section class="chat-section section-shell" aria-label="分析チャット">
-        <div class="chat-copy">
-          <p class="eyebrow">ANALYSIS CHAT</p>
-          <h2>妥協点を、<br />会話で確かめる。</h2>
-          <p>「夜22時に帰宅するなら？」「家賃を1万円下げるなら？」のような問いに、現在の比較条件を根拠付きで返します。</p>
-          <div class="chat-disclaimer">このデモはルールベースの応答です。実運用では、根拠データの検証と利用者同意を前提にLLM APIを接続します。</div>
+      <section class="capabilities panel" id="capabilities" aria-labelledby="capabilitiesTitle">
+        <div class="section-head">
+          <h2 id="capabilitiesTitle">機能の状態</h2>
+          <p class="section-meta">この画面で実際に動いている機能、デモ用の機能、まだ接続していない機能の一覧です。</p>
         </div>
-        <div class="chat-window">
-          <div class="chat-window-top"><span class="status-dot"></span><span>NEST assistant</span><span class="chat-mode">DEMO MODE</span></div>
-          <div class="messages" id="messages" aria-live="polite">
-            <div class="message assistant">現在の優先順位では、<strong>清澄白河リバーサイド</strong>が最有力です。夜の買い物と通勤の両方で、妥協が少ない候補です。</div>
-          </div>
-          <div class="prompt-suggestions" id="promptSuggestions">
-            <button type="button">1万円安くするなら？</button>
-            <button type="button">夜の買い物を優先すると？</button>
-            <button type="button">判断理由を教えて</button>
-          </div>
-          <form class="chat-input-row" id="chatForm">
-            <input id="chatInput" aria-label="分析チャットへの質問" placeholder="条件や妥協点を入力…" />
-            <button type="submit" aria-label="送信">↑</button>
-          </form>
+        <div class="table-wrap">
+          <table class="capability-table">
+            <thead>
+              <tr>
+                <th scope="col">機能</th>
+                <th scope="col">状態</th>
+                <th scope="col">現在の動作</th>
+                <th scope="col">稼働に必要なこと</th>
+              </tr>
+            </thead>
+            <tbody id="capabilityRows"></tbody>
+          </table>
         </div>
       </section>
     </main>
 
-    <footer>
-      <span>NEST / rental decision prototype</span>
-      <span>Built for explainable comparisons · 2026</span>
+    <dialog class="glossary" id="glossaryDialog" aria-labelledby="glossaryTitle">
+      <div class="glossary-head">
+        <h2 id="glossaryTitle">用語辞典<span class="count" id="glossaryCount"></span></h2>
+        <button class="button" id="glossaryClose" type="button">閉じる</button>
+      </div>
+      <p class="glossary-intro">募集図面や物件検索の条件でよく見る言葉を、借りる側の目線で説明します。</p>
+      <label class="visually-hidden" for="glossarySearch">用語を検索</label>
+      <input class="glossary-search" id="glossarySearch" type="text" role="searchbox" enterkeyhint="search" placeholder="例：追い焚き、SRC、敷金償却" autocomplete="off" />
+      <div class="glossary-tabs" id="glossaryTabs" role="group" aria-label="分類"></div>
+      <dl class="glossary-list" id="glossaryList"></dl>
+    </dialog>
+
+    <footer class="app-footer">
+      <span>Rental Helper · プロトタイプ</span>
+      <span>候補の値は募集図面の記録時点のものです · <a href="https://github.com/SodaShikenn/rental-helper">ソースコード</a></span>
     </footer>
   </body>
 </html>

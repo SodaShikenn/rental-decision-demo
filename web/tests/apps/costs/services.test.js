@@ -75,9 +75,3 @@ test("a candidate with no money terms keeps deposit and key money unknown", () =
   assert.equal(estimate.initial.complete, false);
   assert.deepEqual(estimate.rows.initial.slice(0, 2).map((row) => [row.amount, row.note]), [[null, "図面に記載がありません"], [null, "図面に記載がありません"]]);
 });
-
-test("saying you use a bicycle counts the optional bicycle parking", () => {
-  const withBike = estimateCosts(byId.bresport, { ...settings, situations: new Set(["bicycle"]) });
-  assert.equal(withBike.monthly.amount, 132300 + 500);
-  assert.equal(withBike.rows.monthly.find((row) => row.label === "駐輪場").included, true);
-});

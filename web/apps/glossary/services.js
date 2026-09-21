@@ -3,7 +3,7 @@ import { GLOSSARY } from "./models.js";
 
 // Look-alike glyphs Japanese OCR produces (simplified Chinese forms), as in server/apps/listing/checks.py.
 const LOOKALIKES = { 别: "別", 净: "浄", 铁: "鉄", 键: "鍵", 换: "換", 约: "約", 须: "須", 证: "証", 违: "違", 费: "費", 险: "険", 现: "現", 况: "況", 务: "務", 项: "項", 赁: "賃", 卜: "ト" };
-const fold = (text) => String(text ?? "").normalize("NFKC").replace(/\s+/g, "").replace(/[别净铁键换约须证违费险现况务项赁卜]/g, (glyph) => LOOKALIKES[glyph]);
+export const fold = (text) => String(text ?? "").normalize("NFKC").replace(/\s+/g, "").replace(/[别净铁键换约须证违费险现况务项赁卜]/g, (glyph) => LOOKALIKES[glyph]);
 const byTerm = new Map(GLOSSARY.map((item) => [item.term, item]));
 
 export const glossaryEntry = (term) => byTerm.get(term) ?? null;

@@ -43,6 +43,8 @@ class Settings:
     extraction_mode: str = "live"
     # Kill switch: EXTRACTION_ENABLED=false stops extraction without a code change.
     extraction_enabled: bool = True
+    research_enabled: bool = True
+    google_maps_api_key: str = ""
     gemini_api_key: str = ""
     gemini_model: str = DEFAULT_GEMINI_MODEL
     gemini_thinking_level: str = "low"
@@ -55,16 +57,19 @@ def _split(value: str) -> tuple[str, ...]:
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:
-    """Read settings from `env`, or from the process environment plus server/.env."""
+    """Read explicit settings, or environment plus server/.env and root .env fallback."""
     if env is None:
         load_dotenv(Path(__file__).with_name(".env"))
+        load_dotenv(Path(__file__).resolve().parent.parent / ".env")
         env = os.environ
     thinking = env.get("GEMINI_THINKING_LEVEL", "low").lower()
     return Settings(
         allowed_origins=_split(env.get("ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS)),
         extraction_mode="mock" if env.get("EXTRACTION_MODE") == "mock" else "live",
         extraction_enabled=env.get("EXTRACTION_ENABLED", "true").lower() != "false",
-        gemini_api_key=env.get("GEMINI_API_KEY", ""),
+        research_enabled=env.get("RESEARCH_ENABLED", "true").lower() != "false",
+        gemini_api_key=env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY", ""),
+        google_maps_api_key=env.get("GOOGLE_MAPS_API_KEY") or env.get("GOOGLE_MAP_API", ""),
         gemini_model=env.get("GEMINI_MODEL", "") or DEFAULT_GEMINI_MODEL,
         gemini_thinking_level=thinking if thinking in GEMINI_THINKING_LEVELS else "low",
         rate_limit_per_minute=int(env.get("RATE_LIMIT_PER_MINUTE", DEFAULT_RATE_LIMIT_PER_MINUTE)),

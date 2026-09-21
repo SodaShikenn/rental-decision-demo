@@ -1,7 +1,6 @@
 // Move-in cost estimate (≈ services.py). Pure functions, unit-tested in web/tests. The estimate adds
 // the sheet's money terms (property.costs, each traced to the sheet) to what sheets never print:
 // the brokerage fee and the rent paid in advance. It is a guide for comparing candidates, not a quote.
-import { SITUATIONS } from "../shortlist/models.js";
 import { TAX_RATE } from "./models.js";
 
 const withTax = (amount) => Math.round(amount * (1 + TAX_RATE));
@@ -40,17 +39,14 @@ function termNote(cost) {
 /**
  * The estimate for one candidate.
  * @param property   candidate with rent, managementFee, and costs (the sheet's money terms)
- * @param settings   { moveIn: "YYYY-MM-DD", brokerageMonths: 0 | 0.5 | 1, situations: Set } (the preferences)
+ * @param settings   { moveIn: "YYYY-MM-DD", brokerageMonths: 0 | 0.5 | 1 }
  * @param adjustment { rentOverride, toggled } what the person changed: an assumed rent when the sheet
  *                   prints none, and the keys of rows switched away from their default
  * @returns rows per phase (initial, monthly, yearly, renewal, moveOut) and totals; a total is
  *          complete only when every included row has an amount
  */
-export function estimateCosts(property, { moveIn, brokerageMonths, situations = new Set() }, { rentOverride = null, toggled = [] } = {}) {
+export function estimateCosts(property, { moveIn, brokerageMonths }, { rentOverride = null, toggled = [] } = {}) {
   const costs = property.costs ?? [];
-  // Optional items the renter's situation calls for (自転車を使う → 駐輪場) start included.
-  const chosen = new Set(situations);
-  const wanted = SITUATIONS.filter((situation) => chosen.has(situation.key)).flatMap((situation) => situation.costs);
   const rent = property.rent ?? rentOverride ?? null;
   const monthly = rent == null ? null : rent + (property.managementFee ?? 0);
   const freeMonths = find(costs, "freeRent", "initial")?.amount ?? 0;
@@ -97,7 +93,8 @@ export function estimateCosts(property, { moveIn, brokerageMonths, situations = 
       cost,
       note: termNote(cost),
       toggleable: true,
-      included: cost.required !== false || wanted.some((fragment) => cost.label.includes(fragment)),
+      // Optional items (required: false, such as 駐輪場) start left out; the breakdown lists them.
+      included: cost.required !== false,
     });
   });
 

@@ -1,269 +1,131 @@
 # Rental Helper
 
-[日本語](README.md) | [English](README.en.md)
+**Compare homes. Discover what matters. Make a decision you can explain.**
 
-**[▶ Live Demoを開く](https://sodashikenn.github.io/rental-helper/)**
+Rental Helper helps tenants in Japan turn apartment images and listing links into a comparison, an interactive conversation about their priorities, and a brief they can take to a viewing or agent. The experience starts with the homes they are considering—not a blank requirements form.
 
-![Rental Helper のデモ画面](assets/demo.png)
+[日本語](README.ja.md) · [Public demo — earlier UI](https://sodashikenn.github.io/rental-helper/) · [Current walkthrough](#try-the-three-step-journey) · [Roadmap](ROADMAP.md) · [Run locally](docs/DEVELOPMENT.md#run-locally)
 
-Rental Helper は、賃貸の募集図面（マイソク）を読み取り、候補を利用者の条件で比べ、契約前に確認すべき点と初期費用まで示すツールです。図面の文字は **[Docling](https://github.com/docling-project/docling)** で読み取り、表示する値はすべて、図面上の位置と OCR の信頼度をたどれるようにしています。
+[![Current local workspace: three rental candidates, costs, a sourced reference price and contextual questions](docs/images/compare.png)](#try-the-three-step-journey)
 
-決めるのは入居者自身です。このツールは物件を選びません。入居者と不動産会社の間の**情報の差を埋め**、入居者が自分の**ニーズに気づき**、候補を**効率よく絞り込める**ようにします。どの値が図面のどこに書かれていたのか、何を妥協するのか、契約前に何を確かめるべきか、何がまだ分からないのかを、追える形で示します。
+> **Development prototype · September 22, 2026.** Screenshots show the current local build. The public demo still serves an earlier interface. Live AI, listing research and Maps require a configured backend; the recorded comparison and numeric preference flow work without those services.
 
-## デモで確認できること
+## The project in 60 seconds
 
-- 候補は**実際の募集図面3件**（ルーブル渋谷松濤 408号室、Bresport、GRAN PASEO明大前Ⅳ）から読み取った値です。記録時点（2026年9月）の値で、募集状況は確認していません
-- 月額の上限（賃料＋管理費）と譲れない条件（駅近・広さ・築浅から最大2つ）に対する「条件との一致度」で並べ替え。月額・初期費用・駅徒歩・広さ・築年の順にも切り替えられます（一致度は目安で、おすすめの順ではありません）
-- **あなたの状況**（2年以内に引っ越すかも・内見してから決めたい・外国籍・在宅で仕事・自炊が多い・自転車を使う・大きな家具がある・1階は避けたい）を選ぶと、その人に関係する確認事項・用語・費用（例：自転車 → 駐輪場代）を先に示し、候補ごとの件数も表示
-- **契約前に確認すること**：違約金・解約予告・更新料・敷金の償却・保証料・必須の付帯費用・先行契約・写真が別の部屋・外国籍の方の条件・エレベーターなしなどを図面の文字から見つけ、理由と図面の該当箇所を表示
-- **初期費用の試算**：図面の費用項目（敷金・礼金・保証料・鍵交換・保険・クリーニングなど）に、図面に載らない仲介手数料・日割り家賃・前家賃を加えて候補ごとに計算。入居日と仲介手数料を変えたり、項目を外したりして比較でき、入居後の毎月の実質負担・更新時・退去時の費用も表示
-- **用語辞典**：1K・WIC・SRC・壁式RC・独立洗面台・追い焚き・敷金償却・定期借家など、図面や検索条件でよく見る言葉を借りる側の目線で説明。各候補の「この図面の用語」や「?」から、その場で引けます
-- 選んだ候補の値ごとに、図面の該当箇所（切り抜き）、OCR が読んだ文字、信頼度を表示。図面を開いて原本も確認可能
-- 募集図面の画像を選択またはドロップし、「画像を選ぶ → 読み取る → 原本と照合 → 候補に追加」の手順で取り込み。手元に図面がなければ「サンプル図面で試す」で実際の図面（モノハウス 104号室）を使えます
-- 信頼度の低い項目、読み取れなかった項目、図面内の食い違い（例：物件概要と間取り図の面積差）は、人が原本と照合するまで候補に追加できない
-- 図面に賃料がない候補は安い候補として扱わず、中立値で「暫定」と表示。初期費用は、問い合わせた賃料を入れると計算できます
-- 通勤時間と周辺の環境は、データ源が未接続のため推測せず「未接続」と表示
-- 「初期費用が安いのは？」「契約前の注意点は？」「敷金償却とは？」などの決まった質問に、今の条件と候補データから回答
-- 画面上の各機能に「稼働中」「デモ」「未接続」を表示し、「機能の状態」で現在の動作と稼働に必要なことを一覧化
+A tenant can find attractive apartments but still struggle to answer: “Which differences matter to my daily life?” Listings omit details, monthly charges can be unclear, and “close to a station” says little about a real commute.
 
-### 実データ／記録／未実装の区別
+Rental Helper brings candidate facts and sources together, asks focused questions about concrete differences, and waits for the tenant to confirm a preference before using it. Unknowns remain visible. The tenant keeps control of the decision.
 
-|機能|状態|
-|---|---|
-|募集図面の読み取り|**実装済み（解析サーバー設定時）**。`server/` の FastAPI サーバーで、Docling（RapidOCR PP-OCRv6）が文字と位置を読み取り、Gemini（`gemini-3.8-flash`）が各項目と費用項目に対応付けて根拠の行を示す。サーバーはその値が根拠の行に実在するかを確認し、一致しない値は信頼度を下げて要確認にする|
-|契約前の確認事項|**実装済み**。サーバーが OCR の文字から決まった言葉で検出（`server/apps/listing/checks.py`）。書き方によっては見落とすため、画面にもその旨を表示|
-|初期費用の試算・用語辞典|**実装済み**（ブラウザ内で計算・表示）。試算は目安で、見積書の代わりにはならない|
-|候補3件とサンプル図面|**実際の募集図面の記録済み読み取り**。OCR は実際に実行した結果（信頼度・位置つき）。項目への対応付けは Gemini 未実行のため手作業で行い、各値を原本と照合済み（`server/tests/fixtures/sheets.json`）。キーを設定すれば同じコマンドで Gemini による対応付けに置き換えられる|
-|公開デモ（GitHub Pages）の読み取り|**サンプル図面のみ**（記録済みの結果を表示）。`web/env.js` の `extractionApiUrl` が空のため、選んだ画像は外部に送らず、読み取りもしない|
-|解析サーバーのモックモード|**テスト用の固定応答**（架空の図面 `server/tests/fixtures/listing-sheet.png` に対応）。画面上は「モック応答 · 画像は未解析」と表示|
-|通勤時間、周辺の環境、賃料の推移、口コミ|**未接続**。推測値や第三者サイトの転載は表示しない|
-|チャット|**ルールベース**（LLMではない）|
-|データ保存|**未実装**。再読み込みで追加した候補は消える|
+| If you are… | Start here |
+| --- | --- |
+| A recruiter | [Three-step walkthrough](#try-the-three-step-journey), then [skills demonstrated](#what-this-project-demonstrates). |
+| A product or design reviewer | [Product principles and current progress](PRODUCT.md), then [upcoming user journeys](ROADMAP.md). |
+| An engineering reviewer | [Architecture and setup](docs/DEVELOPMENT.md), [source map](#explore-the-implementation), and [validation](#what-is-working-today). |
 
-解析サーバーを使う場合、文字の読み取り（OCR）はサーバー内で行い、Google の Gemini API には読み取った文字列だけを送信します。画像そのものは外部に送らず、ディスクにも書き込まず、リクエスト中のメモリでのみ扱います。画面上でも送信前にこの点を表示します。Gemini API の無料枠では送信内容が Google の製品改善に使われる場合があるため、本番では有料枠を使います。
+## Try the three-step journey
 
-公開する図面の写しは長辺2560pxに縮小し、管理会社の電話番号などの連絡先を塗りつぶしています。
+The current app keeps comparison and discovery in one workspace, with a separate decision brief. Use cost, space, access, equipment/contracts or full-list views; questions stay beside the evidence. On mobile, select two candidates and open the questions in a bottom panel. Each screenshot below opens at full size; expand the steps for a guided tour. [Run this version locally](docs/DEVELOPMENT.md#run-locally) to interact with it.
 
-## OCR：Docling
+| 01 · Compare / 比較する | 02 · Discover / 希望を整理する | 03 · Takeaway / メモを持ち出す |
+| --- | --- | --- |
+| [![Compare candidates](docs/images/compare.png)](docs/images/compare.png) | [![Discover priorities](docs/images/discovery.png)](docs/images/discovery.png) | [![Take away a decision brief](docs/images/memo.png)](docs/images/memo.png) |
+| Understand differences and inspect sources. | Confirm a priority through a question. | Edit, copy and revisit the brief. |
 
-図面の読み取りの土台には、IBM Research が公開しているオープンソースの文書変換ツールキット [Docling](https://github.com/docling-project/docling)（MIT ライセンス）を使っています。
+<details>
+<summary><strong>01 — Compare: what is known, and where did it come from?</strong></summary>
 
-```text
-画像 ─▶ Docling（レイアウト解析 ＋ RapidOCR PP-OCRv6・日本語）─▶ 行ごとの文字・座標・信頼度
-     ─▶ Gemini（行 ID を引用して項目と費用に対応付け）─▶ 値と行の突き合わせ ─▶ 人が原本と照合
-     └▶ 契約前の確認事項（行の文字から規則で検出）
+Open the comparison and click a monthly cost or initial-cost estimate. See the amount, breakdown and evidence; extraction details are available when needed. Add an image or listing link without having to complete every missing field first.
+
+**Try GRAN PASEO明大前Ⅳ:** its brochure omits rent and does not identify a room. The app shows **参考 12.3万円/月** from a sourced offer for 102号室. It explains that this is a same-building reference, so it is excluded from the candidate's confirmed budget and initial-cost calculation.
+
+With the backend configured, missing monthly charges trigger research automatically. Exact-unit, current, non-conflicting offers can fill gaps; other-room prices remain references. Maps can separately compare listed station/amenity walking claims with provider estimates.
+
+</details>
+
+<details>
+<summary><strong>02 — Discover: turn a vague preference into a confirmed choice</strong></summary>
+
+In **比較ワークスペース**, select **AIと深める** in the side panel (on mobile, open **この違いから希望を整理** first). With Gemini available, start candidate analysis: the conversation asks one evidence-linked question, offers choices and deferral, and proposes priorities for explicit acceptance.
+
+For a no-key walkthrough, use **費用 → ひとつずつ確認**. Pick a candidate-derived monthly budget, then choose whether it is a must-have or flexible preference. A tentative choice alone does not update requirements. After confirmation, inspect each candidate's fit, conflict or unknown state.
+
+The screenshots use this real numeric fallback; they do not depict a fabricated live AI conversation.
+
+</details>
+
+<details>
+<summary><strong>03 — Takeaway: leave with a useful next action</strong></summary>
+
+Open **条件メモ**. The memo combines confirmed priorities, selected equipment and questions to check with an agent. Edit and copy it. Reload to confirm that local candidates, preferences and memo edits survive.
+
+Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Cloud sharing is planned.
+
+</details>
+
+## What is working today
+
+| Capability | Current state |
+| --- | --- |
+| Image / listing URL / manual candidate input | Implemented; extraction and online retrieval require the backend. |
+| Comparison, cost breakdowns, evidence and glossary | Implemented; recorded examples work without provider keys. |
+| Automatic missing-price research | Implemented with source, unit-match and conflict checks; recorded GRAN PASEO reference included. |
+| Station and grocery walking checks | Geocoding + Places (New) + WALK Routes integrated; previous local live checks succeeded. |
+| Candidate-based AI conversation | Implemented with cited context and explicit preference confirmation; live-provider reliability remains under evaluation. |
+| Preference fit, editable memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
+| Workplace commute, leisure recommendations, resident reviews and shared comparisons | **Planned**, with acceptance criteria in [ROADMAP.md](ROADMAP.md). |
+
+**Validation:** 169 tests passed on September 22, 2026: 86 frontend and 83 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed status](PRODUCT.md#validation-and-release-state).
+
+## What this project demonstrates
+
+| Skill | Concrete evidence in the project |
+| --- | --- |
+| Product judgment | Reframed an OCR examination tool around the tenant's decision; removed upfront requirements writing and kept uncertainty visible. |
+| Full-stack implementation | Modular JavaScript UI, FastAPI services, structured data contracts, external APIs and browser persistence. |
+| Responsible AI integration | Evidence IDs, source/room matching, explicit confirmation, stale-response rejection and honest failure states. |
+| UX design | Comparison and contextual questions together, visible priorities, mobile pair selection, keyboard navigation and evidence details. |
+| Testing and delivery | Pure-function/API tests, provider stubs, browser checks, Docker setup and GitHub Actions workflows. |
+
+The project demonstrates implemented engineering decisions. It does not yet claim production adoption, measured tenant outcomes or comprehensive AI accuracy.
+
+## Explore the implementation
+
+```mermaid
+flowchart LR
+    A[Images and listing links] --> B[Candidate facts and sources]
+    B --> C[Comparison]
+    M[Maps walking observations] --> C
+    C --> D[Questions grounded in candidates]
+    D --> E[Tenant confirms a priority]
+    E --> C
+    E --> F[Editable decision brief]
 ```
 
-- **行・座標・信頼度がそろう**：Docling はページのレイアウトを解析し、組み込みの OCR エンジンで行ごとの文字、座標、信頼度を返します。画面の「図面の根拠」の切り抜き、プレビュー上の強調表示、要確認の判定は、すべてこの出力から作っています。
-- **サーバー内で完結**：モデルはコンテナのビルド時に同梱し、実行時はオフラインで動きます。画像は外部に送らず、Gemini には読み取った文字だけを送ります。
-- **実際の図面での実測（CPU）**：1件あたり約1.5秒。4件の全32項目について、値が書かれた行を読み取れました。「ブレスポート」の「ブ」を「プ」、「Ⅳ」を「V」と読んだ誤読は、値と行の突き合わせで要確認として検出しています。
-- **画像の扱いで精度が変わる**：赤字の注意書き（「補足事項あり」など）は、JPEG の色の間引き（4:2:0）で読めなくなることが分かりました。公開用の写しは 4:4:4 で保存し、ブラウザは収まる画像を再圧縮せずに送り、回転（EXIF）はサーバーで補正します。
-- 設定は `server/extensions/ext_ocr.py`：`PdfPipelineOptions(do_ocr=True, generate_parsed_pages=True)` と `RapidOcrOptions(lang=["iso:ja"], force_full_page_ocr=True)`。変換器は起動時に一度だけ読み込み、1枚ずつワーカースレッドで処理します。
+<details>
+<summary><strong>Open the technical path: UI → services → evidence → tests</strong></summary>
 
-## ローカルで起動する
+| Layer | Stack / entry point |
+| --- | --- |
+| Frontend | HTML, CSS, JavaScript ES modules; no frontend build step. [App factory](web/app.js), [workspace](web/apps/workspace/index.js). |
+| Backend | Python/FastAPI, Pydantic, Gemini SDK. [App factory](server/app.py). |
+| Extraction | Docling + RapidOCR → Gemini field mapping → evidence validation. [Listing service](server/apps/listing/services.py). |
+| Research | Grounded search/URL context, unit identity and guarded updates. [Backend](server/apps/research/services.py), [automatic monthly flow](web/apps/research/automatic.js). |
+| Maps | Geocoding, Places (New), WALK Routes. [Maps service](server/apps/maps/services.py). |
+| Advice | Structured, cited questions and preference proposals. [Advisor service](server/apps/advisor/services.py). |
+| Storage | Local IndexedDB, including image blobs. [Session implementation](web/extensions/session.js). |
+| Quality | [Frontend tests](web/tests), [backend tests](server/tests), [CI workflow](.github/workflows/ci.yml). |
 
-### Docker でまとめて起動（おすすめ）
+[Setup, environment variables, API endpoints and deployment](docs/DEVELOPMENT.md).
 
-フロントエンドと解析サーバーを1つのURLで起動します（Docker と Docker Compose が必要）。
+</details>
 
-```bash
-cp server/.env.example server/.env   # 既定は EXTRACTION_MODE=mock（APIキー不要・課金なし）
-npm run up                           # = docker compose -f docker/docker-compose.yml up --build
-```
+## What comes next
 
-`http://localhost:8080` を開きます。解析サーバーのAPIリファレンスは `http://localhost:8080/docs` です。nginx が `web/` を配信し、`/api` を解析サーバーへ転送します。停止は `npm run down` です。
+1. **Work-destination routing:** compare door-to-door journeys under the same work schedule, including walking, transfers and fares when available.
+2. **Leisure discovery:** use real nearby parks, gyms, cafés or a regular destination to ask what the tenant values, then confirm it interactively.
+3. **Scenario recommendations:** explain tradeoffs between cost, commuting and confirmed leisure interests, with assumptions the tenant can change.
+4. **Resident context and sharing:** attributed reviews, viewing questions and a shareable decision brief.
 
-### 個別に起動
+These are planned capabilities, not features shown in the current screenshots. [See the ordered backlog and definition of done →](ROADMAP.md)
 
-フロントエンド（`web/`）はビルド不要の静的ファイルです。コマンドはリポジトリ直下で実行します（Node.js 22以上、Python 3.13以上）。
-
-```bash
-npm run dev:web      # http://localhost:4173 （web/ を配信）
-npm test             # フロントエンドとサーバーの単体テスト（サーバーは下記の準備が必要）
-```
-
-`index.html` を `file://` で直接開かず、上記のURLを使います。`web/env.js` の `extractionApiUrl` が空の間は、サンプル図面の記録済みの結果だけを表示します。
-
-GitHub Pagesへは、`main` へのpush時にGitHub Actions（`.github/workflows/pages.yml`）がテストを実行してから `web/` だけを公開します。
-
-## 画像解析サーバー（server/）
-
-`POST /api/extract-listing`（`multipart/form-data`、フィールド名 `image`）と `GET /healthz` を提供する FastAPI サーバーです。
-
-```bash
-cd server
-python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-cp .env.example .env                 # 既定は EXTRACTION_MODE=mock
-cd ..
-npm run dev:server                   # http://localhost:8000 （APIリファレンス：/docs）
-npm run smoke                        # 架空の図面を送り、正解値と照合
-```
-
-フロントエンドから使うには、ローカルの `web/env.js` で `extractionApiUrl: "http://localhost:8000"` を設定します（コミットしない）。実際に読み取る場合は、`server/.env` を `EXTRACTION_MODE=live` にして `GEMINI_API_KEY`（Google AI Studio のキー）を設定します。OCR はサーバー内で動き、Gemini の呼び出しは1回ごとに課金されます。初回の起動時には OCR モデルの読み込みに数秒かかります。
-
-画面の「機能の状態」は、解析サーバーの `/healthz` に問い合わせて、実際の状態（稼働中／モック／APIキー未設定／停止中／接続不可）を表示します。
-
-### 実際の図面の記録と精度の確認
-
-デモの候補は、次のコマンドで募集図面を実際に OCR して記録したものです（`web/data/sheets.js` を生成）。
-
-```bash
-npm run record:sheets              # OCR は実測、項目と費用の対応付けは正解データから（Gemini は呼ばない）
-npm run record:sheets -- --gemini  # OCR と Gemini で読み取り、正解データと項目ごとに照合（4回課金）
-```
-
-正解データ（`server/tests/fixtures/sheets.json`）には、各図面の項目・費用の値と、それが書かれた OCR の行を記録しています。`--gemini` を付けると、実際の図面4件で Gemini の対応付けの正誤を表示し、その結果をデモに反映します（人が照合した値との差は「修正あり」として出典に残ります）。元の画像（`assets/Apt*.jpg`）があれば、公開用の写し（縮小・連絡先の塗りつぶし）も作り直します。元の画像は Git で管理しません。
-
-**デプロイ**：`server/Dockerfile` のイメージは、Cloud Run、Render、Fly.io などのコンテナ実行環境でそのまま動きます。
-
-```bash
-docker build -t rental-helper-api server
-docker run -p 8000:8000 -e EXTRACTION_MODE=live -e GEMINI_API_KEY=... -e ALLOWED_ORIGINS=https://sodashikenn.github.io rental-helper-api
-```
-
-APIキーは実行環境のシークレット（環境変数）として渡し、イメージには含めません。リバースプロキシの内側で動かす場合は、`FORWARDED_ALLOW_IPS` を設定して利用者のIPを正しく取得します。デプロイ後のURLを `web/env.js` の `extractionApiUrl` に設定すると、公開デモからも読み取りが有効になります。有料APIを公開することになるため、設定するかどうかは利用状況とコストを踏まえて判断してください。
-
-**応答の形式**：
-
-- `fields`：8項目（物件・部屋名、賃料、管理費・共益費、住所、最寄駅、間取り、専有面積、竣工年）。それぞれ `value`（読み取れない場合は `null`。管理費込みは `0`）、`confidence`（0〜1、根拠の行に OCR エンジンがつけた値。値が行と一致しない場合は減点）、`evidence`（根拠の行の位置。画像に対する正規化済み `[x, y, 幅, 高さ]`）、`sourceText`（根拠の行の OCR 結果）を持つ
-- `costs`：費用項目（敷金・礼金・償却・保証料・フリーレント・更新料・その他の費用）。金額と単位（ヶ月・%・円）、支払う時期（入居時・毎月・毎年・更新時・退去時）、税別かどうか、必須かどうかを、項目と同じ根拠の確認つきで返す
-- `checks`：契約前に確認すること（分類・理由・根拠の行）
-- `lines`：OCR の全行
-- `warnings`：図面内の不一致や判読困難な箇所。`meta` に抽出モード、モデル、抽出時刻を含む
-
-**安全策とコスト管理**：
-
-- APIキーはサーバーの環境変数にのみ置き、ブラウザにもイメージにも含めない
-- 形式は拡張子ではなくファイル先頭のバイト列で判定（PNG／JPEG／WEBP、5MBまで）。アップロードはディスクに書き込まずメモリ上で処理
-- ブラウザは長辺2560pxを超える画像だけを縮小して送り（それ以外は再圧縮しない）、サーバーは長辺4096px・1200万画素までに制限
-- Gemini には OCR の文字列だけを送り、画像は送らない。応答は JSON スキーマで制約し、各値が根拠の行に実在するかをサーバーで検証する
-- Gemini が安全上の理由で応答を止めた場合や、出力が途中で切れた場合は、値を返さずエラーとして扱う
-- 許可したオリジンのみCORSを返し、IPごとに毎分5回までに制限（プロセス単位。複数台に増やす場合はRedisなどの共有ストアへ移行）。出力トークンの上限、60秒のタイムアウト、停止スイッチ（`EXTRACTION_ENABLED=false`）を設定
-- コンテナは root 以外のユーザーで動かし、ヘルスチェック（`/healthz`）を設定
-- ログには文書ID、処理時間、トークン数だけを残し、画像や読み取り値は記録しない
-- Google Cloud の予算アラートと Gemini API の利用上限を設定し、本番では有料枠を使うことを推奨
-
-費用の目安（未実測）：OCR はサーバー内で動くため無料です。Gemini（`gemini-3.8-flash`）には1回あたり入力約1,500トークン・出力1,000トークン程度を送受信し、2026年中の料金で1円未満です。代わりに解析サーバーには CPU とメモリ（目安2GB以上）が必要です。
-
-## 環境変数とAPIキー
-
-サーバー側の設定と秘密情報は `server/.env`（`server/.env.example` から作成、Git管理対象外）に置き、本番では実行環境の環境変数として渡します。Routes、Places、物件データなど今後の連携用の項目も `server/.env.example` にまとめています。
-
-公開デモの `web/env.js` には空のキーと空の `extractionApiUrl` だけを置いています。このファイルはサイトと一緒に公開されるため、秘密情報は置きません。Docker Compose では `docker/web/env.js` に差し替え、同じオリジンの解析サーバーを使います。地図表示をローカルで試す場合は、HTTPリファラーと利用APIを制限したブラウザ用キーを一時的に設定し、実キーをコミットしないでください。
-
-## 入居者目線の機能の作り方
-
-「契約前に確認すること」は、実際の募集図面4枚をそのまま LLM（Claude）に見せて「入居希望者がよく見落とすポイントと、契約前に注意すべき点」を尋ね、その回答から図面の文字で確認できるものを規則にしました。4件に共通して挙がったのは、①家賃＋管理費だけで比べると見誤る初期費用・毎月の上乗せ（保証料、必須のサポート費、保険）、②早期退去の負担（短期解約違約金、2ヶ月前の解約予告）と更新料、③敷金の償却（実質的な礼金）、④内見前の契約・写真が別の部屋・現況優先、⑤外国籍の方の条件、⑥1階・エレベーターなしなどの建物の条件です。①を数字で比べられるようにしたのが「初期費用の試算」、言葉が分からないという壁に向けたのが「用語辞典」です。
-
-## 実サービスに必要な連携
-
-|目的|候補となる連携|設計上の要点|
-|---|---|---|
-|物件情報|契約・再利用許諾を得た物件データ|物件ID、掲載時点、住所、賃料、間取りを追跡する|
-|募集図面の構造化|FastAPI + Docling OCR + Gemini（**実装済み**、`server/`）|画像を一時処理し、フィールド単位の信頼度と根拠領域を返して人が確定する|
-|住所・目的地の座標化|Geocoding API|住所またはPlace IDを座標へ変換する（現在の地図は最寄駅の位置で概略表示）|
-|地図表示|Maps JavaScript API|ブラウザ用キーにHTTPリファラー制限とAPI制限を適用する|
-|通勤・日常動線|Routes API|候補×目的地を `computeRouteMatrix` で比較し、曜日、時刻、交通手段を根拠として保存する|
-|周辺施設|Places API (New)|利用者が選んだカテゴリ、距離、営業時間に絞り、必要なフィールドだけ取得する|
-|賃料履歴・口コミ|再利用許諾済みのデータ提供元|掲載賃料と成約賃料を区別し、取得日と出典を表示する|
-
-**口コミサイトの調査（2026年9月）**：主要な口コミ・評価サイトで候補4件を調べました。建物単位の口コミ・評価があったのは分譲マンションのルーブル渋谷松濤だけで（マンションレビュー、IESHIL）、小規模な賃貸（モノハウス、Bresport）と新築（GRAN PASEO明大前Ⅳ）にはありませんでした。LIFULL HOME'S の物件アーカイブには過去の掲載賃料がありますが、各サイトの利用規約はコンテンツの無断転載・二次利用を禁じています。そのため本デモでは口コミを表示せず、今後は利用許諾のある提供元（Google Places API の評価・口コミなど）や、公的データ（国土交通省「不動産情報ライブラリ」など）と接続する方針です。
-
-第三者の不動産サイトや口コミサイトを無断でスクレイピングする設計ではありません。住所、勤務先、帰宅時間などは入力を任意とし、保存期間と利用目的を明示する必要があります。
-
-公式資料： [Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/get-api-key) / [Routes API](https://developers.google.com/maps/documentation/routes) / [Places API (New)](https://developers.google.com/maps/documentation/places/web-service/nearby-search) / [Geocoding API](https://developers.google.com/maps/documentation/geocoding)
-
-## 設計で重視した点
-
-1. **決めるのは入居者** — 並び順は入居者が選んだ条件と基準によるもので、ツールは推薦しない。
-2. **必要条件を先に聞く** — 月額の上限や「あなたの状況」から、その人にとって大事な点を言葉にする。
-3. **優先順位を絞る** — 「譲れない条件」を最大2件にし、比較軸の過剰な増加を防ぐ。
-4. **妥協を具体化する** — 家賃差を、駅徒歩・広さ・築年の差として、また初期費用・毎月の実質負担として示す。
-5. **根拠を分離する** — 値ごとに図面の該当箇所と OCR の文字を示し、ランキングと試算を検証可能にする。
-6. **分からないことを分からないと示す** — 図面にない値は中立値で「暫定」とし、未接続のデータは推測しない。
-
-## 構成
-
-フロントエンド（`web/`）と解析サーバー（`server/`）を分け、どちらも [LLM-RAG_KBQA](https://github.com/SodaShikenn/LLM-RAG_KBQA) と同じ方針で構成しています。起点（`app.js` / `app.py`）が拡張機能（`extensions/ext_*`）を初期化して機能ごとのアプリ（`apps/<name>/`）を登録し、設定は `config`、共通関数は `helper` にまとめます。
-
-```text
-.
-├── package.json              # 開発・テスト用コマンド（npm run up / dev:web / dev:server / test / smoke / record:sheets）
-├── .github/workflows/        # テスト・Dockerビルド確認（ci.yml）とGitHub Pagesへの公開（pages.yml）
-├── assets/demo.png           # README用プレビュー（元の募集図面 Apt*.jpg は Git 管理外）
-├── docker/                   # docker-compose.yml、nginx.conf、Compose用の env.js
-├── web/                      # フロントエンド（静的ファイル、GitHub Pagesで公開）
-│   ├── index.html            # 画面構造
-│   ├── app.js                # 起点：拡張機能の初期化と各アプリの登録
-│   ├── config.js             # 設定値（env.js の値を読み込む）
-│   ├── env.js                # 公開環境ごとの値（Mapsキー、解析サーバーURL。秘密情報は置かない）
-│   ├── helper.js             # 共通関数（金額表示、エスケープ、根拠の切り抜き描画、用語ボタンなど）
-│   ├── data/sheets.js        # 募集図面の記録済み読み取り結果（record_sheets が生成）
-│   ├── extensions/           # ext_store（状態と変更イベント）、ext_google_maps
-│   ├── apps/
-│   │   ├── capabilities/     # 各機能の状態（稼働中・デモ・未接続）の一覧と表示
-│   │   ├── shortlist/        # 条件、候補の比較表と順位付け、駅の位置関係図
-│   │   ├── insights/         # 判断メモ、契約前の確認事項、スコアの内訳、図面の根拠、図面の用語
-│   │   ├── costs/            # 初期費用・毎月の実質負担の試算
-│   │   ├── glossary/         # 用語辞典
-│   │   ├── chat/             # ルールベースの分析チャット
-│   │   └── intake/           # 募集図面の取り込み（選択・ドロップ・サンプル図面）と読み取り結果の照合
-│   ├── static/               # CSS、ファビコン、sheets/（公開用の図面の写し）
-│   └── tests/                # 単体テスト（node:test）
-└── server/                   # 画像解析サーバー（FastAPI）
-    ├── app.py                # 起点：create_app()、拡張機能の初期化、ルーター登録、共通のエラー処理
-    ├── config.py             # 設定値（モデル、上限値、環境変数の読み込み）
-    ├── helper.py             # 共通関数（AppError、JSON応答）
-    ├── extensions/           # ext_ocr（Docling）、ext_gemini、ext_cors、ext_logger、ext_rate_limit
-    ├── apps/listing/         # 募集図面の読み取りAPI
-    │   ├── __init__.py       # ルーターと前処理（停止スイッチ、レート制限）
-    │   ├── views.py          # リクエスト処理
-    │   ├── forms.py          # 画像の検証
-    │   ├── services.py       # OCR → Gemini → 根拠の確認 → 契約前の確認事項
-    │   ├── evidence.py       # 値・費用が根拠の行に実在するかの確認、坪表記との照合
-    │   ├── checks.py         # 契約前に確認することの検出規則
-    │   ├── prompts.py        # Gemini へのプロンプト
-    │   ├── models.py         # Gemini の応答スキーマと公開形式
-    │   └── mock.py           # モック応答
-    ├── commands/             # smoke.py（架空の図面で照合）、record_sheets.py（実際の図面の記録と精度確認）
-    ├── tests/                # 単体テスト（pytest）、架空の図面、実際の図面の正解データ（sheets.json）
-    ├── requirements*.txt     # 依存パッケージ（本番用・開発用）
-    └── Dockerfile            # 解析サーバーのコンテナイメージ
-```
-
-各アプリのファイルの役割は共通です。
-
-- `index.js`：アプリの登録
-- `views.js`：画面（またはHTTP）の処理
-- `services.js`：画面に依存しないロジック（単体テストの対象）
-- `models.js`：データ定義
-
-### 機能を追加するには
-
-- **フロントエンド**：`web/apps/<name>/index.js` に `initApp(app)` を定義し、`web/app.js` の `APPS` に追加します。状態は `app.extensions.store` から読み、変更は `store.on("change", ...)` で受け取ります。
-- **サーバーのAPI**：`server/apps/<name>/__init__.py` で `router`（`APIRouter`、前処理は `dependencies`）を定義し、`server/app.py` の `register_routers` に追加します。
-- **外部サービス**：フロントエンドは `web/extensions/ext_<name>.js` の `initApp(app)`、サーバーは `server/extensions/ext_<name>.py` の `init_app(app)` として定義し、各 `app` の `initialize_extensions`（`initializeExtensions`）に追加します。サーバーのテストでは `create_app(settings, gemini_client=stub, ocr_reader=stub)` のように差し替えます。
-- **設定値**：固定値は `config.js` / `config.py`、環境ごとの値はブラウザなら `web/env.js`、サーバーなら環境変数（ローカルは `server/.env`）に置きます。
-- **図面を追加する**：元の画像を `assets/` に置き、`server/tests/fixtures/sheets.json` に正解値と根拠の行を追加して `npm run record:sheets` を実行します。比較表の初期候補にする場合は `web/apps/shortlist/models.js` の `SEED_SHEET_IDS` に追加します。
-- **確認事項・用語を追加する**：規則は `server/apps/listing/checks.py` の `RULES`、用語は `web/apps/glossary/models.js` の `GLOSSARY` に追加します。
-
-## 検証済みの操作
-
-- 実際の募集図面4件の OCR（1件あたり約1.5秒。全32項目と全40件の費用項目について、値が書かれた行を読み取り、金額は根拠の行の文字と一致。「ブ」→「プ」、「Ⅳ」→「V」の誤読は要確認として検出）
-- 契約前の確認事項の検出（4件で各10〜12件。赤字の「補足事項あり」も、画像を 4:4:4 で保存してから検出できるように）
-- 初期費用の試算（例：モノハウス 104号室は 428,597円、入居 10/15・仲介手数料1ヶ月）。入居日・仲介手数料・項目の除外・賃料の仮入力に追従
-- 用語辞典（検索・分類・各所の「?」とチップから開く、Esc で閉じる）
-- 条件変更に合わせた即時の並べ替え、サンプル図面の照合と候補追加、解析サーバー（モックモード）経由の読み取り
-- 妥協条件・初期費用・注意点・用語に対するチャット応答（入力文字列はHTMLとして解釈しない）
-- デスクトップ／モバイル向けレスポンシブ表示（390px で横スクロールなし）、ライト／ダーク
-- 単体テスト（`npm test`）：スコア計算、初期費用、用語の検出、要確認の判定、出典表示、チャット応答、機能の状態、記録済みデータの整合性（node:test）。サーバーの検証・根拠と費用の確認・確認事項の規則・EXIF 回転・Gemini 呼び出し・ルーティング（pytest。実 OCR のテストは `RUN_OCR_TESTS=1`）
-- Docker Compose での起動、nginx 経由の読み取り（モック）、ヘルスチェック
-
-## 今後の拡張
-
-- Gemini キーを設定して `npm run record:sheets -- --gemini` を実行し、実際の図面での対応付けの精度・時間・費用を記録
-- Routes APIによる曜日・時間帯・交通手段別の移動時間比較
-- Places APIによるスーパー、医療、保育、飲食店などの生活圏評価
-- 許諾済み物件データと掲載賃料履歴、利用許諾のある口コミへの接続
-- 確認済み候補の保存と、バージョン付き物件スキーマ
-- 根拠データを引用するLLMチャットと、内見後フィードバックの学習
+[Back to top ↑](#rental-helper)

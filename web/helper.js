@@ -9,6 +9,9 @@ export const man = (value) => `${(value / 10000).toLocaleString("ja-JP", { maxim
 /** Floor area in tsubo, as printed next to ㎡ on listing sheets (1坪 = 3.30579㎡). */
 export const tsubo = (sqm) => (sqm / 3.30579).toFixed(2);
 
+/** Long OCR text cut to `length` characters with 「…」; the crop beside it shows the rest. */
+export const clip = (text, length = 48) => (text.length > length ? `${text.slice(0, length)}…` : text);
+
 export const escapeHTML = (value) =>
   String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
 
@@ -17,6 +20,13 @@ export const formatTime = (iso) =>
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+/** Say something in the page's live region (#liveMessage): a sheet added or removed, or why a file was refused. */
+export function announce(text, { error = false } = {}) {
+  const message = $("#liveMessage");
+  message.textContent = text;
+  message.classList.toggle("is-error", error);
+}
 
 /**
  * Draw one evidence region of a sheet image (box = [x, y, width, height], 0–1 of the image) into a

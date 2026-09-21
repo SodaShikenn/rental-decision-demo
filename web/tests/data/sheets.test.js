@@ -2,8 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { SHEETS } from "../../data/sheets.js";
-import { EXTRACTION_FIELDS, SAMPLE_SHEET, isExtractionResult } from "../../apps/intake/models.js";
-import { SEED_SHEET_IDS } from "../../apps/shortlist/models.js";
+import { EXTRACTION_FIELDS, SAMPLE_SHEET, SEED_SHEET_IDS, isExtractionResult } from "../../apps/intake/models.js";
 
 const webRoot = new URL("../../", import.meta.url);
 

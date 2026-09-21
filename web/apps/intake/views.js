@@ -1,63 +1,51 @@
-// Intake DOM: choose or drop a listing sheet (or the sample sheet), read it, review each field
-// against the original, then add it as a candidate. Stages: idle → ready → reading → review (or error).
-import { EXTRACTION_ENDPOINT, REVIEW_CONFIDENCE_THRESHOLD } from "../../config.js";
-import { $, $$, drawEvidenceCrop, escapeHTML } from "../../helper.js";
-import { EXTRACTION_FIELDS, MODE_LABELS, SAMPLE_SHEET, WARNING_LABELS } from "./models.js";
-import { IntakeError, buildCandidate, extractionNote, fieldsNeedingReview, prepareImage, requestExtraction } from "./services.js";
+// Intake DOM: a dialog that takes one listing sheet (chosen, dropped on the comparison, or the sample),
+// reads it, and asks a person to check the uncertain fields against the original before the sheet
+// joins the comparison. Stages: ready → reading → review (or error).
+import { EXTRACTION_ENDPOINT, MAX_SHEETS, REVIEW_CONFIDENCE_THRESHOLD } from "../../config.js";
+import { $, $$, announce, drawEvidenceCrop, escapeHTML } from "../../helper.js";
+import { EXTRACTION_FIELDS, MODE_LABELS, SAMPLE_SHEET, WARNING_LABELS, fieldValueText, shortFieldLabel } from "./models.js";
+import { IntakeError, buildPartialCandidate, extractionNote, fieldsNeedingReview, prepareImage, requestExtraction } from "./services.js";
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const STEPS = ["select", "read", "review", "add"];
 const LIVE = Boolean(EXTRACTION_ENDPOINT);
 
 // One upload at a time. requestId lets a new file or a cancel discard a reading still in flight.
-// `sample` is the recorded sheet when the preview shows the sample sheet, otherwise null.
-const session = { file: null, sample: null, previewUrl: null, result: null, review: new Set(), confirmed: new Set(), requestId: 0 };
+// `sample` is the recorded sheet when the preview shows the sample sheet, otherwise null. `id` is the
+// sheet's id in the comparison: the sample keeps its own (adding it again replaces its column), every
+// other upload gets a new one.
+const session = { id: null, file: null, sample: null, previewUrl: null, result: null, review: new Set(), confirmed: new Set(), requestId: 0 };
+let uploads = 0;
+let store = null;
 
-// What the extraction server reported (see the capabilities app); "mock" changes the wording.
+// What the extraction server reported (see the capabilities app); it changes the wording.
 let serverState = LIVE ? "checking" : "none";
 const mockServer = () => serverState === "mock";
-const idleLabel = () => (!LIVE ? "記録済みの結果を表示" : mockServer() ? "モックで読み取る" : "OCRとGeminiで読み取る");
+const idleLabel = () => (!LIVE ? "記録済みの結果を表示" : mockServer() ? "モックで読み取る" : "候補の情報を取り込む");
 // Without a server only the sample sheet can be "read" (from its recording).
 const canRead = () => LIVE || Boolean(session.sample);
 
-const EMPTY_STATES = {
-  get ready() {
-    if (!LIVE && session.sample) return ["記録済みの読み取り結果を表示できます", "解析サーバーが未設定のため、この図面を事前に OCR で読み取った記録を使います。「記録済みの結果を表示」で、原本との照合から候補への追加までを試せます。"];
-    if (!LIVE) return ["この画像は読み取れません", "解析サーバーが未設定のため、選んだ画像の内容は読み取りません。「サンプル図面で試す」で、実際の募集図面とその読み取り結果を使って流れを確認できます。"];
-    if (mockServer()) return ["読み取りの準備ができました（モック）", "解析サーバーはモックモードです。「モックで読み取る」を押すと、テスト用の固定値が返ります。画像の内容は読み取りません。"];
-    return ["読み取りの準備ができました", "「OCRとGeminiで読み取る」を押すと、解析サーバーの OCR が図面の文字を読み取り、Gemini が物件名・賃料・管理費・住所・最寄駅・間取り・面積・竣工年に対応付けます。"];
-  },
-  get reading() {
-    return mockServer()
-      ? ["読み取り中です…", "解析サーバー（モック）から固定値を受け取っています。"]
-      : ["読み取り中です…", "OCR で図面の文字を読み取り、Gemini が項目に対応付けています。"];
-  },
-  error: ["読み取れませんでした", "もう一度読み取るか、サンプル図面で流れを確認できます。"],
+const NO_SERVER = "解析サーバーが未設定のため、この画像は読み取れません（どこにも送信していません）";
+
+const setTitle = (text) => {
+  $("#intakeTitleText").textContent = text;
 };
 
-function markStep(current) {
-  const index = STEPS.indexOf(current);
-  $$("#intakeSteps li").forEach((item, position) => {
-    item.dataset.status = position < index ? "done" : position === index ? "current" : "todo";
-    if (position === index) item.setAttribute("aria-current", "step");
-    else item.removeAttribute("aria-current");
-  });
-}
-
 function setStage(stage, errorText = "") {
-  $("#intake").dataset.state = stage;
-  $("#intakeBody").hidden = stage === "idle";
-  markStep({ idle: "select", ready: "read", reading: "read", error: "read", review: "review" }[stage]);
-  $("#analyzeListing").hidden = !canRead();
-  if (stage === "review") return;
-  $("#extractionForm").hidden = true;
-  $("#extractionEmpty").hidden = false;
-  const [title, text] = EMPTY_STATES[stage] ?? ["", ""];
-  $("#extractionEmptyTitle").textContent = title;
-  $("#extractionEmptyText").textContent = text;
-  $("#extractionError").hidden = stage !== "error";
-  $("#extractionErrorText").textContent = errorText;
-  $("#emptySample").hidden = !(stage === "error" || (stage === "ready" && !canRead()));
+  const dialog = $("#intakeDialog");
+  dialog.dataset.state = stage;
+  const review = stage === "review";
+  const blocked = stage === "ready" && !canRead();
+  $("#extractionForm").hidden = !review;
+  $("#analyzeListing").hidden = review || !canRead();
+  $("#confirmExtraction").hidden = !review;
+  $("#intakeError").hidden = !(stage === "error" || blocked);
+  $("#intakeErrorText").textContent = blocked ? NO_SERVER : errorText;
+  $("#intakeSample").hidden = !(stage === "error" || blocked);
+  if (review) return;
+  setTitle("図面から候補を追加");
+  $("#intakeStatus").textContent = stage === "reading"
+    ? mockServer() ? "読み取り中です…（解析サーバーのモックから固定値を受け取っています）" : "候補の情報を取り込んでいます…"
+    : "";
 }
 
 function confidenceBadge(field) {
@@ -66,19 +54,43 @@ function confidenceBadge(field) {
   return `<span class="confidence${low ? " is-low" : ""}" title="OCR エンジンが根拠の行につけた信頼度。値が行の文字と一致しない場合は下げています">信頼度 ${Math.round(field.confidence * 100)}%${low ? "（低）" : ""}</span>`;
 }
 
-function fieldMarkup({ key, label, type, step, wide }, field) {
-  const review = session.review.has(key);
+const inputMarkup = ({ key, type, step }, field) =>
+  `<input id="extracted-${key}" type="${type}"${step ? ` step="${step}" min="0"` : ""} value="${escapeHTML(field.value ?? "")}"${field.value === null ? ' placeholder="未検出：原本を見て入力"' : ""} />`;
+const evidenceMarkup = ({ key, label }, field) => `
+  ${field.evidence ? `<canvas class="evidence-crop" data-crop="${key}" role="img" aria-label="${escapeHTML(label)}の根拠となる図面の箇所"></canvas>` : ""}
+  ${field.sourceText ? `<p class="source-text">図面の表記（OCR）「${escapeHTML(field.sourceText)}」</p>` : ""}`;
+
+/** A field to check against the original: input, confidence, confirmation, crop, and OCR text. */
+function cardMarkup(definition, field) {
+  const { key, label, wide } = definition;
   return `
-    <div class="review-field${wide ? " wide" : ""}${review ? " needs-review" : ""}" data-field="${key}">
+    <div class="review-field needs-review${wide ? " wide" : ""}" data-field="${key}">
       <label for="extracted-${key}">${label}</label>
-      <input id="extracted-${key}" type="${type}"${step ? ` step="${step}" min="0"` : ""} value="${escapeHTML(field.value ?? "")}"${field.value === null ? ' placeholder="未検出：原本を見て入力"' : ""} />
+      ${inputMarkup(definition, field)}
       <div class="field-meta">
-        ${confidenceBadge(field)}
-        ${review ? `<label class="confirm-check"><input type="checkbox" data-confirm="${key}" />原本と一致を確認</label>` : ""}
+        <span class="confidence is-low">未確認</span>
+        <label class="confirm-check"><input type="checkbox" data-confirm="${key}" />原本と一致を確認</label>
       </div>
-      ${field.evidence ? `<canvas class="evidence-crop" data-crop="${key}" role="img" aria-label="${escapeHTML(label)}の根拠となる図面の箇所"></canvas>` : ""}
-      ${field.sourceText ? `<p class="source-text">図面の表記（OCR）「${escapeHTML(field.sourceText)}」</p>` : ""}
+      <details class="review-about"><summary>元の図面を確認</summary>${evidenceMarkup(definition, field)}</details>
     </div>`;
+}
+
+/** A field read with enough confidence: label and value, with 編集 to correct it. */
+function summaryMarkup({ key, label }, field) {
+  return `
+    <div class="summary-row" data-field="${key}">
+      <dt>${shortFieldLabel(key)}</dt>
+      <dd><span class="summary-value">${escapeHTML(fieldValueText(key, field.value))}</span><button class="summary-edit" type="button" data-edit="${key}" aria-label="${escapeHTML(label)}を編集">編集</button></dd>
+    </div>`;
+}
+
+function drawCrops(root) {
+  const image = $("#listingPreview");
+  if (!image.naturalWidth) return; // drawn when the preview has loaded
+  $$("canvas[data-crop]:not([data-drawn])", root).forEach((canvas) => {
+    drawEvidenceCrop(canvas, image, session.result.fields[canvas.dataset.crop].evidence);
+    canvas.dataset.drawn = "";
+  });
 }
 
 function showEvidence(key) {
@@ -92,15 +104,15 @@ function showEvidence(key) {
 
 function updateReviewState() {
   const pending = [...session.review].filter((key) => !session.confirmed.has(key));
-  const count = $("#extractionReviewLabel");
-  $("#confirmExtraction").disabled = pending.length > 0;
-  count.textContent = pending.length ? `要確認 残り${pending.length}件` : "すべて確認済み";
-  count.className = `review-count ${pending.length ? "is-pending" : "is-done"}`;
+  const button = $("#confirmExtraction");
+  button.disabled = false;
+  button.title = "未確認の項目は未取得のまま追加できます";
+  button.textContent = pending.length ? "未確認のまま比較に加える" : "比較に加える";
+  setTitle("候補の情報");
   $$(".review-field").forEach((element) => element.classList.toggle("confirmed", session.confirmed.has(element.dataset.field)));
   $("#intakeStatus").textContent = pending.length
-    ? `色付きの${pending.length}項目は、信頼度が低い・読み取れない・図面内で食い違いがある項目です。原本と照合して「原本と一致を確認」にチェックするか、値を修正してください。`
-    : "要確認の項目はすべて照合済みです。内容を確かめて候補に追加してください。";
-  markStep(pending.length ? "review" : "add");
+    ? `${pending.length}項目は確認が必要です。今は空欄のまま比較に加えられます。入力や確認は後からでもできます。`
+    : "この情報で比較を始められます。必要に応じて編集してください。";
 }
 
 function renderExtraction(result) {
@@ -108,58 +120,77 @@ function renderExtraction(result) {
   session.review = fieldsNeedingReview(result);
   session.confirmed = new Set();
   setStage("review");
-  $("#extractionEmpty").hidden = true;
-  $("#extractionForm").hidden = false;
   $("#extractionModeLabel").textContent = MODE_LABELS[result.meta.mode];
   $("#extractionNote").textContent = extractionNote(result);
+  const flagged = EXTRACTION_FIELDS.filter(({ key }) => session.review.has(key));
+  const settled = EXTRACTION_FIELDS.filter(({ key }) => !session.review.has(key));
   const grid = $("#extractionGrid");
-  grid.innerHTML = EXTRACTION_FIELDS.map((field) => fieldMarkup(field, result.fields[field.key])).join("");
-  $$("canvas[data-crop]", grid).forEach((canvas) => drawEvidenceCrop(canvas, $("#listingPreview"), result.fields[canvas.dataset.crop].evidence));
+  grid.innerHTML = flagged.map((field) => cardMarkup(field, result.fields[field.key])).join("");
+  grid.hidden = flagged.length === 0;
+  const summary = $("#extractionSummary");
+  summary.innerHTML = settled.map((field) => summaryMarkup(field, result.fields[field.key])).join("");
+  summary.hidden = settled.length === 0;
+  drawCrops(grid);
   const warnings = $("#extractionWarnings");
   warnings.innerHTML = result.warnings.map((warning) => `<li><b>${WARNING_LABELS[warning.code] ?? "注意"}</b><span>${escapeHTML(warning.message)}</span></li>`).join("");
   warnings.hidden = result.warnings.length === 0;
   const checks = result.checks ?? [];
   $("#extractionChecks").hidden = checks.length === 0;
-  $("#extractionChecks").innerHTML = checks.length
-    ? `<p class="review-checks-title">契約前に確認すること（図面から${checks.length}件）</p><p>${checks.map((check) => escapeHTML(check.title)).join("、")}</p><p class="review-checks-note">候補に追加すると、理由と図面の該当箇所、初期費用の内訳を確認できます。</p>`
-    : "";
+  $("#extractionChecks").textContent = checks.length ? `契約前の確認 ${checks.length}件（追加後に表を参照）` : "";
   showEvidence(null);
   updateReviewState();
+  $("#confirmExtraction").focus({ preventScroll: true });
+}
+
+/** Turn a settled row into an input, with its crop, so a misreading can still be corrected. */
+function editField(key) {
+  const definition = EXTRACTION_FIELDS.find((field) => field.key === key);
+  const field = session.result.fields[key];
+  const row = $(`#extractionSummary [data-field="${key}"]`);
+  row.classList.add("is-editing");
+  row.innerHTML = `
+    <dt><label for="extracted-${key}">${definition.label}</label></dt>
+    <dd>${inputMarkup(definition, field)}<span class="field-meta">${confidenceBadge(field)}</span>${evidenceMarkup(definition, field)}</dd>`;
+  drawCrops(row);
+  $(`#extracted-${key}`).focus();
 }
 
 function readExtractedValue({ key, type, allowZero }) {
-  const raw = $(`#extracted-${key}`).value.trim();
+  const input = $(`#extracted-${key}`);
+  if (!input) return session.result.fields[key].value; // settled and not edited
+  const raw = input.value.trim();
   if (!raw) return null;
   if (type !== "number") return raw;
   const number = Number(raw);
   return Number.isFinite(number) && (number > 0 || (allowZero && number === 0)) ? number : null;
 }
 
-function setMessage(text, { error = false } = {}) {
-  const message = $("#intakeMessage");
-  message.textContent = text;
-  message.classList.toggle("is-error", error);
-}
-
 function reset() {
   session.requestId += 1;
-  session.file = null;
-  session.sample = null;
-  session.result = null;
+  Object.assign(session, { id: null, file: null, sample: null, result: null });
   if (session.previewUrl) URL.revokeObjectURL(session.previewUrl);
   session.previewUrl = null;
   $("#listingPreview").removeAttribute("src");
+  $("#extractionGrid").innerHTML = "";
+  $("#extractionSummary").innerHTML = "";
   showEvidence(null);
-  setStage("idle");
 }
 
-function acceptFile(file, sample = null) {
-  if (!file) return;
+/** Open the dialog on one image. `sample` is the recorded sheet when the image is the sample sheet. */
+export function acceptFile(file, sample = null) {
+  if (!file || !store) return;
   if (!ACCEPTED_TYPES.includes(file.type)) {
-    setMessage(`「${file.name}」は読み込めません。PNG・JPEG・WEBP の画像を選んでください。`, { error: true });
+    announce(`「${file.name}」は読み込めません。PNG・JPEG・WEBP の画像を選んでください。`, { error: true });
+    return;
+  }
+  const { properties } = store.state;
+  const replacing = sample && properties.some((property) => property.id === sample.id);
+  if (properties.length >= MAX_SHEETS && !replacing) {
+    announce(`比べられるのは${MAX_SHEETS}件までです。どれかを外してから加えてください。`, { error: true });
     return;
   }
   reset();
+  session.id = sample ? sample.id : `upload-${++uploads}`;
   session.file = file;
   session.sample = sample;
   session.previewUrl = URL.createObjectURL(file);
@@ -167,71 +198,63 @@ function acceptFile(file, sample = null) {
   $("#fileName").textContent = sample
     ? `サンプル図面：${sample.confirmed.propertyName}（実際の募集図面・連絡先は非表示）`
     : `${file.name}（${(file.size / 1024 / 1024).toFixed(1)}MB）· 画像はブラウザ内で表示しています`;
-  setMessage("");
+  announce("");
   setStage("ready");
-  $(canRead() ? "#analyzeListing" : "#emptySample").focus({ preventScroll: true });
+  const dialog = $("#intakeDialog");
+  if (!dialog.open) dialog.showModal();
+  $(canRead() ? "#analyzeListing" : "#intakeSample").focus();
 }
 
-/** Load the sample sheet as if it had been chosen, so every mode uses the same flow. */
-async function loadSample() {
+/** Open the sample sheet as if it had been chosen, so every mode uses the same flow. */
+export async function loadSample() {
   try {
     const response = await fetch(SAMPLE_SHEET.image);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const blob = await response.blob();
     acceptFile(new File([blob], SAMPLE_SHEET.image.split("/").pop(), { type: blob.type || "image/jpeg" }), SAMPLE_SHEET);
   } catch {
-    setMessage("サンプル図面を読み込めませんでした。ページを再読み込みしてください。", { error: true });
+    announce("サンプル図面を読み込めませんでした。ページを再読み込みしてください。", { error: true });
   }
 }
 
 export function bindIntake(app) {
-  const { store } = app.extensions;
-  const intake = $("#intake");
+  store = app.extensions.store;
+  const dialog = $("#intakeDialog");
   const upload = $("#listingUpload");
   const preview = $("#listingPreview");
   const analyzeButton = $("#analyzeListing");
-  const grid = $("#extractionGrid");
+  const form = $("#extractionForm");
+
   const applyServerState = () => {
     analyzeButton.textContent = idleLabel();
     $("#privacyNote").textContent = !LIVE
       ? "解析サーバーが未設定のため、画像はどこにも送信しません。"
       : mockServer()
         ? "解析サーバーはモックモードです。画像は解析サーバーに送られますが、Gemini には送信されず、保存もされません。"
-        : "「OCRとGeminiで読み取る」を押すと、画像を縮小して解析サーバーに送ります。文字の読み取りはサーバー内で行い、Google の Gemini API には読み取った文字だけを送信します（画像は送信しません）。画像は保存しません。";
-    if ($("#intake").dataset.state === "ready") setStage("ready");
+        : "「候補の情報を取り込む」を押すと、画像を縮小して解析サーバーに送ります。文字の読み取りはサーバー内で行い、Google の Gemini API には読み取った文字だけを送信します（画像は送信しません）。画像は保存しません。";
+    if (dialog.open && dialog.dataset.state === "ready") setStage("ready");
   };
   store.on("server-status", (state) => {
     serverState = state;
     applyServerState();
   });
   applyServerState();
-  setStage("idle");
+  setStage("ready");
 
-  preview.addEventListener("load", () => $("#previewFrame").style.setProperty("--ratio", `${preview.naturalWidth} / ${preview.naturalHeight}`));
-
+  preview.addEventListener("load", () => {
+    $("#previewFrame").style.setProperty("--ratio", `${preview.naturalWidth} / ${preview.naturalHeight}`);
+    if (session.result) drawCrops(form);
+  });
   upload.addEventListener("change", () => {
     acceptFile(upload.files[0]);
-    upload.value = ""; // allow choosing the same file again to start over
+    upload.value = ""; // allow choosing the same file again
   });
-  intake.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    intake.classList.add("is-dragover");
-  });
-  intake.addEventListener("dragleave", (event) => {
-    if (!intake.contains(event.relatedTarget)) intake.classList.remove("is-dragover");
-  });
-  intake.addEventListener("drop", (event) => {
-    event.preventDefault();
-    intake.classList.remove("is-dragover");
-    acceptFile(event.dataTransfer.files[0]);
-  });
-
   $("#useSampleSheet").addEventListener("click", loadSample);
-  $("#emptySample").addEventListener("click", loadSample);
-  $("#cancelIntake").addEventListener("click", () => {
-    reset();
-    setMessage("");
-  });
+  $("#intakeSample").addEventListener("click", loadSample);
+  $("#cancelIntake").addEventListener("click", () => dialog.close());
+  // Closing the dialog any way (取り消す, Escape, or after adding) discards the session; an image a new
+  // column now shows was handed over before closing, so it is not revoked here.
+  dialog.addEventListener("close", reset);
 
   analyzeButton.addEventListener("click", async () => {
     if (!LIVE) {
@@ -257,45 +280,48 @@ export function bindIntake(app) {
     }
   });
 
-  grid.addEventListener("change", (event) => {
+  form.addEventListener("change", (event) => {
     const key = event.target.dataset.confirm;
     if (!key) return;
     if (event.target.checked) session.confirmed.add(key);
     else session.confirmed.delete(key);
     updateReviewState();
   });
-  grid.addEventListener("input", (event) => {
+  form.addEventListener("input", (event) => {
     const key = event.target.closest("[data-field]")?.dataset.field;
     if (!key || !session.review.has(key) || event.target.dataset.confirm) return;
     // Correcting a value against the original counts as confirming it.
     session.confirmed.add(key);
-    $(`[data-confirm="${key}"]`, grid).checked = true;
+    $(`[data-confirm="${key}"]`, form).checked = true;
     updateReviewState();
   });
+  form.addEventListener("click", (event) => {
+    const edit = event.target.closest("[data-edit]");
+    if (edit) editField(edit.dataset.edit);
+  });
   const fieldKey = (element) => element?.closest("[data-field]")?.dataset.field;
-  grid.addEventListener("pointerover", (event) => showEvidence(fieldKey(event.target)));
-  grid.addEventListener("focusin", (event) => showEvidence(fieldKey(event.target)));
-  grid.addEventListener("pointerleave", () => showEvidence(grid.contains(document.activeElement) ? fieldKey(document.activeElement) : null));
+  form.addEventListener("pointerover", (event) => showEvidence(fieldKey(event.target)));
+  form.addEventListener("focusin", (event) => showEvidence(fieldKey(event.target)));
+  form.addEventListener("pointerleave", () => showEvidence(form.contains(document.activeElement) ? fieldKey(document.activeElement) : null));
 
-  $("#extractionForm").addEventListener("submit", (event) => {
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
     const { result } = session;
-    if (!result || [...session.review].some((key) => !session.confirmed.has(key))) return;
+    if (!result) return;
     const values = Object.fromEntries(EXTRACTION_FIELDS.map((field) => [field.key, readExtractedValue(field)]));
-    // Keep the sheet so the detail panel can show each value's evidence. Mock readings point at the
-    // test fixture's text positions, not this image, so they keep none.
+    // Keep the sheet so each value can be shown next to its evidence. Mock readings point at the test
+    // fixture's text positions, not this image, so they keep none.
     let image = null;
     if (result.meta.mode !== "mock") {
       image = session.sample?.image ?? session.previewUrl;
-      if (image === session.previewUrl) session.previewUrl = null; // now owned by the candidate
+      if (image === session.previewUrl) session.previewUrl = null; // now owned by the new column
     }
-    const candidate = buildCandidate(result, values, new Date().toISOString(), { image });
-    const replaced = store.state.properties.find((property) => property.id === candidate.id)?.sheet?.image;
-    if (replaced?.startsWith("blob:")) URL.revokeObjectURL(replaced);
-    store.upsertProperty(candidate, { select: true });
+    const candidate = buildPartialCandidate(result, values, session.confirmed, { id: session.id, image });
+    // Close first: closing a modal dialog returns focus to where it was opened from, and focus
+    // belongs on the new column.
+    dialog.close();
+    store.upsertProperty(candidate);
     store.emit("added", candidate.id);
-    reset();
-    setMessage(`「${candidate.name}」を候補に追加しました。図面にない値は未取得として扱います。`);
-    $("#shortlistTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+    announce(`${candidate.name} を加えました`);
   });
 }

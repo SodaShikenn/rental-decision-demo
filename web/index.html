@@ -2,265 +2,219 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="賃貸の募集図面を読み取り、候補を条件で比べ、契約前の注意点と初期費用まで示すツールです。" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="候補の住まいを比べながら、自分にとって大切な条件と次に確認したいことを整理します。" />
     <meta name="color-scheme" content="light dark" />
-    <title>Rental Helper｜賃貸比較</title>
+    <title>Rental Helper｜自分に合う住まいを考える</title>
     <link rel="icon" href="static/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="static/app.css" />
+    <link rel="stylesheet" href="static/workspace.css" />
     <script src="env.js"></script>
     <script type="module" src="app.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#shortlistTitle">候補一覧へ移動</a>
+    <a class="skip-link" href="#compareTable">比較表へ移動</a>
 
     <header class="app-header">
-      <a class="brand" href="./">
-        <svg class="brand-mark" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M24 26H26V2H2V26H14" />
-          <path d="M2 11H12" />
-          <path d="M14 26V16" stroke-width="1.5" />
-          <path d="M14 16A10 10 0 0 1 24 26" stroke-width="1.5" />
-        </svg>
-        <span class="brand-name">Rental Helper</span>
-        <span class="brand-product">賃貸比較</span>
-      </a>
-      <p class="brand-tagline">募集図面を読み取り、候補を比べ、契約前の注意点と初期費用まで確かめます。</p>
-      <button class="button header-glossary" id="glossaryOpen" type="button">用語辞典</button>
-      <a class="status-link" href="#capabilities" id="statusSummary">
-        <span class="status-link-label">機能の状態</span>
-      </a>
+      <div class="page-inner">
+        <h1 class="brand">
+          <svg class="brand-mark" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M24 26H26V2H2V26H14" />
+            <path d="M2 11H12" />
+            <path d="M14 26V16" stroke-width="1.5" />
+            <path d="M14 16A10 10 0 0 1 24 26" stroke-width="1.5" />
+          </svg>
+          <span class="brand-name">Rental Helper</span>
+        </h1>
+        <span class="brand-purpose">住まい選びの比較ノート</span><span class="session-note" id="sessionStatus" role="status">保存状態を確認中…</span>
+      </div>
     </header>
 
-    <p class="env-notice" role="note">
-      <strong>デモ環境</strong>
-      <span>候補は実際の募集図面から読み取った記録時点の値で、募集状況は確認していません。各機能の状態は</span>
-      <span class="chip chip--live">稼働中</span>
-      <span class="chip chip--demo">デモ</span>
-      <span class="chip chip--planned">未接続</span>
-      <span>で示しています。</span>
-    </p>
-
-    <main class="page">
-      <form class="conditions panel" id="conditions" aria-labelledby="conditionsTitle">
-        <h2 class="visually-hidden" id="conditionsTitle">比較の条件</h2>
-        <div class="field field--budget">
-          <label class="field-label" for="budget">月額の上限（賃料＋管理費）</label>
-          <div class="budget-row">
-            <input id="budget" type="range" min="90000" max="160000" step="5000" value="130000" />
-            <output id="budgetOutput" for="budget">13万円</output>
-          </div>
-        </div>
-        <fieldset class="field">
-          <legend>譲れない条件<span class="field-hint" id="priorityHint">2つまで選べます</span></legend>
-          <div class="toggles" id="priorityChips">
-            <button class="toggle" type="button" data-priority="walk" aria-pressed="true">駅近</button>
-            <button class="toggle" type="button" data-priority="space" aria-pressed="true">広さ</button>
-            <button class="toggle" type="button" data-priority="age" aria-pressed="false">築浅</button>
-            <span class="toggle toggle--unavailable" aria-disabled="true">通勤時間<span data-capability="routes"></span></span>
-            <span class="toggle toggle--unavailable" aria-disabled="true">周辺の環境<span data-capability="places"></span></span>
-          </div>
-        </fieldset>
-        <fieldset class="field field--situations">
-          <legend>あなたの状況<span class="field-hint">当てはまるものを選ぶと、関係する確認事項と費用を先に示します</span></legend>
-          <div class="toggles" id="situationChips"></div>
-        </fieldset>
-        <p class="ranking-status" id="rankingStatus" aria-live="polite"></p>
-      </form>
-
-      <section class="intake panel" id="intake" data-state="idle" aria-labelledby="intakeTitle">
-        <div class="intake-bar">
-          <div class="intake-heading">
-            <h2 id="intakeTitle">募集図面から候補を追加</h2>
-            <p>募集図面の画像（PNG・JPEG・WEBP）をここにドロップするか、選択してください。読み取った値は、原本と照合してから候補に加わります。手元に図面がなければ、実際の募集図面（モノハウス 104号室）で試せます。</p>
-          </div>
-          <div class="intake-actions">
-            <span data-capability="extraction"></span>
-            <button class="button" id="useSampleSheet" type="button">サンプル図面で試す</button>
-            <input class="visually-hidden" id="listingUpload" type="file" accept="image/png,image/jpeg,image/webp" />
-            <label class="button button--primary" for="listingUpload">画像を選択</label>
-          </div>
-        </div>
-        <ol class="steps" id="intakeSteps" aria-label="追加の手順">
-          <li data-step="select">画像を選ぶ</li>
-          <li data-step="read">読み取る</li>
-          <li data-step="review">原本と照合</li>
-          <li data-step="add">候補に追加</li>
-        </ol>
-        <div class="intake-body" id="intakeBody" hidden>
-          <div class="intake-source">
-            <div class="preview">
-              <span class="preview-frame" id="previewFrame">
-                <img id="listingPreview" alt="選択した募集図面" />
-                <span class="evidence-highlight" id="evidenceHighlight" hidden></span>
-              </span>
-            </div>
-            <p class="file-name" id="fileName"></p>
-            <div class="source-actions">
-              <button class="button button--primary" id="analyzeListing" type="button">読み取る</button>
-              <button class="button" id="cancelIntake" type="button">取り消す</button>
-            </div>
-            <p class="privacy-note" id="privacyNote"></p>
-          </div>
-          <div class="intake-result">
-            <div class="result-empty" id="extractionEmpty">
-              <p class="result-empty-title" id="extractionEmptyTitle"></p>
-              <p id="extractionEmptyText"></p>
-              <div class="extraction-error" id="extractionError" role="alert" hidden>
-                <p id="extractionErrorText"></p>
-              </div>
-              <button class="button" id="emptySample" type="button" hidden>サンプル図面で試す</button>
-            </div>
-            <form class="review-form" id="extractionForm" hidden>
-              <div class="review-head">
-                <span class="review-mode" id="extractionModeLabel"></span>
-                <span class="review-count" id="extractionReviewLabel"></span>
-              </div>
-              <p class="review-status" id="intakeStatus"></p>
-              <ul class="review-warnings" id="extractionWarnings" hidden></ul>
-              <div class="review-grid" id="extractionGrid"></div>
-              <div class="review-checks" id="extractionChecks" hidden></div>
-              <p class="review-note" id="extractionNote"></p>
-              <div class="review-actions">
-                <button class="button button--primary" id="confirmExtraction" type="submit">照合した内容で候補に追加</button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <p class="intake-message" id="intakeMessage" aria-live="polite"></p>
-      </section>
-
-      <div class="workspace">
-        <section class="shortlist panel" aria-labelledby="shortlistTitle">
-          <div class="section-head">
-            <h2 id="shortlistTitle">候補<span class="count" id="shortlistCount"></span></h2>
-            <label class="sort-control" for="sortBy">並び順<select id="sortBy"></select></label>
-            <p class="section-meta" id="decisionSummary"></p>
-          </div>
-          <div class="table-wrap">
-            <table class="candidates">
-              <thead>
-                <tr>
-                  <th scope="col">物件</th>
-                  <th class="num" scope="col">月額</th>
-                  <th class="num" scope="col">初期費用<span class="th-sub">目安</span></th>
-                  <th scope="col" data-criterion="space">間取り・面積</th>
-                  <th class="num" scope="col" data-criterion="walk">駅徒歩</th>
-                  <th class="num" scope="col" data-criterion="age">築年</th>
-                  <th class="num" scope="col">条件との一致度</th>
-                </tr>
-              </thead>
-              <tbody id="candidateRows"></tbody>
-            </table>
-          </div>
-          <p class="table-note">
-            <span>★ は譲れない条件。値はすべて募集図面の記載です。通勤時間</span><span data-capability="routes"></span>
-            <span>と周辺の環境</span><span data-capability="places"></span><span>は、推測せず比較から外しています。</span>
-          </p>
-          <details class="formula">
-            <summary>一致度の計算方法</summary>
-            <div class="formula-body">
-              <p>選んだ条件にどれだけ合うかで並べ替えるための仮の式で、おすすめの順ではありません。利用者による検証はまだ行っていません。譲れない条件が2つのとき最大85点です。</p>
-              <ul>
-                <li>予算：月額（賃料＋管理費）が上限以内なら25点。超過1万円ごとに約14点を減点</li>
-                <li>駅近：徒歩5分以内で10点。1分長くなるごとに1点減（15分で0点）</li>
-                <li>広さ：15㎡で0点。1㎡ごとに0.5点（35㎡以上で10点）</li>
-                <li>築浅：新築で10点。3年古くなるごとに1点減（築30年で0点）</li>
-                <li>譲れない条件に選んだ項目は×2.5、それ以外は×1で合計</li>
-                <li>図面にない値は中立値（5点）で計算し、候補に「暫定」と表示</li>
-              </ul>
-            </div>
-          </details>
-          <figure class="map">
-            <figcaption class="map-head"><span>位置関係</span><span data-capability="maps"></span></figcaption>
-            <div class="map-canvas" id="mockMap" role="group" aria-label="候補の最寄駅の位置関係（概略図）">
-              <div id="mapPins"></div>
-            </div>
-            <p class="map-note" id="mapApiNote"></p>
-          </figure>
-        </section>
-
-        <aside class="detail panel" id="detailPanel" aria-labelledby="detailTitle"></aside>
+    <nav class="workspace-nav" aria-label="作業ビュー">
+      <div class="page-inner" role="tablist" aria-label="作業ビュー">
+        <button id="tab-compare" role="tab" aria-controls="panel-compare" aria-selected="true" data-workspace-tab="compare">比較ワークスペース <span id="candidateCount" class="nav-count"></span></button>
+        <button id="tab-needs" role="tab" aria-controls="panel-needs" aria-selected="false" tabindex="-1" data-workspace-tab="needs">条件メモ <span aria-hidden="true">↗</span></button>
       </div>
-
-      <section class="costs panel" id="costsPanel" aria-labelledby="costsTitle">
-        <div class="section-head">
-          <h2 id="costsTitle">初期費用の試算<span data-capability="costs"></span></h2>
-          <p class="section-meta">図面の費用項目に、図面に載らない仲介手数料と前家賃を加えた目安です。正式な金額は見積書で確認してください。</p>
-        </div>
-        <div class="costs-controls">
-          <div class="field">
-            <label class="field-label" for="moveIn">入居予定日</label>
-            <input id="moveIn" type="date" />
+    </nav>
+    <main class="page">
+      <div id="panel-compare" class="workspace-panel" role="tabpanel" aria-labelledby="tab-compare" tabindex="-1" data-workspace-panel="compare">
+        <div class="workspace-heading">
+          <div><p class="eyebrow">YOUR SHORTLIST</p><h2 id="compareTitle">候補を見ながら、ひとつずつ。</h2><p id="compareCaption" class="section-meta"></p></div>
+          <div class="section-actions">
+            <button class="button button--primary" id="addSheet" type="button"><span aria-hidden="true">＋</span> 画像を追加</button>
+            <button class="button" id="addLink" type="button">リンクを追加</button>
+            <details class="more-inputs"><summary aria-label="その他の追加方法">その他</summary><div><button class="button button--text" id="addCandidate" type="button">手入力</button><button class="button button--text" id="useSampleSheet" type="button">サンプルを追加</button></div></details>
+            <input class="visually-hidden" id="listingUpload" type="file" accept="image/png,image/jpeg,image/webp" tabindex="-1" aria-hidden="true" />
           </div>
-          <fieldset class="field">
-            <legend>仲介手数料（＋税）<span class="field-hint">図面には載りません</span></legend>
-            <div class="segmented" id="brokerageOptions"></div>
-          </fieldset>
         </div>
-        <div class="costs-body">
-          <div class="costs-compare">
-            <h3>候補ごとの初期費用</h3>
-            <ol class="compare-list" id="costsCompare"></ol>
-          </div>
-          <div class="costs-detail" id="costsDetail" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <section class="chat panel" aria-labelledby="chatTitle">
-        <div class="section-head">
-          <h2 id="chatTitle">候補について質問する<span data-capability="chat"></span></h2>
-          <p class="section-meta">決まった質問に、今の条件と候補データから答えます。</p>
-        </div>
-        <div class="chat-body">
-          <div class="chat-suggestions">
-            <p>よくある質問</p>
-            <div class="suggestion-list" id="promptSuggestions">
-              <button type="button">初期費用が安いのは？</button>
-              <button type="button">契約前の注意点は？</button>
-              <button type="button">1万円安くするなら？</button>
-              <button type="button">駅近を優先すると？</button>
-              <button type="button">並び順の理由は？</button>
-              <button type="button">敷金償却とは？</button>
+        <div class="priority-strip" aria-label="確認した希望"><span class="priority-strip-label">大切にしたいこと</span><div id="priorityChips"></div><a href="#needs" class="priority-memo">メモを見る ↗</a></div>
+        <div class="guided-layout">
+          <div class="comparison-stage">
+            <div class="perspective-tabs" role="tablist" aria-label="比較する視点">
+              <button id="perspective-cost" role="tab" aria-selected="true" aria-controls="comparisonContext" data-perspective="cost">費用</button>
+              <button id="perspective-space" role="tab" aria-selected="false" aria-controls="comparisonContext" tabindex="-1" data-perspective="space">広さ・建物</button>
+              <button id="perspective-access" role="tab" aria-selected="false" aria-controls="comparisonContext" tabindex="-1" data-perspective="access">駅・買い物</button>
+              <button id="perspective-living" role="tab" aria-selected="false" aria-controls="comparisonContext" tabindex="-1" data-perspective="living">設備・契約</button>
+              <button id="perspective-all" role="tab" aria-selected="false" aria-controls="comparisonContext" tabindex="-1" data-perspective="all">一覧</button>
+            </div>
+            <div id="comparisonContext" role="tabpanel" aria-labelledby="perspective-cost" tabindex="0">
+              <div class="context-heading"><div><h3 id="contextTitle">毎月と、入居時の負担</h3><p id="contextDescription">月額は賃料＋管理費。気になる金額を押すと、内訳や出典を確認できます。</p></div></div>
+              <div id="pairPicker" class="pair-picker" hidden><label>候補 A<select id="pairFirst" aria-label="比較する候補 A"></select></label><span aria-hidden="true">と</span><label>候補 B<select id="pairSecond" aria-label="比較する候補 B"></select></label></div>
+              <section class="compare show-details" id="compare" aria-labelledby="compareTitle">
+                <p class="live-message" id="liveMessage" aria-live="polite"></p>
+                <p class="scroll-hint" aria-hidden="true">候補は横にスクロールして比較できます</p>
+                <div class="table-wrap" role="region" tabindex="0" aria-label="候補の比較表">
+                  <table class="compare-table" id="compareTable" tabindex="-1"><caption class="visually-hidden" id="compareTableCaption"></caption><thead id="compareHead"></thead><tbody id="compareRows"></tbody></table>
+                </div>
+                <div class="empty-note" id="compareEmpty" hidden><h3>気になる物件から、始めましょう。</h3><p>画像か掲載リンクを追加すると、分かる情報から比較できます。希望はあとから一緒に整理します。</p></div>
+              </section>
+              <section class="maps-section" id="surroundings" aria-labelledby="mapsSectionTitle" hidden>
+                <div class="section-head"><h3 id="mapsSectionTitle">実際の徒歩経路で確かめる</h3><span class="section-meta" translate="no">Google Maps</span></div>
+                <p class="section-hint">掲載値を残して、取得した時間・距離と比較します。</p><div id="mapsCandidates" class="maps-cards"></div>
+                <p class="context-limitation">勤務先への通勤経路・余暇の好みに合わせた施設比較は、今後対応予定です。</p>
+              </section>
+              <section class="preferences-section" id="preferences" aria-labelledby="preferencesTitle" hidden>
+                <h3 id="preferencesTitle">気になる条件を選ぶ</h3>
+                <fieldset class="needs-block" id="aspectBlock"><legend>全候補の図面に記載のある設備・条件</legend><div class="aspect-chips" id="aspectChips"></div></fieldset>
+                <div class="needs-block" id="questionBlock" role="group" aria-labelledby="questionsTitle"><h3 class="needs-legend" id="questionsTitle">契約前に考えたいこと</h3><div class="questions" id="needsQuestions"></div></div>
+              </section>
+              <section class="fit-summary" id="fitSummary" aria-labelledby="fitTitle" hidden>
+                <div class="section-head"><h3 id="fitTitle">確認した希望との合い方</h3></div><p class="section-hint">確認した数値条件への一致です。参考価格・未確認の値では判定しません。</p><div class="fit-cards" id="fitCards"></div>
+              </section>
+              <p class="comparison-footnote">掲載情報には時点や部屋の違いがあります。<span class="source-label">参考</span> は候補の確定値として使いません。</p>
             </div>
           </div>
-          <div class="chat-window">
-            <div class="messages" id="messages" aria-live="polite"></div>
-            <form class="chat-input" id="chatForm">
-              <label class="visually-hidden" for="chatInput">質問</label>
-              <input id="chatInput" placeholder="例：駅近を優先すると？" autocomplete="off" />
-              <button class="button button--primary" type="submit">送信</button>
-            </form>
-          </div>
+          <aside class="guide-panel" id="guidePanel" aria-labelledby="guideTitle">
+            <div id="guideContent">
+              <div class="guide-heading"><div><p class="eyebrow">YOUR PRIORITIES</p><h2 id="guideTitle">この違いから考える</h2></div><button type="button" id="guideClose" class="button button--text" aria-label="質問パネルを閉じる">閉じる</button></div>
+              <div class="guide-mode" role="tablist" aria-label="希望の整理方法"><button id="guide-numeric" role="tab" aria-controls="numericGuide" aria-selected="true" data-guide-mode="numeric">ひとつずつ確認</button><button id="guide-ai" role="tab" aria-controls="aiGuide" aria-selected="false" tabindex="-1" data-guide-mode="ai">AIと深める</button></div>
+              <section id="numericGuide" role="tabpanel" aria-labelledby="guide-numeric">
+                <div class="priorities" id="discovery"><p id="discoveryEmpty" hidden>候補を追加すると、具体的な違いから質問できます。</p><div id="discoveryContent"><p id="analysisSummary"></p><div class="discovery-question" id="discoveryQuestion"></div><details class="analysis-details"><summary>候補の分析を見る</summary><div class="candidate-insights" id="candidateInsights"></div></details><details class="tradeoff-details"><summary>費用と駅への近さの違い</summary><div class="tradeoff" id="tradeoff"></div></details></div><p id="priorityStatus" role="status"></p></div>
+              </section>
+              <section id="aiGuide" role="tabpanel" aria-labelledby="guide-ai" hidden>
+                <div class="advisor" aria-labelledby="advisorTitle"><h3 id="advisorTitle">候補をもとに、もう少し深く。</h3><p class="section-hint">表示中の候補・取得済みの地図情報・回答をGeminiに送ります。画像は送りません。</p><button class="button button--primary" id="advisorStart" type="button">この候補で相談する</button><p id="advisorStatus" role="status"></p><div id="advisorBody"></div><form id="advisorReplyForm" hidden><label for="advisorReply">今の質問への補足（任意）</label><textarea id="advisorReply" maxlength="1200" rows="2" placeholder="例：平日は帰りが遅いので…"></textarea><button class="button" type="submit">回答して続ける</button></form><button class="button" id="advisorRetry" type="button" hidden>同じ回答で再試行</button><details><summary>これまでの会話</summary><div id="advisorHistory"></div></details><p class="section-hint">地図を含む会話は再読み込みで消えます。確認した希望は保存します。</p></div>
+              </section>
+              <section class="confirmed-panel" aria-labelledby="confirmedTitle"><div class="section-head"><h3 id="confirmedTitle">確認した希望</h3><span id="discoveryProgress" class="section-meta"></span></div><div class="discovered"><ul id="discoveredPriorities"></ul></div><ul id="advisorNotes"></ul><a class="guide-memo-link" href="#needs">希望と確認事項をメモにする <span aria-hidden="true">↗</span></a></section>
+            </div>
+          </aside>
         </div>
-      </section>
-
-      <section class="capabilities panel" id="capabilities" aria-labelledby="capabilitiesTitle">
-        <div class="section-head">
-          <h2 id="capabilitiesTitle">機能の状態</h2>
-          <p class="section-meta">この画面で実際に動いている機能、デモ用の機能、まだ接続していない機能の一覧です。</p>
-        </div>
-        <div class="table-wrap">
-          <table class="capability-table">
-            <thead>
-              <tr>
-                <th scope="col">機能</th>
-                <th scope="col">状態</th>
-                <th scope="col">現在の動作</th>
-                <th scope="col">稼働に必要なこと</th>
-              </tr>
-            </thead>
-            <tbody id="capabilityRows"></tbody>
-          </table>
-        </div>
-      </section>
+        <button type="button" class="mobile-guide-trigger" id="guideOpen" aria-haspopup="dialog" aria-controls="guideDialog">この違いから希望を整理 <span id="mobilePriorityCount"></span><span aria-hidden="true">↑</span></button>
+      </div>
+      <div id="panel-needs" class="workspace-panel" role="tabpanel" aria-labelledby="tab-needs" tabindex="-1" data-workspace-panel="needs" hidden>
+        <section class="needs" id="needs" aria-labelledby="needsTitle"><div class="section-head"><div class="section-title"><p class="eyebrow">YOUR DECISION BRIEF</p><h2 id="needsTitle">希望と、次に確かめること。</h2></div><p class="section-meta" id="needsLead"></p></div><p class="memo-notice" id="memoNotice" hidden><span id="memoNoticeText"></span> · <button class="link-button" id="memoRebuild" type="button">今の条件から作り直す</button></p><p class="memo-intro">内見や相談に使えるメモです。必要に応じて編集して、持ち出せます。</p><textarea class="memo" id="memo" aria-label="条件メモ" spellcheck="false" autocomplete="off"></textarea><div class="memo-actions"><button class="button button--primary" id="copyMemo" type="button">条件メモをコピー</button><button class="button" id="memoReset" type="button" hidden>元に戻す</button><p class="memo-status" id="memoStatus" role="status"></p></div></section><a class="back-to-discovery" href="#compare">← 候補を見ながら考える</a>
+      </div>
     </main>
+    <dialog id="guideDialog" class="guide-dialog" aria-labelledby="guideTitle"></dialog>
+
+    <footer class="app-footer">
+      <div class="page-inner">
+        <span>候補・画像・希望をこのブラウザに保存</span>
+        <span>図面の値は記録時点のもの（募集状況は未確認）</span>
+        <button class="link-button" id="clearSession" type="button">保存データを削除</button>
+        <button class="link-button" id="aboutOpen" type="button">この画面について</button>
+        <button class="link-button" id="glossaryOpen" type="button">用語辞典</button>
+        <a href="https://github.com/SodaShikenn/rental-helper">ソースコード</a>
+      </div>
+    </footer>
+
+    <dialog class="popover" id="cellPopover" aria-labelledby="popoverTitle">
+      <div class="dialog-head">
+        <h2 id="popoverTitle"></h2>
+        <button class="button" id="popoverClose" type="button">閉じる</button>
+      </div>
+      <div class="popover-body" id="popoverBody"></div>
+    </dialog>
+
+    <dialog class="research-dialog" id="mapsDialog" aria-labelledby="mapsTitle">
+      <div class="dialog-head"><h2 id="mapsTitle">駅と買い物</h2><button class="button" id="mapsClose" type="button">閉じる</button></div>
+      <div class="maps-body"><button class="button" id="mapsRefresh" type="button">最新の情報で再確認</button><p id="mapsStatus" role="status"></p><div id="mapsResults"></div></div>
+    </dialog>
+
+    <dialog class="research-dialog" id="researchDialog" aria-labelledby="researchTitle">
+      <div class="dialog-head"><h2 id="researchTitle">リンクから候補を追加</h2><button class="button" id="researchClose" type="button">閉じる</button></div>
+      <div class="research-body">
+        <form id="researchForm">
+          <label for="researchUrl">掲載リンク（既存の候補は空欄でも検索できます）</label>
+          <input id="researchUrl" type="url" maxlength="2048" placeholder="https://suumo.jp/library/…" />
+          <p class="section-hint">リンク、物件名・住所・部屋番号・不足項目をGoogleの検索・Geminiに送って調べます。画像は送信しません。</p>
+          <button class="button button--primary" id="researchRun" type="submit">掲載情報を調べる</button>
+        </form>
+        <p id="researchStatus" role="status"></p>
+        <nav id="researchLinks" class="research-links" aria-label="物件を別のサイトで探す"></nav>
+        <div id="researchResults"></div>
+        <iframe id="researchSuggestions" title="Google 検索候補" sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" hidden></iframe>
+        <details id="linkFallback"><summary>リンクだけ先に保存する</summary><p>ページを取得できない場合も、名前を付けて候補に残せます。情報は後から入力できます。</p><label for="linkName">候補の名前</label><input id="linkName" type="text" maxlength="300" placeholder="例：ルーブル渋谷松濤 408号室" /><button class="button" id="saveLink" type="button">リンクを候補に保存</button></details>
+      </div>
+    </dialog>
+    <dialog class="manual-dialog" id="manualDialog" aria-labelledby="manualTitle">
+      <form id="manualForm">
+        <div class="dialog-head"><h2 id="manualTitle">候補を入力</h2><button class="button" id="manualClose" type="button">閉じる</button></div>
+        <div class="manual-body"><p>分かる項目だけ入力してください。空欄は「未取得」として比較します。管理費込みの場合は0円を入力してください。</p><div class="priority-fields" id="manualFields"></div></div>
+        <div class="dialog-foot"><button class="button button--primary" type="submit">候補を保存</button></div>
+      </form>
+    </dialog>
+    <dialog class="intake-dialog" id="intakeDialog" aria-labelledby="intakeTitle" data-state="ready">
+      <div class="dialog-head">
+        <h2 id="intakeTitle"><span id="intakeTitleText">図面を追加</span><span data-capability="extraction"></span></h2>
+      </div>
+      <div class="intake-body">
+        <div class="intake-source">
+          <div class="preview">
+            <span class="preview-frame" id="previewFrame">
+              <img id="listingPreview" alt="選んだ募集図面" />
+              <span class="evidence-highlight" id="evidenceHighlight" hidden></span>
+            </span>
+          </div>
+          <p class="file-name" id="fileName"></p>
+          <p class="privacy-note" id="privacyNote"></p>
+        </div>
+        <div class="intake-result">
+          <p class="intake-status" id="intakeStatus" aria-live="polite"></p>
+          <div class="intake-error" id="intakeError" role="alert" hidden>
+            <p id="intakeErrorText"></p>
+            <button class="button" id="intakeSample" type="button">サンプル図面で試す</button>
+          </div>
+          <form class="review-form" id="extractionForm" hidden>
+
+            <ul class="review-warnings" id="extractionWarnings" hidden></ul>
+            <div class="review-grid" id="extractionGrid"></div>
+            <dl class="review-summary" id="extractionSummary"></dl>
+            <p class="review-checks" id="extractionChecks" hidden></p>
+            <details class="review-about">
+              <summary>読み取りについて</summary>
+              <p class="review-mode" id="extractionModeLabel"></p>
+              <p class="review-note" id="extractionNote"></p>
+            </details>
+          </form>
+        </div>
+      </div>
+      <div class="dialog-foot">
+        <button class="button" id="cancelIntake" type="button">取り消す</button>
+        <button class="button button--primary" id="analyzeListing" type="button">読み取る</button>
+        <button class="button button--primary" id="confirmExtraction" type="submit" form="extractionForm" hidden>比較に加える</button>
+      </div>
+    </dialog>
+
+    <dialog class="about" id="aboutDialog" aria-labelledby="aboutTitle">
+      <div class="dialog-head">
+        <h2 id="aboutTitle">この画面について</h2>
+        <button class="button" id="aboutClose" type="button">閉じる</button>
+      </div>
+      <div class="about-body">
+        <ul class="about-list" id="aboutList"></ul>
+        <div class="about-boundary">
+          <p id="aboutReading"></p>
+          <p>値は募集図面の記載を OCR で読み取り、原本と照合したものです。募集状況は確認していません。</p>
+          <p>駅と周辺施設への徒歩経路は Google Maps で確認できます。通勤時間・賃料の推移・口コミは未接続です。</p>
+        </div>
+      </div>
+    </dialog>
 
     <dialog class="glossary" id="glossaryDialog" aria-labelledby="glossaryTitle">
       <div class="glossary-head">
@@ -273,10 +227,5 @@
       <div class="glossary-tabs" id="glossaryTabs" role="group" aria-label="分類"></div>
       <dl class="glossary-list" id="glossaryList"></dl>
     </dialog>
-
-    <footer class="app-footer">
-      <span>Rental Helper · プロトタイプ</span>
-      <span>候補の値は募集図面の記録時点のものです · <a href="https://github.com/SodaShikenn/rental-helper">ソースコード</a></span>
-    </footer>
   </body>
 </html>

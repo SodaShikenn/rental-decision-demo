@@ -2,15 +2,14 @@
 // which sets window.RENTAL_DEMO_ENV before the modules load.
 const env = globalThis.RENTAL_DEMO_ENV ?? {};
 
-export const GOOGLE_MAPS_API_KEY = String(env.googleMapsApiKey || "");
 export const EXTRACTION_API_URL = String(env.extractionApiUrl || "").trim().replace(/\/+$/, "");
 export const EXTRACTION_ENDPOINT = EXTRACTION_API_URL ? `${EXTRACTION_API_URL}/api/extract-listing` : "";
 
-// Shortlist. The budget is the monthly total: rent plus the management fee. `sortBy` orders the table
-// (see SORTS), and `situations` are what the renter said about themselves (see SITUATIONS). The move-in
-// estimate uses the brokerage fee in months of rent (before tax) and a move-in date (null: about a month ahead).
-export const DEFAULT_PREFERENCES = { budget: 130000, priorities: ["walk", "space"], sortBy: "match", situations: [], brokerageMonths: 1, moveIn: null };
-export const MAX_PRIORITIES = 2;
+// Comparison. The move-in estimate assumes the brokerage fee in months of rent (before tax); the
+// move-in date is about a month ahead (costs/services.js defaultMoveIn). Both are stated beside every estimate.
+export const DEFAULT_SETTINGS = { brokerageMonths: 1 };
+// Sheets side by side: more columns than this stop being readable, on a phone most of all.
+export const MAX_SHEETS = 6;
 
 // Listing intake
 // Confidence comes from the OCR engine and has not been calibrated. Below this threshold, or when a

@@ -14,6 +14,8 @@ test("terms are found in sheet text, the longest spelling winning", () => {
   assert.deepEqual(findTerms("2LDK"), ["LDK"]);
   assert.deepEqual(findTerms("敷金償却：1ヶ月"), ["敷金償却・敷引き"]);
   assert.deepEqual(findTerms("ス/トイレ别·浴室乾燥機·追い炊き·独立洗面台"), ["バス・トイレ別", "浴室乾燥機", "追い焚き", "独立洗面台"]);
+  assert.ok(!findTerms("モニター付きオートロック").includes("TVモニター付きインターホン")); // a door lock, not an intercom
+  assert.ok(findTerms("TVモニター付きインターホン").includes("TVモニター付きインターホン"));
   assert.equal(termFor("鍵交換代"), "鍵交換費用");
   assert.equal(termFor("家賃"), null);
 });

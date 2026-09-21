@@ -1,5 +1,5 @@
-// What each part of the product does today (≈ models.py). One registry drives every status chip,
-// the header summary, and the capability table, so marking a feature live is a one-line change here.
+// What each part of the product does today (≈ models.py). One registry drives every status chip and
+// the list in この画面について, so marking a feature live is a one-line change here.
 
 export const STATUS_KINDS = {
   live: { label: "稼働中" },
@@ -21,19 +21,12 @@ const EXTRACTION_STATES = {
 export const EXTRACTION_STATE_KEYS = Object.keys(EXTRACTION_STATES);
 
 /**
- * @param {{ extraction: keyof EXTRACTION_STATES, model?: string, mapsLive: boolean }} status — what is configured and reachable
+ * @param {{ extraction: keyof EXTRACTION_STATES, model?: string }} status — what the extraction server reported
  * @returns {{ key: string, name: string, kind: "live"|"demo"|"planned", now: string, next: string }[]}
  */
-export function capabilityList({ extraction, model, mapsLive }) {
+export function capabilityList({ extraction, model, maps = false }) {
   const reading = EXTRACTION_STATES[extraction] ?? EXTRACTION_STATES.none;
   return [
-    {
-      key: "ranking",
-      name: "条件による並べ替え",
-      kind: "live",
-      now: "選んだ条件との一致度や、月額・初期費用・駅徒歩などで並べ替えます。一致度は目安で、おすすめの順ではありません。",
-      next: "",
-    },
     {
       key: "extraction",
       name: "募集図面の読み取り",
@@ -45,7 +38,7 @@ export function capabilityList({ extraction, model, mapsLive }) {
       key: "review",
       name: "読み取り結果の照合・出典記録",
       kind: "live",
-      now: "信頼度の低い項目は、人が確認するまで候補に追加できません。",
+      now: "未確認の項目は未取得のまま候補を追加できます。後から編集でき、必要なときに元の図面も確認できます。",
       next: "",
     },
     {
@@ -57,7 +50,7 @@ export function capabilityList({ extraction, model, mapsLive }) {
     },
     {
       key: "costs",
-      name: "初期費用の試算",
+      name: "初期費用の目安",
       kind: "live",
       now: "図面の費用項目に、図面に載らない仲介手数料・日割り家賃・前家賃を加えて目安を計算します。見積書の代わりにはなりません。",
       next: "",
@@ -67,23 +60,21 @@ export function capabilityList({ extraction, model, mapsLive }) {
       key: "inventory",
       name: "物件データ",
       kind: "demo",
-      now: "実際の募集図面3件を記録時点の値で表示しています。募集状況は確認していません。",
-      next: "利用許諾のある物件データ提供元と接続",
+      now: "実際の募集図面3件とサンプル図面1件を記録時点の値で表示しています。",
+      next: "解析サーバーを接続すると、手元の図面を読み取って加えられます",
+    },
+    {
+      key: "needs",
+      name: "条件メモ",
+      kind: "live",
+      now: "候補の特徴から質問し、回答で確認した条件、選んだ設備、保留したことをメモにします。数値条件との比較はルールベースで、LLM は使っていません。別のAI相談からも、回答に基づく希望を確認してメモに反映できます。",
+      next: "",
     },
     { key: "rentHistory", name: "賃料の推移", kind: "planned", now: "表示していません。", next: "掲載・成約賃料の提供元と接続" },
     { key: "reviews", name: "居住者の口コミ", kind: "planned", now: "表示していません。口コミサイトの内容は転載していません。", next: "再利用が許諾された提供元（Places API など）と接続" },
-    { key: "chat", name: "質問への回答", kind: "demo", now: "決まった質問に定型で答えます。LLM は使っていません。", next: "根拠データを引用する Gemini を接続" },
-    { key: "routes", name: "通勤時間・経路", kind: "planned", now: "比較に含めていません。", next: "サーバー経由で Routes API を接続" },
-    { key: "places", name: "周辺の環境", kind: "planned", now: "比較に含めていません。", next: "選んだカテゴリだけ Places API で取得" },
-    { key: "geocoding", name: "住所の位置", kind: "planned", now: "地図上の候補は最寄駅の位置に置いています。", next: "Geocoding API で住所を座標に変換" },
-    {
-      key: "maps",
-      name: "地図",
-      kind: mapsLive ? "live" : "planned",
-      now: mapsLive ? "Google Maps を表示しています。" : "駅の位置関係を示す概略図を表示しています。",
-      next: mapsLive ? "" : "利用制限付きのキーを web/env.js に設定",
-    },
-    { key: "persistence", name: "保存・共有", kind: "planned", now: "再読み込みすると、追加した候補は消えます。", next: "物件スキーマを定義し、保存先を用意" },
+    { key: "routes", name: "駅・周辺施設への徒歩経路", kind: maps ? "live" : "planned", now: maps ? "候補ごとに Google Maps で取得し、掲載の徒歩時間と照合します。通勤経路は未接続です。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
+    { key: "places", name: "周辺の駅・買い物", kind: maps ? "live" : "planned", now: maps ? "駅・スーパー・コンビニを取得し、徒歩経路と取得日時を表示します。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
+    { key: "persistence", name: "保存・共有", kind: "live", now: "候補・画像・希望・メモをこのブラウザに自動保存します。保存状態は画面上部で確認できます。地図情報は再取得が必要です。共有リンクは未実装です。", next: "" },
   ];
 }
 

@@ -1,6 +1,7 @@
 // Extraction data definitions (≈ models.py): the fields a listing sheet yields, the reading modes,
 // and a shape check for server responses.
 import { SHEETS } from "../../data/sheets.js";
+import { yen } from "../../helper.js";
 
 export const EXTRACTION_FIELDS = [
   { key: "propertyName", label: "物件・部屋名", type: "text" },
@@ -22,7 +23,21 @@ export const WARNING_LABELS = { inconsistent_values: "不一致", illegible: "�
 /** The sheet offered as "サンプル図面": its image and its recorded reading. */
 export const SAMPLE_SHEET = SHEETS.find((sheet) => sheet.id === "monohouse");
 
+/** Recorded sheets on the page when it opens, in this order. The sample is added by the person. */
+export const SEED_SHEET_IDS = ["louvre-shoto", "bresport", "granpaseo-4"];
+
 export const fieldLabel = (key) => EXTRACTION_FIELDS.find((field) => field.key === key)?.label ?? key;
+/** The label without its unit: 「月額賃料（円）」 → 「月額賃料」. */
+export const shortFieldLabel = (key) => fieldLabel(key).replace(/（.+）$/, "");
+
+/** A confirmed value the way the sheet prints it: 105000 → 「105,000円」, 0 fee → 「0円（込み）」, null → 「未取得」. */
+export function fieldValueText(key, value) {
+  if (value == null) return "未取得";
+  if (key === "rent" || key === "managementFee") return value === 0 ? "0円（込み）" : yen(value);
+  if (key === "areaSqm") return `${value}㎡`;
+  if (key === "constructionYear") return `${value}年`;
+  return String(value);
+}
 
 /** Whether a server response matches the extraction contract (see handoff.md). */
 export function isExtractionResult(body) {

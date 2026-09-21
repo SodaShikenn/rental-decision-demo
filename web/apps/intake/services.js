@@ -60,7 +60,7 @@ export async function requestExtraction(endpoint, blob, name, { fetchImpl = fetc
   }
 }
 
-/** Fields a person must confirm before the reading can affect ranking. */
+/** Fields a person must confirm before the reading joins the comparison. */
 export function fieldsNeedingReview(result, threshold = REVIEW_CONFIDENCE_THRESHOLD) {
   const flagged = new Set(result.warnings.flatMap((warning) => warning.fields));
   EXTRACTION_FIELDS.forEach(({ key }) => {
@@ -82,6 +82,9 @@ export function extractionNote({ meta }) {
 }
 
 export function provenanceText(provenance) {
+  if (provenance.mode === "link") return "掲載リンクから追加（反映した値の出典は項目ごとに表示）";
+  if (provenance.mode === "manual") return "出典：利用者が入力した情報";
+  if (provenance.unconfirmed) return "募集図面から追加・未確認の項目あり";
   const method = {
     live: `AI抽出（${provenance.model}）`,
     recorded: `記録済みの読み取り（OCR 実測・${mappingText(provenance.model)}）`,
@@ -143,3 +146,16 @@ export function buildCandidate(result, values, confirmedAt, { id = "uploaded-lis
 /** A candidate from a recorded sheet, with the values checked against the original when it was recorded. */
 export const candidateFromSheet = (sheet) =>
   buildCandidate(sheet.reading, sheet.confirmed, sheet.reading.meta.extractedAt, { id: sheet.id, image: sheet.image, seeded: true });
+
+/** Import now, leaving unresolved values unknown in comparisons and keeping their original evidence. */
+export function buildPartialCandidate(result, values, confirmed, options = {}) {
+  const pending = [...fieldsNeedingReview(result)].filter((key) => !confirmed.has(key));
+  const safeValues = { ...values };
+  for (const key of pending) safeValues[key] = null;
+  const candidate = buildCandidate(result, safeValues, new Date().toISOString(), options);
+  candidate.unconfirmedFields = pending;
+  candidate.provenance.unconfirmed = pending.length > 0;
+  candidate.provenance.confirmedFields = [...confirmed];
+  candidate.provenance.editedFields = candidate.provenance.editedFields.filter((key) => !pending.includes(key));
+  return candidate;
+}

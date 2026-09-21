@@ -1,7 +1,7 @@
 {
   "name": "rental-helper",
   "private": true,
-  "description": "Rental Helper: read rental listing sheets with Docling OCR, compare candidates with evidence, and check pre-contract terms and move-in costs. Static front end (web/) plus a FastAPI server (server/), runnable together with Docker.",
+  "description": "Rental Helper: compare rental candidates with sourced facts, discover priorities through interactive AI advice, and create a tenant decision brief.",
   "type": "module",
   "engines": {
     "node": ">=22"

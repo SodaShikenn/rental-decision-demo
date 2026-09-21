@@ -1,17 +1,18 @@
 // Status chips for use in any app's markup, and the extraction server's reported state.
-import { EXTRACTION_API_URL, GOOGLE_MAPS_API_KEY } from "../../config.js";
+import { EXTRACTION_API_URL } from "../../config.js";
 import { escapeHTML } from "../../helper.js";
 import { STATUS_KINDS, capabilityList } from "./models.js";
 
-const status = { extraction: EXTRACTION_API_URL ? "checking" : "none", model: undefined, mapsLive: Boolean(GOOGLE_MAPS_API_KEY) };
+const status = { extraction: EXTRACTION_API_URL ? "checking" : "none", model: undefined };
 let capabilities = capabilityList(status);
 
 export const getCapabilities = () => capabilities;
 export const capability = (key) => capabilities.find((item) => item.key === key);
+export const extractionState = () => status.extraction;
 
-/** Record what the extraction server reported, so chips and the table stay truthful. */
-export function setExtractionState(extraction, model) {
-  Object.assign(status, { extraction, model });
+/** Record what the extraction server reported, so chips and the list stay truthful. */
+export function setExtractionState(extraction, model, maps = false) {
+  Object.assign(status, { extraction, model, maps });
   capabilities = capabilityList(status);
 }
 
@@ -24,10 +25,11 @@ export async function fetchServerState(baseUrl, { fetchImpl = fetch, timeoutMs =
     const response = await fetchImpl(`${baseUrl}/healthz`, { signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok) return { state: "unreachable" };
     const health = await response.json();
-    if (health.enabled === false) return { state: "disabled" };
-    if (health.mode === "mock") return { state: "mock" };
-    if (health.configured === false) return { state: "unconfigured" };
-    return { state: "live", model: health.model };
+    const maps = health.maps ? { maps: health.maps.configured === true } : {};
+    if (health.enabled === false) return { state: "disabled", ...maps };
+    if (health.mode === "mock") return { state: "mock", ...maps };
+    if (health.configured === false) return { state: "unconfigured", ...maps };
+    return { state: "live", model: health.model, ...maps };
   } catch {
     return { state: "unreachable" };
   }

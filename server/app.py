@@ -65,6 +65,8 @@ def create_app(settings: Settings | None = None, *, gemini_client: Any = None, o
             "configured": settings.extraction_mode == "mock" or bool(settings.gemini_api_key),
             "model": settings.gemini_model,
             "ocr": OCR_ENGINE_LABEL,
+            "research": {"enabled": settings.research_enabled, "configured": bool(settings.gemini_api_key)},
+            "maps": {"configured": bool(settings.google_maps_api_key)},
         }
 
     return app
@@ -84,6 +86,12 @@ def register_routers(app: FastAPI) -> None:
     from apps.listing import router as listing_router
 
     app.include_router(listing_router)
+    from apps.research import router as research_router
+    app.include_router(research_router)
+    from apps.maps import router as maps_router
+    app.include_router(maps_router)
+    from apps.advisor import router as advisor_router
+    app.include_router(advisor_router)
 
 
 def register_error_handlers(app: FastAPI) -> None:

@@ -2,6 +2,9 @@
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 const session = `rental-smoke-${Date.now()}`;
+const scenario = process.argv.includes("--ui")
+  ? "browser-ui-smoke.js"
+  : "browser-smoke.js";
 function run(...args) {
   const result = spawnSync(
     "npx",
@@ -19,7 +22,7 @@ try {
   run("resize", "1440", "1000");
   run(
     "run-code",
-    readFileSync(new URL("./browser-smoke.js", import.meta.url), "utf8")
+    readFileSync(new URL(`./${scenario}`, import.meta.url), "utf8")
       .trim()
       .replace(/;$/, ""),
   );

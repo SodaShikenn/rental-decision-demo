@@ -1,0 +1,245 @@
+/* Emil Kowalski's design-engineering principles, applied to native controls.
+   Shared interaction behavior belongs here; feature layout stays in its own CSS. */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --press-duration: 140ms;
+  --enter-duration: 240ms;
+  --exit-duration: 140ms;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-gutter: stable;
+  scroll-padding-top: 70px;
+}
+button,
+summary,
+[role="button"],
+.button {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+button,
+summary {
+  -webkit-touch-callout: none;
+}
+.button,
+.priority-pill,
+.aspect-chip,
+.mobile-guide-trigger,
+.term-chip {
+  transition:
+    transform var(--press-duration) var(--ease-out),
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+:is(
+    .button,
+    .priority-pill,
+    .aspect-chip,
+    .mobile-guide-trigger,
+    .term-chip
+  ):active:not(:disabled) {
+  transform: scale(0.98);
+}
+:is(.cell, .link-button, .sheet-remove, summary):active {
+  background-color: var(--accent-soft);
+}
+.button:disabled {
+  transform: none;
+}
+.button--primary {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 12%),
+    0 1px 2px rgb(0 0 0 / 8%);
+}
+.cell-value,
+.route-option > strong,
+.nav-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Only occasional overlays move. Repeated comparison/tab changes remain instant. */
+dialog {
+  --dialog-offset: translateY(8px) scale(0.98);
+  overscroll-behavior: contain;
+}
+.popover {
+  --dialog-offset: translateX(24px);
+}
+.guide-dialog {
+  --dialog-offset: translateY(28px);
+}
+dialog::backdrop {
+  background: rgb(13 25 19 / 34%);
+}
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+.popover-body,
+.guide-panel,
+.share-preview,
+#advisorHistory {
+  overscroll-behavior: contain;
+}
+
+/* Unsupported browsers retain immediate native dialog behavior, including Escape/focus. */
+@supports (transition-behavior: allow-discrete) {
+  dialog {
+    opacity: 0;
+    transform: var(--dialog-offset);
+    transition:
+      opacity var(--exit-duration) ease,
+      transform var(--exit-duration) var(--ease-out),
+      display var(--exit-duration) allow-discrete,
+      overlay var(--exit-duration) allow-discrete;
+  }
+  dialog[open] {
+    opacity: 1;
+    transform: none;
+    transition-duration: var(--enter-duration);
+    transition-timing-function: var(--ease-drawer);
+  }
+  dialog::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--exit-duration) ease,
+      display var(--exit-duration) allow-discrete,
+      overlay var(--exit-duration) allow-discrete;
+  }
+  dialog[open]::backdrop {
+    opacity: 1;
+    transition-duration: var(--enter-duration);
+  }
+  @starting-style {
+    dialog[open] {
+      opacity: 0;
+      transform: var(--dialog-offset);
+    }
+    dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+}
+.more-inputs > div {
+  transform-origin: top right;
+  transition:
+    opacity 160ms ease,
+    transform 160ms var(--ease-out);
+}
+@starting-style {
+  .more-inputs[open] > div {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .discovery-options .button:not(.button--text):hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .feature-section > summary:hover {
+    color: var(--accent);
+  }
+  .priority-pill:hover {
+    border-color: var(--accent);
+  }
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .page,
+  .page-inner {
+    padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  }
+  .page {
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  }
+  .guide-dialog {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .mobile-guide-trigger {
+    left: max(16px, env(safe-area-inset-left, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .memo-actions {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .shared-page {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 719px) {
+  .popover {
+    --dialog-offset: translateY(28px);
+  }
+}
+@media (pointer: coarse) {
+  /* Override nested label fonts, including 12px feature forms: never disable zoom. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  button,
+  summary,
+  .button {
+    min-height: 44px;
+  }
+  .term-help {
+    min-width: 44px;
+  }
+  .feature-form {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+}
+
+/* Input modality is presentation state only. Keyboard/assistive-tech actions never wait. */
+html[data-input="keyboard"] {
+  scroll-behavior: auto;
+}
+html[data-input="keyboard"] *,
+html[data-input="keyboard"] *::before,
+html[data-input="keyboard"] *::after,
+html[data-input="keyboard"] dialog::backdrop {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after,
+  dialog::backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+  :is(
+    .button,
+    .priority-pill,
+    .aspect-chip,
+    .mobile-guide-trigger,
+    .term-chip
+  ):active {
+    transform: none;
+  }
+}

@@ -23,6 +23,7 @@ import { SEED_SHEET_IDS } from "./apps/intake/models.js";
 import { candidateFromSheet } from "./apps/intake/services.js";
 import { SHEETS } from "./data/sheets.js";
 import { restoreRecordedResearch } from "./apps/research/automatic.js";
+import { initInteractions } from "./shared/interactions.js";
 
 // Registration order is render order: capability chips first, then the comparison table and the
 // condition memo built from the same sheets. Intake adds sheets; the glossary answers [data-term]
@@ -30,6 +31,7 @@ import { restoreRecordedResearch } from "./apps/research/automatic.js";
 const APPS = [capabilities, compare, priorities, needs, intake, research, maps, commute, leisure, scenarios, reviews, glossary, workspace, advisor, sharing];
 
 export async function createApp() {
+  initInteractions();
   const app = { config, extensions: {} };
   initializeExtensions(app);
   let restoreError = false;

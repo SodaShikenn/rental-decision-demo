@@ -2,7 +2,9 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f8f5" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#131c18" />
     <meta name="description" content="候補の住まいを比べながら、自分にとって大切な条件と次に確認したいことを整理します。" />
     <meta name="color-scheme" content="light dark" />
     <title>Rental Helper｜自分に合う住まいを考える</title>
@@ -18,6 +20,7 @@
     <script src="env.js"></script>
     <script type="module" src="app.js"></script>
     <link rel="stylesheet" href="static/features.css" />
+    <link rel="stylesheet" href="static/interactions.css" />
   </head>
   <body>
     <a class="skip-link" href="#compareTable">比較表へ移動</a>
@@ -46,7 +49,7 @@
     <main class="page">
       <div id="panel-compare" class="workspace-panel" role="tabpanel" aria-labelledby="tab-compare" tabindex="-1" data-workspace-panel="compare">
         <div class="workspace-heading">
-          <div><p class="eyebrow">YOUR SHORTLIST</p><h2 id="compareTitle">候補を見ながら、ひとつずつ。</h2><p id="compareCaption" class="section-meta"></p></div>
+          <div><p class="eyebrow">YOUR SHORTLIST</p><h2 id="compareTitle"><span>候補を見ながら、</span><span>ひとつずつ。</span></h2><p id="compareCaption" class="section-meta"></p></div>
           <div class="section-actions">
             <button class="button button--primary" id="addSheet" type="button"><span aria-hidden="true">＋</span> 画像を追加</button>
             <button class="button" id="addLink" type="button">リンクを追加</button>
@@ -142,7 +145,7 @@
       <div class="research-body">
         <form id="researchForm">
           <label for="researchUrl">掲載リンク（既存の候補は空欄でも検索できます）</label>
-          <input id="researchUrl" type="url" maxlength="2048" placeholder="https://suumo.jp/library/…" />
+          <input id="researchUrl" type="url" maxlength="2048" placeholder="https://suumo.jp/library/…" autocapitalize="none" spellcheck="false" enterkeyhint="go" />
           <p class="section-hint">リンク、物件名・住所・部屋番号・不足項目をGoogleの検索・Geminiに送って調べます。画像は送信しません。</p>
           <button class="button button--primary" id="researchRun" type="submit">掲載情報を調べる</button>
         </form>

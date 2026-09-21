@@ -36,7 +36,7 @@ export function resultsMarkup(result) {
     }`;
 }
 export const markup = `<details class="feature-section" id="commuteSection"><summary>勤務先への通勤を比べる</summary><p>候補から同じ目的地までの経路を比較します。目的地と取得結果はこのタブだけで使用します。</p>
-<form id="destinationForm" class="inline-form"><label>勤務先・駅・住所<input id="destinationQuery" maxlength="300" required minlength="2" placeholder="例：渋谷駅" /></label><button class="button" type="submit">目的地を探す</button></form><div id="destinationChoices"></div><p id="destinationConfirmed"></p>
+<form id="destinationForm" class="inline-form"><label>勤務先・駅・住所<input id="destinationQuery" enterkeyhint="search" maxlength="300" required minlength="2" placeholder="例：渋谷駅" /></label><button class="button" type="submit">目的地を探す</button></form><div id="destinationChoices"></div><p id="destinationConfirmed"></p>
 <form id="commuteForm" class="feature-form"><label>日時（日本時間）<input name="at" type="datetime-local" required /></label><label>基準<select name="timeKind"><option value="arrival">この時刻に到着</option><option value="departure">この時刻に出発</option></select></label><label>移動方法<select name="mode"><option value="TRANSIT">公共交通＋徒歩</option><option value="WALK">徒歩</option></select></label><label>通う頻度<select name="daysPerWeek">${[0, 1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}" ${n === 3 ? "selected" : ""}>週${n}日</option>`).join("")}</select></label><label>今回の経路比較<select name="objective">${Object.entries(
   OBJECTIVES,
 )

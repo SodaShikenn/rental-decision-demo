@@ -71,32 +71,32 @@
                 <b>募集図面を選択</b>
                 <small>PNG / JPG / WEBP</small>
               </span>
-              <img id="listingPreview" alt="アップロードした募集図面のプレビュー" hidden />
+              <span class="preview-frame" id="previewFrame" hidden>
+                <img id="listingPreview" alt="アップロードした募集図面のプレビュー" />
+                <span class="evidence-highlight" id="evidenceHighlight" hidden></span>
+              </span>
             </label>
             <button class="secondary-action" id="analyzeListing" type="button" disabled>画像を読み取る →</button>
-            <p class="privacy-note">画像はブラウザ内でプレビューし、このデモから外部へ送信しません。</p>
+            <p class="privacy-note" id="privacyNote">画像はブラウザ内でプレビューし、このデモから外部へ送信しません。</p>
           </div>
 
           <div class="extraction-empty" id="extractionEmpty">
             <span>02 / CONFIRM</span>
-            <strong>解析後、抽出項目を<br />原本と照合します。</strong>
-            <p>物件名、賃料、住所、最寄駅、間取り、面積、竣工年を表示し、誤読を修正してから候補へ追加します。</p>
+            <strong id="extractionEmptyTitle">解析後、抽出項目を<br />原本と照合します。</strong>
+            <p id="extractionEmptyText">物件名、賃料、住所、最寄駅、間取り、面積、竣工年を表示し、誤読を修正してから候補へ追加します。</p>
+            <div class="extraction-error" id="extractionError" hidden>
+              <p id="extractionErrorText"></p>
+              <button class="secondary-action" id="useSampleExtraction" type="button">サンプル値で試す</button>
+            </div>
           </div>
 
           <form class="extraction-card" id="extractionForm" hidden>
-            <div class="card-topline"><span>SAMPLE EXTRACTION</span><span>要原本確認</span></div>
+            <div class="card-topline"><span id="extractionModeLabel">SAMPLE EXTRACTION</span><span id="extractionReviewLabel">要原本確認</span></div>
             <div class="extraction-status" id="intakeStatus">画像を選択してください。</div>
-            <div class="extraction-grid">
-              <label>物件・部屋名<input id="extractedName" value="モノハウス 104号室" /></label>
-              <label>月額賃料<input id="extractedRent" type="number" value="95000" min="0" /></label>
-              <label class="wide">住所<input id="extractedAddress" value="東京都世田谷区代田5-35-30" /></label>
-              <label>最寄駅<input id="extractedStation" value="下北沢駅 徒歩2分" /></label>
-              <label>間取り<input id="extractedLayout" value="1K" /></label>
-              <label>専有面積（㎡）<input id="extractedArea" type="number" value="21.37" min="0" step="0.01" /></label>
-              <label>竣工年<input id="extractedYear" type="number" value="2001" min="1900" /></label>
-            </div>
-            <p class="extraction-note">現在はこの形式を想定した固定サンプル抽出です。実運用ではサーバー側のVision/OCR APIへ接続し、信頼度と出典領域を保持します。</p>
-            <button class="primary-action compact" type="submit">確認して暫定候補に追加 <span>→</span></button>
+            <ul class="extraction-warnings" id="extractionWarnings" hidden></ul>
+            <div class="extraction-grid" id="extractionGrid"></div>
+            <p class="extraction-note" id="extractionNote"></p>
+            <button class="primary-action compact" id="confirmExtraction" type="submit">確認して暫定候補に追加 <span>→</span></button>
           </form>
         </div>
         <p class="intake-message" id="intakeMessage" aria-live="polite"></p>

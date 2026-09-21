@@ -1,0 +1,23 @@
+{
+  "name": "nest-listing-extractor",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cloudflare Worker that turns a rental listing-sheet image into reviewable fields with Claude.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "wrangler": "^4.135.0"
+  }
+}

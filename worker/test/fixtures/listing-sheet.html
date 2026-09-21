@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>Synthetic listing sheet fixture</title>
+<!--
+  Fictional rental listing sheet (募集図面) used as a repeatable test input.
+  Every name, address, and number is invented. Rendered to listing-sheet.png at 2000×1184.
+  The summary area (20.15㎡) intentionally disagrees with the floor-plan label (21.15㎡)
+  so the extractor's inconsistency warning can be tested.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 2000px; height: 1184px; background: #fff; color: #111; }
+  body { font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif; }
+  .sheet { position: absolute; inset: 28px; border: 3px solid #111; }
+  .box { position: absolute; border: 2px solid #888; }
+  .title { left: 30px; top: 22px; width: 470px; height: 82px; border: 4px solid #111; font-size: 54px; font-weight: 800; letter-spacing: 2px; white-space: nowrap; text-align: center; line-height: 72px; }
+  .access { left: 44px; top: 122px; width: 470px; height: 82px; padding: 10px 14px; font-size: 19px; line-height: 30px; white-space: nowrap; }
+  .name { left: 590px; top: 14px; width: 440px; height: 72px; font-size: 40px; font-weight: 700; text-align: center; line-height: 68px; letter-spacing: 2px; white-space: nowrap; }
+  .room { left: 610px; top: 96px; width: 400px; height: 60px; font-size: 38px; text-align: center; line-height: 56px; letter-spacing: 3px; }
+  .catch { left: 1100px; top: 14px; width: 790px; height: 160px; padding: 20px; font-size: 27px; font-weight: 700; text-align: center; line-height: 42px; }
+  .catch small { display: block; font-size: 23px; }
+  .summary { left: 16px; top: 214px; width: 510px; height: 344px; padding: 14px 16px; }
+  .rent { font-size: 44px; font-weight: 800; letter-spacing: 1px; white-space: nowrap; }
+  .fee { margin-top: 4px; font-size: 32px; font-weight: 700; }
+  .summary h4, .terms h4 { margin: 12px 0 2px; font-size: 21px; }
+  .summary p, .terms p { margin: 0; font-size: 19px; line-height: 27px; white-space: nowrap; }
+  .terms { left: 16px; top: 572px; width: 510px; height: 548px; padding: 14px 16px; }
+  .terms p { font-size: 18px; line-height: 25px; white-space: normal; }
+  .photo { position: absolute; display: grid; place-items: center; border: 1px solid #b9b9b9; color: #6a6a6a; font-size: 20px; letter-spacing: 2px; background: repeating-linear-gradient(135deg, #eeeeea 0 16px, #e2e2dc 16px 32px); }
+  .photo span { padding: 6px 12px; background: rgba(255,255,255,.85); }
+  .compass { position: absolute; left: 1640px; top: 188px; width: 72px; height: 72px; border: 2px solid #9aa; border-radius: 50%; }
+  .compass::after { content: ""; position: absolute; left: 30px; top: 8px; border: 7px solid transparent; border-bottom: 44px solid #4b5f7a; transform: rotate(-24deg); transform-origin: 50% 80%; }
+  .plan { position: absolute; left: 1640px; top: 300px; width: 270px; height: 790px; border: 12px solid #222; background: #fff; }
+  .plan .bath { position: absolute; left: 0; top: 60px; width: 120px; height: 160px; border: 3px solid #333; background: #fff7cc; font: 700 18px sans-serif; display: grid; place-items: center; }
+  .plan .wc { position: absolute; left: 0; top: 220px; width: 120px; height: 100px; border: 3px solid #333; background: #dcf5dc; font: 700 18px sans-serif; display: grid; place-items: center; }
+  .plan .kitchen { position: absolute; right: 0; top: 60px; width: 126px; height: 260px; border: 3px solid #333; background: #f7d58a; font: 700 18px sans-serif; display: grid; place-items: center; }
+  .plan .closet { position: absolute; left: 0; top: 320px; width: 140px; height: 70px; border: 3px solid #333; font: 700 18px sans-serif; display: grid; place-items: center; }
+  .plan .flooring { position: absolute; left: 0; right: 0; top: 390px; height: 290px; border-top: 3px solid #333; background: repeating-linear-gradient(0deg, #f3c35b 0 10px, #f7d27a 10px 20px); display: grid; place-items: center; text-align: center; font: 800 24px/1.4 "Hiragino Kaku Gothic ProN", sans-serif; }
+  .plan .balcony { position: absolute; left: 0; right: 0; bottom: 0; height: 76px; border-top: 3px solid #333; display: grid; place-items: center; font: 700 22px sans-serif; }
+  .footnote { position: absolute; left: 600px; bottom: 6px; font-size: 18px; }
+  .fictional { position: absolute; right: 18px; bottom: 6px; color: #b02a2a; font-size: 16px; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="title">賃貸マンション</div>
+    <div class="box access">
+      <div data-field="station">JR中央線「高円寺」駅 徒歩6分</div>
+      <div>東京メトロ丸ノ内線「新高円寺」駅 徒歩11分</div>
+    </div>
+    <div class="box name" data-field="propertyName">テストハイツ高円寺</div>
+    <div class="box room"><span data-field="propertyNameRoom">203号室</span>　<span data-field="layoutHeadline">1K</span></div>
+    <div class="box catch">
+      ◆高円寺駅徒歩6分・商店街まで徒歩3分◆<br />
+      ◆南向きで日当たり良好な2階角部屋◆
+      <small>◆独立洗面台・宅配ボックス付き◆</small>
+    </div>
+
+    <div class="box summary">
+      <div class="rent" data-field="rent">賃　料：￥88,000円</div>
+      <div class="fee">管理費：￥5,000円</div>
+      <h4>物件概要</h4>
+      <p data-field="address">所在地：東京都杉並区高円寺南9-99-99</p>
+      <p>構　造：木造　2階建</p>
+      <p data-field="constructionYear">竣　工：1998年3月</p>
+      <p data-field="areaSqm">専有面積：20.15㎡（6.09坪）</p>
+      <p data-field="layout">間取り：1K</p>
+    </div>
+
+    <div class="box terms">
+      <h4>賃貸条件</h4>
+      <p>敷金：1ヶ月<br />礼金：1ヶ月<br />入居予定日：即入居可<br />契約期間：2年<br />更新料：新賃料の1ヶ月<br />火災保険料：要加入（2年 16,000円）</p>
+      <h4>設備</h4>
+      <p>バス・トイレ別、独立洗面台、室内洗濯機置場、エアコン1基、フローリング、クローゼット、シューズボックス、宅配ボックス、TVモニター付きインターホン</p>
+      <h4>特記事項</h4>
+      <p>保証会社加入必須（初回保証料：月額総賃料の50%）<br />鍵交換費用：15,400円<br />ペット不可、楽器不可、事務所利用不可</p>
+    </div>
+
+    <div class="photo" style="left:560px; top:188px; width:320px; height:410px;"><span>PHOTO 01 外観</span></div>
+    <div class="photo" style="left:900px; top:188px; width:330px; height:330px;"><span>PHOTO 02 居室</span></div>
+    <div class="photo" style="left:1250px; top:188px; width:350px; height:330px;"><span>PHOTO 03 浴室</span></div>
+    <div class="photo" style="left:570px; top:618px; width:300px; height:290px;"><span>PHOTO 04 キッチン</span></div>
+    <div class="photo" style="left:900px; top:538px; width:330px; height:330px;"><span>PHOTO 05 洗面台</span></div>
+    <div class="photo" style="left:1250px; top:538px; width:350px; height:330px;"><span>PHOTO 06 収納</span></div>
+    <div class="photo" style="left:610px; top:926px; width:250px; height:160px;"><span>PHOTO 07</span></div>
+    <div class="photo" style="left:940px; top:888px; width:260px; height:198px;"><span>PHOTO 08</span></div>
+    <div class="photo" style="left:1280px; top:888px; width:290px; height:198px;"><span>PHOTO 09</span></div>
+
+    <div class="compass"></div>
+    <div class="plan">
+      <div class="bath">UB</div>
+      <div class="wc">WC</div>
+      <div class="kitchen">K</div>
+      <div class="closet">Closet</div>
+      <div class="flooring" data-field="areaSqmPlan">Flooring<br />21.15㎡（6.40坪）</div>
+      <div class="balcony">Balcony</div>
+    </div>
+
+    <div class="footnote">※図面と現況が異なる場合は現況を優先とさせていただきます。</div>
+    <div class="fictional">※本図面はテスト用に作成した架空の物件です。実在の物件・住所とは関係ありません。</div>
+  </div>
+</body>
+</html>

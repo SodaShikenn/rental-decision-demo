@@ -72,10 +72,15 @@ const yen = (value) => new Intl.NumberFormat("ja-JP", { style: "currency", curre
 const byId = (id) => properties.find((property) => property.id === id);
 const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
 
+function budgetScore(rent) {
+  // Unknown rent is neither affordable nor expensive: score the midpoint and keep the candidate provisional.
+  if (rent == null) return 12.5;
+  return rent <= state.budget ? 25 : Math.max(0, 25 - (rent - state.budget) / 700);
+}
+
 function scoreProperty(property) {
-  const budgetScore = property.rent <= state.budget ? 25 : Math.max(0, 25 - (property.rent - state.budget) / 700);
   const commuteValue = property.enriched === false ? 5 : Math.max(0, 10 - Math.max(0, property.commute - 20) / 3);
-  let score = budgetScore + commuteValue * 1.2;
+  let score = budgetScore(property.rent) + commuteValue * 1.2;
   state.priorities.forEach((priority) => {
     const value = priority === "commute" ? commuteValue : (property[priority] ?? 5);
     score += value * 2.5;
@@ -98,7 +103,7 @@ function renderCandidates() {
         <span class="candidate-rank">${String(index + 1).padStart(2, "0")}</span><span class="candidate-score">${provisional ? "暫定 " : ""}${scoreProperty(property)} / 99</span>
         <h3>${escapeHTML(property.name)}</h3>
         <p class="area">${escapeHTML(property.area)}</p>
-        <p class="rent">${yen(property.rent)} <small>/ 月</small></p>
+        <p class="rent">${property.rent == null ? "賃料 未取得" : `${yen(property.rent)} <small>/ 月</small>`}</p>
         <div class="candidate-stats">
           <span>通勤<b>${provisional ? "未取得" : `${property.commute}分`}</b></span>
           <span>周辺情報<b>${provisional ? "未取得" : `${property.late}/10`}</b></span>
@@ -128,10 +133,10 @@ function renderSelected() {
   }).join("、");
   const priorityNames = activePriorities.map(priorityLabel).join("・");
   const fitText = provisional
-    ? `画像から抽出した賃料・間取りのみで暫定評価しています。「${priorityNames}」の実測データは未取得です。`
+    ? `募集図面で確認した項目（賃料・間取りなど）のみで暫定評価しています。「${priorityNames}」の実測データは未取得です。`
     : `優先した「${priorityNames}」では、${priorityDetails}です。`;
   const whyText = provisional
-    ? `${yen(property.rent)}、${escapeHTML(property.area)}を原本確認用の候補情報として追加しました。`
+    ? `${property.rent == null ? "賃料未取得" : yen(property.rent)}、${escapeHTML(property.area)}を原本確認用の候補情報として追加しました。`
     : `${property.tags.map(escapeHTML).join("、")}は、現在の暮らし方と合う要素です。`;
   document.querySelector("#selectedCard").innerHTML = `
     <p class="eyebrow">CURRENTLY SELECTED / ${String(rankedProperties().findIndex((item) => item.id === property.id) + 1).padStart(2, "0")}</p>
@@ -141,6 +146,7 @@ function renderSelected() {
       <div class="reason"><b>FIT</b><span>${fitText}</span></div>
       <div class="reason"><b>WHY</b><span>${whyText}</span></div>
       <div class="reason"><b>CHECK</b><span>${escapeHTML(property.tradeoff)}</span></div>
+      ${property.provenance ? `<div class="reason"><b>SOURCE</b><span>${escapeHTML(provenanceText(property.provenance))}</span></div>` : ""}
     </div>
   `;
   renderChart(property);
@@ -188,7 +194,7 @@ function recalculate() {
   state.selectedId = best.id;
   renderCandidates();
   renderSelected();
-  addMessage("assistant", `条件を更新しました。<strong>${best.name}</strong>が最有力です。${best.tradeoff}`);
+  addMessage("assistant", `条件を更新しました。<strong>${escapeHTML(best.name)}</strong>が最有力です。${escapeHTML(best.tradeoff)}`);
 }
 
 function addMessage(role, text) {
@@ -202,68 +208,396 @@ function addMessage(role, text) {
 
 function respondToChat(question) {
   const best = rankedProperties()[0];
-  const affordable = [...properties].sort((a, b) => a.rent - b.rent)[0];
+  const affordable = properties.filter((property) => property.rent != null).sort((a, b) => a.rent - b.rent)[0];
   const lower = question.toLowerCase();
   if (lower.includes("1万円") || lower.includes("安く")) {
     if (affordable.enriched === false) {
       return `家賃だけで比較すると<strong>${escapeHTML(affordable.name)}</strong>です。ただし、通勤と周辺施設は未取得のため、現時点では暫定候補です。`;
     }
-    return `家賃を抑えるなら<strong>${affordable.name}</strong>です。${yen(best.rent - affordable.rent)}安くなりますが、通勤は${affordable.commute - best.commute}分長くなります。`;
+    return `家賃を抑えるなら<strong>${escapeHTML(affordable.name)}</strong>です。${yen(best.rent - affordable.rent)}安くなりますが、通勤は${affordable.commute - best.commute}分長くなります。`;
   }
   if (lower.includes("買い物") || lower.includes("夜")) {
     const nightBest = properties.filter((property) => property.enriched !== false).sort((a, b) => b.late - a.late)[0];
-    return `夜の買い物を最優先するなら<strong>${nightBest.name}</strong>です。利便性は${nightBest.late}/10ですが、${nightBest.tradeoff}`;
+    return `夜の買い物を最優先するなら<strong>${escapeHTML(nightBest.name)}</strong>です。利便性は${nightBest.late}/10ですが、${escapeHTML(nightBest.tradeoff)}`;
   }
   if (lower.includes("理由") || lower.includes("なぜ")) {
     if (best.enriched === false) return `<strong>${escapeHTML(best.name)}</strong>は家賃・間取りだけの暫定評価です。経路と周辺施設を取得するまで最終順位にはできません。`;
-    return `<strong>${best.name}</strong>は、${priorityLabel([...state.priorities][0])}と${priorityLabel([...state.priorities][1] || "space")}の両方でバランスが良く、予算との差額も小さいためです。`;
+    return `<strong>${escapeHTML(best.name)}</strong>は、${priorityLabel([...state.priorities][0])}と${priorityLabel([...state.priorities][1] || "space")}の両方でバランスが良く、予算との差額も小さいためです。`;
   }
-  return `現在の条件では<strong>${best.name}</strong>が最有力です。「1万円安くするなら？」「夜の買い物を優先すると？」のように、妥協したい条件を聞いてください。`;
+  return `現在の条件では<strong>${escapeHTML(best.name)}</strong>が最有力です。「1万円安くするなら？」「夜の買い物を優先すると？」のように、妥協したい条件を聞いてください。`;
+}
+
+// ---- Listing-sheet intake -------------------------------------------------
+
+const EXTRACTION_FIELDS = [
+  { key: "propertyName", label: "物件・部屋名", type: "text" },
+  { key: "rent", label: "月額賃料（円）", type: "number", step: "1" },
+  { key: "address", label: "住所", type: "text", wide: true },
+  { key: "station", label: "最寄駅", type: "text" },
+  { key: "layout", label: "間取り", type: "text" },
+  { key: "areaSqm", label: "専有面積（㎡）", type: "number", step: "0.01" },
+  { key: "constructionYear", label: "竣工年", type: "number", step: "1" },
+];
+// Confidence is reported by the model and has not been calibrated. Below this threshold,
+// or when a value is missing or named in a warning, a person must confirm the field explicitly.
+const REVIEW_CONFIDENCE_THRESHOLD = 0.85;
+const EXTRACTION_TIMEOUT_MS = 90_000;
+const UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
+// claude-opus-5 is on the high-resolution tier. Images within these limits are not resized by the API,
+// so the pixel boxes it returns map 1:1 onto the uploaded image.
+const MAX_IMAGE_EDGE = 2576;
+const MAX_VISUAL_TOKENS = 4784;
+
+const sampleField = (value) => ({ value, confidence: null, evidence: null, sourceText: null });
+// Fixed values for the demonstrated sheet format, shown when no extraction API is configured.
+const SAMPLE_EXTRACTION = {
+  documentId: null,
+  meta: { mode: "sample", model: null, extractedAt: null },
+  fields: {
+    propertyName: sampleField("モノハウス 104号室"),
+    rent: sampleField(95000),
+    address: sampleField("東京都世田谷区代田5-35-30"),
+    station: sampleField("下北沢駅 徒歩2分"),
+    layout: sampleField("1K"),
+    areaSqm: sampleField(21.37),
+    constructionYear: sampleField(2001),
+  },
+  warnings: [],
+};
+
+const MODE_LABELS = { sample: "SAMPLE EXTRACTION", mock: "MOCK EXTRACTION", live: "CLAUDE EXTRACTION" };
+const WARNING_LABELS = { inconsistent_values: "不一致", illegible: "判読困難", multiple_candidates: "候補複数", other: "注意" };
+const extractionNote = (result) => ({
+  sample: "現在はこの形式を想定した固定サンプル値です。画像の内容は読み取っていません。解析サーバー（worker/）を設定すると、Claudeによる読み取り結果・信頼度・根拠領域を表示します。",
+  mock: "解析サーバーのモック応答です（テスト用の架空図面に対応する固定値）。アップロードした画像は読み取っていません。",
+  live: `${result.meta.model} による読み取り結果です。信頼度はモデルの自己申告で較正されていません。根拠領域は目安です。色付きの項目は原本と照合してから追加してください。`,
+})[result.meta.mode];
+
+const intake = { file: null, previewUrl: null, result: null, review: new Set(), confirmed: new Set(), requestId: 0 };
+const fieldLabel = (key) => EXTRACTION_FIELDS.find((field) => field.key === key)?.label ?? key;
+const formatTime = (iso) => new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+
+function extractionEndpoint() {
+  const base = String(window.RENTAL_DEMO_CONFIG?.extractionApiUrl || "").trim().replace(/\/+$/, "");
+  return base ? `${base}/api/extract-listing` : "";
+}
+
+function provenanceText(provenance) {
+  const method = {
+    sample: "サンプル値（画像は未解析）",
+    mock: "モック応答（画像は未解析）",
+    live: `Claude抽出（${provenance.model}）`,
+  }[provenance.mode];
+  const times = provenance.extractedAt
+    ? `抽出 ${formatTime(provenance.extractedAt)}・確認 ${formatTime(provenance.confirmedAt)}`
+    : `確認 ${formatTime(provenance.confirmedAt)}`;
+  const edits = provenance.editedFields.length ? ` / 人が修正: ${provenance.editedFields.map(fieldLabel).join("・")}` : "";
+  return `募集図面画像 / ${method}・人が確認 / ${times}${edits}`;
+}
+
+/** Round half to even, matching the API's resize rule at exact .5 ties. */
+function roundTiesToEven(value) {
+  const floor = Math.floor(value);
+  if (value - floor !== 0.5) return Math.round(value);
+  return floor % 2 === 0 ? floor : floor + 1;
+}
+
+/** The largest aspect-preserving size Claude accepts without resizing (reference rule from the vision docs). */
+function resizedSize(width, height, maxEdge = MAX_IMAGE_EDGE, maxTokens = MAX_VISUAL_TOKENS) {
+  const fits = (w, h) => Math.ceil(w / 28) * 28 <= maxEdge && Math.ceil(h / 28) * 28 <= maxEdge && Math.ceil(w / 28) * Math.ceil(h / 28) <= maxTokens;
+  if (fits(width, height)) return [width, height];
+  if (height > width) {
+    const [resizedH, resizedW] = resizedSize(height, width, maxEdge, maxTokens);
+    return [resizedW, resizedH];
+  }
+  const aspectRatio = width / height;
+  let lo = 1;
+  let hi = width;
+  while (lo + 1 < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (fits(mid, Math.max(roundTiesToEven(mid / aspectRatio), 1))) lo = mid;
+    else hi = mid;
+  }
+  return [lo, Math.max(roundTiesToEven(lo / aspectRatio), 1)];
+}
+
+/**
+ * Shrink the image to fit the model's limits. PNG and WEBP that already fit are sent unchanged;
+ * everything else is redrawn as JPEG, which also bakes in any EXIF rotation so the server and
+ * the preview see the same pixels.
+ */
+async function prepareImage(file) {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const [width, height] = resizedSize(bitmap.width, bitmap.height);
+    const unchanged = width === bitmap.width && height === bitmap.height;
+    if (unchanged && file.size <= UPLOAD_MAX_BYTES && ["image/png", "image/webp"].includes(file.type)) return { blob: file, name: file.name };
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
+    const blob = await new Promise((resolve, reject) => canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("encode"))), "image/jpeg", 0.92));
+    return { blob, name: `${file.name.replace(/\.[^.]+$/, "")}.jpg` };
+  } finally {
+    bitmap.close();
+  }
+}
+
+class IntakeError extends Error {}
+
+function isExtractionResult(body) {
+  return Boolean(
+    body?.meta?.mode in MODE_LABELS &&
+      body.fields &&
+      Array.isArray(body.warnings) &&
+      EXTRACTION_FIELDS.every(({ key }) => body.fields[key] && "value" in body.fields[key] && "confidence" in body.fields[key]),
+  );
+}
+
+async function requestExtraction(endpoint, blob, name) {
+  const form = new FormData();
+  form.append("image", blob, name);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EXTRACTION_TIMEOUT_MS);
+  try {
+    const response = await fetch(endpoint, { method: "POST", body: form, signal: controller.signal });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) throw new IntakeError(body?.error?.message || `解析サーバーがエラーを返しました（HTTP ${response.status}）。`);
+    if (!isExtractionResult(body)) throw new IntakeError("解析結果の形式が想定と異なります。");
+    return body;
+  } catch (error) {
+    if (error instanceof IntakeError) throw error;
+    if (error.name === "AbortError") throw new IntakeError(`解析が${EXTRACTION_TIMEOUT_MS / 1000}秒以内に終わりませんでした。もう一度お試しください。`);
+    throw new IntakeError("解析サーバーに接続できませんでした。ネットワークと設定を確認してください。");
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function fieldsNeedingReview(result) {
+  if (result.meta.mode === "sample") return new Set();
+  const flagged = new Set(result.warnings.flatMap((warning) => warning.fields));
+  EXTRACTION_FIELDS.forEach(({ key }) => {
+    const { value, confidence } = result.fields[key];
+    if (value === null || confidence === null || confidence < REVIEW_CONFIDENCE_THRESHOLD) flagged.add(key);
+  });
+  return flagged;
+}
+
+function fieldMarkup({ key, label, type, step, wide }, field, mode) {
+  const review = intake.review.has(key);
+  let badge = '<span class="field-badge">SAMPLE</span>';
+  if (mode !== "sample") {
+    badge = field.value === null
+      ? '<span class="field-badge unknown">未検出</span>'
+      : `<span class="field-badge${field.confidence < REVIEW_CONFIDENCE_THRESHOLD ? " low" : ""}" title="モデルの自己申告値（未較正）">信頼度 ${Math.round(field.confidence * 100)}%</span>`;
+  }
+  return `
+    <div class="extraction-field${wide ? " wide" : ""}${review ? " needs-review" : ""}" data-field="${key}">
+      <label for="extracted-${key}">${label}</label>
+      <input id="extracted-${key}" type="${type}"${step ? ` step="${step}" min="0"` : ""} value="${escapeHTML(field.value ?? "")}"${field.value === null ? ' placeholder="未検出"' : ""} />
+      <div class="field-meta">
+        ${badge}
+        ${review ? `<label class="confirm-check"><input type="checkbox" data-confirm="${key}" /> 原本と照合済み</label>` : ""}
+      </div>
+      ${field.evidence ? `<canvas class="evidence-crop" data-crop="${key}" role="img" aria-label="${escapeHTML(label)}の根拠領域"></canvas>` : ""}
+      ${field.sourceText ? `<p class="source-text">原文「${escapeHTML(field.sourceText)}」</p>` : ""}
+    </div>`;
+}
+
+/** Draw the evidence region, with a little context, from the local preview image. */
+function drawEvidenceCrop(canvas, image, [x, y, w, h]) {
+  const padX = 0.006;
+  const padY = 0.004;
+  const sx = Math.max(0, (x - padX) * image.naturalWidth);
+  const sy = Math.max(0, (y - padY) * image.naturalHeight);
+  const sw = Math.min(image.naturalWidth - sx, (w + padX * 2) * image.naturalWidth);
+  const sh = Math.min(image.naturalHeight - sy, (h + padY * 2) * image.naturalHeight);
+  const scale = Math.min(1, 640 / sw);
+  canvas.width = Math.max(1, Math.round(sw * scale));
+  canvas.height = Math.max(1, Math.round(sh * scale));
+  canvas.getContext("2d").drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+}
+
+function showEvidence(key) {
+  const highlight = document.querySelector("#evidenceHighlight");
+  const box = key ? intake.result?.fields[key]?.evidence : null;
+  highlight.hidden = !box;
+  if (!box) return;
+  const [x, y, w, h] = box;
+  Object.assign(highlight.style, { left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` });
+}
+
+function updateReviewState() {
+  const pending = [...intake.review].filter((key) => !intake.confirmed.has(key));
+  const sample = intake.result.meta.mode === "sample";
+  document.querySelector("#confirmExtraction").disabled = pending.length > 0;
+  document.querySelector("#extractionReviewLabel").textContent = sample ? "要原本確認" : pending.length ? `要確認 ${pending.length}件` : "照合済み";
+  document.querySelectorAll(".extraction-field").forEach((element) => element.classList.toggle("confirmed", intake.confirmed.has(element.dataset.field)));
+  let status = "サンプル抽出値を表示しています。黄色い募集図面の原本と照合し、必要に応じて修正してください。";
+  if (!sample) {
+    status = pending.length
+      ? `${EXTRACTION_FIELDS.length}項目を読み取りました。色付きの${pending.length}項目は原本と照合し、チェックを入れるか値を修正してください。`
+      : "要確認項目はすべて照合済みです。内容を確認して候補に追加できます。";
+  }
+  document.querySelector("#intakeStatus").textContent = status;
+}
+
+function renderExtraction(result) {
+  intake.result = result;
+  intake.review = fieldsNeedingReview(result);
+  intake.confirmed = new Set();
+  const { mode } = result.meta;
+  document.querySelector("#extractionModeLabel").textContent = MODE_LABELS[mode];
+  document.querySelector("#extractionNote").textContent = extractionNote(result);
+  const grid = document.querySelector("#extractionGrid");
+  grid.innerHTML = EXTRACTION_FIELDS.map((field) => fieldMarkup(field, result.fields[field.key], mode)).join("");
+  const preview = document.querySelector("#listingPreview");
+  grid.querySelectorAll("canvas[data-crop]").forEach((canvas) => drawEvidenceCrop(canvas, preview, result.fields[canvas.dataset.crop].evidence));
+  const warnings = document.querySelector("#extractionWarnings");
+  warnings.innerHTML = result.warnings.map((warning) => `<li><b>${WARNING_LABELS[warning.code] ?? "注意"}</b>${escapeHTML(warning.message)}</li>`).join("");
+  warnings.hidden = result.warnings.length === 0;
+  showEvidence(null);
+  updateReviewState();
+  document.querySelector("#extractionEmpty").hidden = true;
+  document.querySelector("#extractionForm").hidden = false;
+}
+
+function setEmptyState(kind, text = "") {
+  const title = document.querySelector("#extractionEmptyTitle");
+  const body = document.querySelector("#extractionEmptyText");
+  const error = document.querySelector("#extractionError");
+  document.querySelector("#extractionForm").hidden = true;
+  document.querySelector("#extractionEmpty").hidden = false;
+  error.hidden = kind !== "error";
+  if (kind === "busy") {
+    title.textContent = "読み取り中です…";
+    body.textContent = "Claudeが募集図面を解析しています。数十秒かかる場合があります。";
+  } else if (kind === "error") {
+    title.textContent = "読み取れませんでした。";
+    body.textContent = "もう一度読み取るか、サンプル値で流れを確認できます。";
+    document.querySelector("#extractionErrorText").textContent = text;
+  } else {
+    title.innerHTML = "解析後、抽出項目を<br />原本と照合します。";
+    body.textContent = "物件名、賃料、住所、最寄駅、間取り、面積、竣工年を表示し、誤読を修正してから候補へ追加します。";
+  }
+}
+
+function readExtractedValue(key) {
+  const input = document.querySelector(`#extracted-${key}`);
+  const raw = input.value.trim();
+  if (!raw) return null;
+  if (input.type !== "number") return raw;
+  const number = Number(raw);
+  return Number.isFinite(number) && number > 0 ? number : null;
 }
 
 function setupListingIntake() {
   const upload = document.querySelector("#listingUpload");
   const preview = document.querySelector("#listingPreview");
+  const frame = document.querySelector("#previewFrame");
   const placeholder = document.querySelector("#uploadPlaceholder");
   const analyzeButton = document.querySelector("#analyzeListing");
   const form = document.querySelector("#extractionForm");
-  const emptyState = document.querySelector("#extractionEmpty");
+  const grid = document.querySelector("#extractionGrid");
   const message = document.querySelector("#intakeMessage");
-  let previewUrl;
+  const live = Boolean(extractionEndpoint());
+  const idleLabel = live ? "Claudeで読み取る →" : "画像を読み取る →";
+
+  analyzeButton.textContent = idleLabel;
+  if (live) {
+    document.querySelector("#privacyNote").textContent =
+      "「Claudeで読み取る」を押すと、画像を縮小して解析サーバー経由でAnthropic社のClaude APIへ送信します。解析サーバーは画像を保存しません（Anthropic社のAPIデータ取扱方針が適用されます）。";
+  }
+
+  preview.addEventListener("load", () => frame.style.setProperty("--ratio", `${preview.naturalWidth} / ${preview.naturalHeight}`));
 
   upload.addEventListener("change", () => {
     const [file] = upload.files;
     if (!file) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = URL.createObjectURL(file);
-    preview.src = previewUrl;
-    preview.hidden = false;
+    intake.requestId += 1; // ignore any reading still in flight for the previous image
+    intake.file = file;
+    intake.result = null;
+    if (intake.previewUrl) URL.revokeObjectURL(intake.previewUrl);
+    intake.previewUrl = URL.createObjectURL(file);
+    preview.src = intake.previewUrl;
+    frame.hidden = false;
     placeholder.hidden = true;
+    showEvidence(null);
+    setEmptyState("idle");
     analyzeButton.disabled = false;
+    analyzeButton.textContent = idleLabel;
     message.textContent = `${file.name} をブラウザ内で読み込みました。`;
+    upload.value = ""; // allow choosing the same file again to start over
   });
 
-  analyzeButton.addEventListener("click", () => {
-    emptyState.hidden = true;
-    form.hidden = false;
-    document.querySelector("#intakeStatus").textContent = "サンプル抽出値を表示しています。黄色い募集図面の原本と照合し、必要に応じて修正してください。";
-    message.textContent = "抽出結果は未確定です。確認後に候補へ追加できます。";
+  analyzeButton.addEventListener("click", async () => {
+    const endpoint = extractionEndpoint();
+    if (!endpoint) {
+      renderExtraction(SAMPLE_EXTRACTION);
+      message.textContent = "抽出結果は未確定です。確認後に候補へ追加できます。";
+      return;
+    }
+    const requestId = ++intake.requestId;
+    analyzeButton.disabled = true;
+    analyzeButton.textContent = "読み取り中…";
+    setEmptyState("busy");
+    message.textContent = "";
+    try {
+      const { blob, name } = await prepareImage(intake.file);
+      const result = await requestExtraction(endpoint, blob, name);
+      await preview.decode().catch(() => {});
+      if (requestId !== intake.requestId) return;
+      renderExtraction(result);
+      message.textContent = result.meta.mode === "mock"
+        ? "モック応答を表示しています。画像の内容は解析していません。"
+        : "読み取り結果は未確定です。要確認項目を原本と照合してください。";
+    } catch (error) {
+      if (requestId !== intake.requestId) return;
+      setEmptyState("error", error instanceof IntakeError ? error.message : "画像を処理できませんでした。別の画像でお試しください。");
+    } finally {
+      if (requestId === intake.requestId) {
+        analyzeButton.disabled = false;
+        analyzeButton.textContent = idleLabel;
+      }
+    }
   });
+
+  document.querySelector("#useSampleExtraction").addEventListener("click", () => {
+    renderExtraction(SAMPLE_EXTRACTION);
+    message.textContent = "サンプル値を表示しています。画像の内容とは関係ありません。";
+  });
+
+  grid.addEventListener("change", (event) => {
+    const key = event.target.dataset.confirm;
+    if (!key) return;
+    if (event.target.checked) intake.confirmed.add(key);
+    else intake.confirmed.delete(key);
+    updateReviewState();
+  });
+  grid.addEventListener("input", (event) => {
+    const key = event.target.closest("[data-field]")?.dataset.field;
+    if (!key || !intake.review.has(key) || event.target.dataset.confirm) return;
+    // Correcting a value against the original counts as confirming it.
+    intake.confirmed.add(key);
+    grid.querySelector(`[data-confirm="${key}"]`).checked = true;
+    updateReviewState();
+  });
+  grid.addEventListener("pointerover", (event) => showEvidence(event.target.closest("[data-field]")?.dataset.field));
+  grid.addEventListener("focusin", (event) => showEvidence(event.target.closest("[data-field]")?.dataset.field));
+  grid.addEventListener("pointerleave", () => showEvidence(grid.contains(document.activeElement) ? document.activeElement.closest("[data-field]")?.dataset.field : null));
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const name = document.querySelector("#extractedName").value.trim() || "画像から追加した物件";
-    const rent = Math.max(0, Number(document.querySelector("#extractedRent").value) || 0);
-    const address = document.querySelector("#extractedAddress").value.trim();
-    const station = document.querySelector("#extractedStation").value.trim();
-    const layout = document.querySelector("#extractedLayout").value.trim();
-    const area = Number(document.querySelector("#extractedArea").value) || 0;
-    const year = document.querySelector("#extractedYear").value.trim();
-    const district = address.match(/東京都([^区]+区)/)?.[1] || "所在地要確認";
+    const { result } = intake;
+    if (!result || [...intake.review].some((key) => !intake.confirmed.has(key))) return;
+    const values = Object.fromEntries(EXTRACTION_FIELDS.map(({ key }) => [key, readExtractedValue(key)]));
+    const { propertyName, rent, address, station, layout, areaSqm, constructionYear } = values;
+    const district = address?.match(/東京都([^区]+区)/)?.[1] || "所在地要確認";
     const imported = {
       id: "uploaded-listing",
-      name,
-      area: `${district} / ${layout || "間取り要確認"} / ${area || "面積要確認"}${area ? "㎡" : ""}`,
+      name: propertyName || "名称未取得の物件",
+      area: `${district} / ${layout || "間取り要確認"} / ${areaSqm ? `${areaSqm}㎡` : "面積要確認"}`,
       rent,
       commute: null,
       late: null,
@@ -272,11 +606,19 @@ function setupListingIntake() {
       weekend: null,
       enriched: false,
       route: "経路API接続後に計算",
-      tags: [station || "最寄駅要確認", year ? `${year}年竣工` : "竣工年要確認", "画像から抽出"],
-      tradeoff: "画像の読み取り結果を原本と照合し、Routes APIとPlaces APIで通勤・周辺施設を補完する必要があります。",
+      tags: [station || "最寄駅要確認", constructionYear ? `${constructionYear}年竣工` : "竣工年要確認", result.meta.mode === "live" ? "画像から抽出" : "サンプル値"],
+      tradeoff: `${rent === null ? "賃料が未取得のため、予算評価は中立値で仮置きしています。" : ""}画像の読み取り結果を原本と照合し、Routes APIとPlaces APIで通勤・周辺施設を補完する必要があります。`,
       hasRentHistory: false,
       rents: [],
       reviews: [],
+      provenance: {
+        mode: result.meta.mode,
+        model: result.meta.model,
+        documentId: result.documentId,
+        extractedAt: result.meta.extractedAt,
+        confirmedAt: new Date().toISOString(),
+        editedFields: EXTRACTION_FIELDS.map(({ key }) => key).filter((key) => values[key] !== result.fields[key].value),
+      },
     };
     const existingIndex = properties.findIndex((property) => property.id === imported.id);
     if (existingIndex >= 0) properties.splice(existingIndex, 1, imported);
@@ -284,7 +626,7 @@ function setupListingIntake() {
     state.selectedId = imported.id;
     renderCandidates();
     renderSelected();
-    message.textContent = `${name}を暫定候補に追加しました。未取得項目は順位上で明示しています。`;
+    message.textContent = `${imported.name}を暫定候補に追加しました。未取得項目は順位上で明示しています。`;
     document.querySelector(".workspace").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }

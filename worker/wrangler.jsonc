@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nest-listing-extractor",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // Per-IP limit on paid extraction calls. Local `wrangler dev` simulates it.
+  "ratelimits": [
+    { "name": "EXTRACT_LIMITER", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } }
+  ],
+  "vars": {
+    // Comma-separated browser origins allowed to call the API.
+    "ALLOWED_ORIGINS": "https://sodashikenn.github.io,http://localhost:4173,http://127.0.0.1:4173",
+    // "live" calls Claude; "mock" returns the fixture reading (see src/mock.js). Override in .dev.vars.
+    "EXTRACTION_MODE": "live",
+    // Kill switch: set to "false" to stop all extraction without redeploying code.
+    "EXTRACTION_ENABLED": "true",
+    // Claude effort level: low | medium | high | xhigh | max.
+    "EXTRACTION_EFFORT": "high"
+  }
+  // Secret, set with `npx wrangler secret put ANTHROPIC_API_KEY` (never in this file).
+}

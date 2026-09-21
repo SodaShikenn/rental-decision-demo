@@ -12,7 +12,7 @@ From the repository root, with Node.js 22+ and Python 3 available:
 npm run dev:web
 ```
 
-Open **http://127.0.0.1:4173/**. The frontend has no build step or npm dependencies to install. Use the recorded candidates, comparison, numeric discovery, memo and local saving. API-dependent actions report unavailable if the server is absent. Local `web/env.js` automatically targets port 8000; hosted origins default to no API.
+Open **http://127.0.0.1:4173/**. The frontend has no build step or runtime npm dependencies. `npm ci` installs only development formatting tools. Use the recorded candidates, comparison, numeric discovery, memo and local saving. API-dependent actions report unavailable if the server is absent. Local `web/env.js` automatically targets port 8000; hosted origins default to no API.
 
 ### Run the backend
 
@@ -49,6 +49,8 @@ Set values only in server environment variables or ignored `.env` files. Native 
 | `RESEARCH_ENABLED` | Listing-research switch; defaults to `true`. |
 | `EXTRACTION_ENABLED` | Image-extraction switch; defaults to `true`. |
 | `ALLOWED_ORIGINS` | Comma-separated browser origins allowed by the API. |
+| `SHARING_ENABLED` | Enable backend share links (default `true`); local HTML export remains available when disabled. |
+| `SHARE_DB_PATH` | SQLite brief storage, default `server/data/shares.sqlite3`; keep it private and persistent. |
 | `RATE_LIMIT_PER_MINUTE` | Default 5 requests per client IP per process, shared by the feature endpoints. |
 
 Live operations can incur provider charges. The first OCR run may download/load models; the Docker image prepares them during build. No keys belong in `web/env.js`: it is public JavaScript containing only an API base URL.
@@ -73,23 +75,27 @@ flowchart TD
     API --> Extract[Docling OCR and Gemini mapping]
     API --> Research[Grounded listing research]
     API --> Advisor[Evidence-linked advice]
-    API --> Maps[Geocoding, Places, WALK Routes]
+    API --> Maps[Google adapter: places, walking, transit, reviews]
     Extract --> Evidence[Validated fields and provenance]
     Research --> Evidence
     Evidence --> UI
     Advisor --> UI
     Maps --> UI
+    API --> Share[Expiring SQLite briefs]
+    Share --> UI
 ```
 
 | Location | Responsibility |
 | --- | --- |
 | `web/app.js` | Restore state, load recorded research, register feature modules, attach persistence. |
 | `web/apps/intake`, `compare`, `research`, `maps` | Candidate input, comparison, supplements and external observations. |
+| `web/apps/commute`, `leisure`, `scenarios`, `reviews`, `sharing` | Separate feature controllers, pure services and views; [code tour](CODE_TOUR.md). |
 | `web/apps/advisor`, `priorities`, `needs`, `workspace` | Conversation, explicit preferences, memo and navigation. |
 | `web/extensions/ext_store.js`, `session.js` | Store events and local persistence. |
 | `web/data/sheets.js`, `research.js` | Recorded examples with provenance; not live API responses. |
 | `server/app.py`, `config.py`, `extensions/` | Factory, settings, provider clients, OCR, CORS, logging and rate limits. |
-| `server/apps/listing`, `research`, `maps`, `advisor` | Independent endpoint groups with structured contracts. |
+| `server/apps/` | Independent listing, research, maps, advisor, commute, leisure, reviews and sharing endpoint groups. |
+| `server/providers/` | Google HTTP adapter, configuration dependency and route normalization. |
 | `web/tests`, `server/tests` | Frontend logic and backend validation/provider-contract tests. |
 | `docker/`, `.github/workflows/` | Local container stack, CI and static-site publication. |
 
@@ -105,15 +111,24 @@ Add frontend features through `initApp(app)` in `web/app.js`; add API routers th
 | `POST /api/check-maps` | Candidate address and recognized claims; returns resolved location, walking observations, nearby places and warnings. |
 | `POST /api/advise` | Candidate evidence, confirmed priorities and conversation; returns cited insights/questions/options and proposed preferences. |
 
-See the running `/docs` for the exact schemas. There is currently no commute, leisure-recommendation, review-ingestion or cloud-sharing endpoint.
+| `POST /api/destinations` | Search places for explicit destination confirmation. |
+| `POST /api/commutes` | Up to 6 candidates, confirmed destination ID, aware schedule, mode/objective; independent journey results. |
+| `POST /api/leisure` | Nearby categories or a confirmed named destination; dated places and WALK routes. |
+| `POST /api/reviews/search` | Match building name and origin against returned places. |
+| `POST /api/reviews` | Recheck confirmed building identity, then return attributed relevance-ordered posts. |
+| `POST /api/shares` | Store an allowlisted brief for 1–7 days; return separate read and deletion secrets. |
+| `POST /api/shares/read` | Read by token; expires on server time; response is not cached. |
+| `POST /api/shares/revoke` | Delete with the read token and owner secret. |
+
+See the running `/docs` for exact schemas. Share reads use POST so bearer tokens do not enter URL/access logs.
 
 ## Data boundaries
 
 - Image uploads are processed by the backend in request memory; Gemini receives recognized text rather than image pixels. The browser can persist uploaded image blobs locally.
 - Research uses provider retrieval tools. Facts retain their source and listing/retrieval dates. Exact-unit matching and reference-price separation protect comparisons from unrelated room prices.
 - Advice includes a `focus` view (`cost`, `space`, `access`, `living`, `all`; defaults to `all`) without treating navigation as a confirmed preference. On mobile it scopes candidate facts and the request memo to the selected pair. It sends available Maps observations and user answers to Gemini. Citation validation does not guarantee interpretation accuracy; preference changes need user confirmation.
-- Maps results remain in memory. Conversations reproducing those observations are not persisted; accepted preferences are saved. Provider attribution links and retrieval times remain visible during the session.
-- Local saving is not cloud backup or a shared account. Footer deletion clears the local session and resets the sample experience.
+- Commute, leisure, building-review and Maps results remain in memory. Conversations reproducing those observations are not persisted; accepted preferences are saved. Provider attribution links and retrieval times remain visible during the session.
+- Local saving is not cloud backup or a shared account. Footer deletion clears the local candidate session and resets the sample experience. Share-owner controls are kept separately in localStorage so created links can still be revoked; deleting a session does not revoke a share.
 
 ## Validation
 
@@ -124,7 +139,11 @@ npm run test:server
 git diff --check
 ```
 
-The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 86 frontend + 83 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 96 frontend + 95 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+
+With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
+
+`npm ci && npm run format:check` checks the new feature modules with pinned Prettier. `npm run format` formats them. Backend feature code follows Ruff formatting (`uvx --from ruff==0.12.12 ruff format server/providers server/apps/commute server/apps/leisure server/apps/reviews server/apps/sharing`).
 
 Other commands:
 
@@ -142,4 +161,12 @@ Current README screenshots were captured from the actual local UI. The workspace
 
 GitHub Actions [CI](../.github/workflows/ci.yml) defines frontend/backend tests, API-image build and Compose validation. [Pages](../.github/workflows/pages.yml) publishes `web/` without tests after frontend tests, on matching `main` changes or manual dispatch. Documentation-only changes do not automatically trigger the Pages workflow.
 
-The public demo currently serves an earlier interface. This documentation update does not publish the new build. GitHub Pages cannot host the Python API: live features require an API deployment, a public base URL in `web/env.js`, server-side secrets, and allowed origins matching the frontend. Compose uses [same-origin configuration](../docker/web/env.js).
+Pushing frontend changes to `main` triggers the Pages workflow. The repository contains the full app; the Pages environment serves static files. GitHub Pages cannot host the Python API: live features require an API deployment, a public base URL in `web/env.js`, server-side secrets, and allowed origins matching the frontend. Compose uses [same-origin configuration](../docker/web/env.js).
+
+## Share storage and deployment limits
+
+The API defaults to `server/data/shares.sqlite3`. The directory is excluded from Git and Docker build context. Compose mounts the `share-data` volume; the container user can write `/app/data`. Back up and restrict access to this private data independently of source code. `SHARING_ENABLED=false` disables share endpoints; the export workflow still works.
+
+Tokens carry read access; the owner has a separate delete secret. SQLite stores their SHA-256 hashes, enforces expiry, deletes expired rows during access and limits active documents to 1,000. Expiry uses server time. This is a single-instance prototype; multiple replicas need a shared repository and distributed rate limiting. Revocation cannot remove copies already downloaded by recipients.
+
+Share pages use `share.html#token`, no indexing and no referrer. The reader uses the deployment's configured API URL. A link to localhost is only usable on that machine; a public link needs both a public frontend and reachable HTTPS API. No public backend was provisioned by a Git push.

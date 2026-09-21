@@ -4,11 +4,11 @@
 
 Rental Helper helps tenants in Japan turn apartment images and listing links into a comparison, an interactive conversation about their priorities, and a brief they can take to a viewing or agent. The experience starts with the homes they are considering—not a blank requirements form.
 
-[日本語](README.ja.md) · [Public demo — earlier UI](https://sodashikenn.github.io/rental-helper/) · [Current walkthrough](#try-the-three-step-journey) · [Roadmap](ROADMAP.md) · [Run locally](docs/DEVELOPMENT.md#run-locally)
+[日本語](README.ja.md) · [Public demo — static experience](https://sodashikenn.github.io/rental-helper/) · [Current walkthrough](#try-the-three-step-journey) · [Roadmap](ROADMAP.md) · [Run locally](docs/DEVELOPMENT.md#run-locally)
 
 [![Current local workspace: three rental candidates, costs, a sourced reference price and contextual questions](docs/images/compare.png)](#try-the-three-step-journey)
 
-> **Development prototype · September 22, 2026.** Screenshots show the current local build. The public demo still serves an earlier interface. Live AI, listing research and Maps require a configured backend; the recorded comparison and numeric preference flow work without those services.
+> **Development prototype · September 22, 2026.** Screenshots show the current local build. The public demo hosts the static frontend; API-backed features need a separately configured server. Live AI, listing research and Maps require a configured backend; the recorded comparison and numeric preference flow work without those services.
 
 ## The project in 60 seconds
 
@@ -20,7 +20,7 @@ Rental Helper brings candidate facts and sources together, asks focused question
 | --- | --- |
 | A recruiter | [Three-step walkthrough](#try-the-three-step-journey), then [skills demonstrated](#what-this-project-demonstrates). |
 | A product or design reviewer | [Product principles and current progress](PRODUCT.md), then [upcoming user journeys](ROADMAP.md). |
-| An engineering reviewer | [Architecture and setup](docs/DEVELOPMENT.md), [source map](#explore-the-implementation), and [validation](#what-is-working-today). |
+| An engineering reviewer | [8-step code tour](docs/CODE_TOUR.md), [architecture and setup](docs/DEVELOPMENT.md), and [validation](docs/VALIDATION.md). |
 
 ## Try the three-step journey
 
@@ -58,7 +58,26 @@ The screenshots use this real numeric fallback; they do not depict a fabricated 
 
 Open **条件メモ**. The memo combines confirmed priorities, selected equipment and questions to check with an agent. Edit and copy it. Reload to confirm that local candidates, preferences and memo edits survive.
 
-Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Cloud sharing is planned.
+Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Open **プレビューして共有・ファイル出力** to preview the brief, download HTML, or create a 1–7 day link with a connected backend. The creator can revoke the link; downloaded copies remain with recipients.
+
+</details>
+
+<details>
+<summary><strong>Explore the new modules: commute, leisure, reviews and sharing</strong></summary>
+
+- **駅・買い物 → 勤務先への通勤を比べる:** find and confirm a destination, set a Japan-time schedule, then compare returned journeys. Confirm the route objective only after seeing evidence.
+- **周辺から余暇の希望を見つける:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
+- **費用・通勤・余暇の組み合わせを考える:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
+- **設備・契約 → 建物の口コミと、自分の内見記録:** confirm the matched building, read attributed reports, turn concerns into viewing checks, and record your own observations separately.
+- **条件メモ → プレビューして共有・ファイル出力:** review exactly which fields are included. Images/chat are optional local HTML attachments; hosted links use a smaller allowlisted document.
+
+[![Commute destination and schedule form](docs/images/commute.png)](docs/images/commute.png)
+
+[![Share preview and privacy options](docs/images/sharing.png)](docs/images/sharing.png)
+
+These screenshots show the actual forms and preview, without fabricated provider results.
+
+[Follow the implementation through the repository →](docs/CODE_TOUR.md)
 
 </details>
 
@@ -72,9 +91,12 @@ Saving is specific to this browser. Maps observations and conversations containi
 | Station and grocery walking checks | Geocoding + Places (New) + WALK Routes integrated; previous local live checks succeeded. |
 | Candidate-based AI conversation | Implemented with cited context and explicit preference confirmation; live-provider reliability remains under evaluation. |
 | Preference fit, editable memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
-| Workplace commute, leisure recommendations, resident reviews and shared comparisons | **Planned**, with acceptance criteria in [ROADMAP.md](ROADMAP.md). |
+| Commute and scenario comparison | Implemented; one confirmed destination/schedule, alternatives and explicit priorities. Live Tokyo transit query returned **no routes**; Maps fallback and coverage follow-up remain. |
+| Leisure discovery | Implemented; real parks/gyms/cafés, optional regular destination, frequency/importance confirmation. Live park/WALK slice succeeded. |
+| Building-place reviews / own viewing notes | Implemented with identity checks and attribution. Posts are not verified resident reports; live sample building match was unavailable. |
+| Brief export and sharing | HTML preview/download; backend links expire in 1–7 days and support revocation. Public sharing requires API hosting. |
 
-**Validation:** 169 tests passed on September 22, 2026: 86 frontend and 83 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed status](PRODUCT.md#validation-and-release-state).
+**Validation:** 191 tests passed on September 22, 2026: 96 frontend and 95 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
 
 ## What this project demonstrates
 
@@ -121,11 +143,11 @@ flowchart LR
 
 ## What comes next
 
-1. **Work-destination routing:** compare door-to-door journeys under the same work schedule, including walking, transfers and fares when available.
-2. **Leisure discovery:** use real nearby parks, gyms, cafés or a regular destination to ask what the tenant values, then confirm it interactively.
-3. **Scenario recommendations:** explain tradeoffs between cost, commuting and confirmed leisure interests, with assumptions the tenant can change.
-4. **Resident context and sharing:** attributed reviews, viewing questions and a shareable decision brief.
+The feature modules are implemented; the remaining work is provider coverage and release validation:
 
-These are planned capabilities, not features shown in the current screenshots. [See the ordered backlog and definition of done →](ROADMAP.md)
+1. Obtain and validate usable public-transit routes for representative Japanese commutes.
+2. Validate attributed review display against a real matched apartment building and evaluate source coverage.
+3. Deploy the API with durable share storage; verify public access, expiry and revocation.
+4. Evaluate live Gemini quality, provider latency/cost and tenant usability.
 
-[Back to top ↑](#rental-helper)
+[Implementation vs. remaining acceptance criteria →](ROADMAP.md)

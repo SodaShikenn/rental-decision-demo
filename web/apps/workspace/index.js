@@ -65,6 +65,12 @@ export function initApp(app) {
     if (target === 'compareTable') $('#compareTable').focus();
   }
   document.addEventListener('click', (event) => {
+    const shortcut = event.target.closest('[data-open-feature]');
+    if (shortcut) {
+      const section = document.getElementById(shortcut.dataset.openFeature);
+      if (section) { section.open = true; section.scrollIntoView({ block: 'start' }); section.querySelector('summary')?.focus({ preventScroll: true }); }
+      return;
+    }
     const anchor = event.target.closest('a[href^="#"]');
     const target = anchor?.getAttribute('href').slice(1);
     if (!['compare', 'compareTable', 'surroundings', 'discovery', 'fitSummary', 'preferences', 'needs'].includes(target)) return;

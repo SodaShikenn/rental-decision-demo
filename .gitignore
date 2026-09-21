@@ -12,3 +12,5 @@ assets/Apt*.jpg
 
 # Local hosted-share database (private user content).
 server/data/
+
+node_modules/

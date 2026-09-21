@@ -8,5 +8,5 @@ class ReviewSearch(BaseModel):
 
 
 class ReviewRequest(ReviewSearch):
-    placeId: str = Field(pattern=r'^[A-Za-z0-9_-]{5,256}$')
+    placeId: str = Field(pattern=r"^[A-Za-z0-9_-]{5,256}$")
     confirmed: Literal[True]

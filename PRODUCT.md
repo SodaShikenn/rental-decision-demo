@@ -19,12 +19,16 @@ The tenant supplies candidates first. Do not start with a free-text “暮らし
 | Comparison | Rent + management fee, initial-cost estimate, layout/area, station walk, age, optional equipment/contracts; detail panels and glossary. | Listed station walking time is not a commute. Initial cost is an estimate with incomplete inputs visible. |
 | Missing monthly charges | Automatic research for named/addressed candidates missing rent or management fee; sequential requests; daily cooldown for unchanged candidates; saved results. | Provider availability and identity can prevent filling a gap. Other missing fields remain selectable proposals. |
 | Source matching | Current, non-conflicting, cited exact-unit offers can fill missing monthly fields. Same-building offers appear as reference prices with sources and dates. | References never become confirmed rent or enter budget/initial-cost calculations. Existing confirmed values are preserved. |
-| Walking access | Google Geocoding, Places (New), and WALK Routes check recognized station/amenity claims and nearby essentials. | No work-destination transit routes, leisure personalization, resident reviews, or guarantee of real-world conditions. |
+| Walking access | Google Geocoding, Places (New), and WALK Routes check recognized station/amenity claims and nearby essentials. | Listing walk is separate from scheduled commute; real-world conditions are not guaranteed. |
 | AI discovery | Gemini analyzes candidate evidence, asks a focused question, cites supplied evidence IDs and proposes priorities; the tenant must accept a proposal. | Broad conversational quality remains unevaluated; citations validate references, not every interpretation. |
 | Preference comparison | Confirmed budget, listed station-walk and area limits produce fit/conflict/unknown explanations. Narrative preferences and unresolved questions enter the memo. | No overall ranking. Narrative preferences do not automatically become numeric scores. |
-| Takeaway | Editable/copyable memo, chosen equipment, contract questions, confirmed preferences and unknowns. | No hosted shared comparisons or PDF report flow. |
+| Commute | Confirm a destination, choose Japan-time arrival/departure, mode and frequency; compare returned alternatives by duration, transfers or walking; confirm intent. | Live Tokyo TRANSIT check returned no routes. Maps fallback is available; Japan transit coverage remains unresolved. |
+| Leisure | Parks/gyms/cafés, dated WALK observations, named regular destination, frequency/importance confirmation. | Max 2/category within 1.5 km by straight-line distance; not exhaustive. Hours and activity suitability require verification. |
+| Scenarios | Change weekly frequency; compare known monthly cost, selected commute objective, outbound-time estimates and accepted leisure interests. | No hidden total score; no invented return journey, fares or data for missing routes. |
+| Reviews | Match normalized building name and nearby location, reject shops; explicit place confirmation; attributed relevance-ordered reports; viewing-question shortcuts and separate personal notes. | Posts do not prove residency. Live Louvre matching returned no confirmed place, so no reviews were attached. |
+| Takeaway/sharing | Editable/copyable memo, HTML download, content preview, optional personal details, 1–7 day SQLite-backed links and owner revocation. | Shared links require a reachable API. Images/eligible chat are local HTML only; provider routes and review text are excluded. Single-instance storage; no accounts. |
 | Persistence | IndexedDB saves candidates, image blobs, answers, preferences, memo edits and eligible conversation history; deletion control included. | Local to browser/origin. Maps observations and conversations reproducing them are temporary; accepted preferences persist. |
-| UI | Guided comparison workspace with five concern views, adjacent numeric/AI questions, confirmed-priority pills, and a separate memo. Mobile pair selection and a question panel; keyboard navigation and reduced motion. | Screenshots show the local build; the public demo currently serves an earlier interface. |
+| UI | Guided comparison workspace with five concern views, adjacent numeric/AI questions, confirmed-priority pills, and a separate memo. Mobile pair selection and a question panel; keyboard navigation and reduced motion. | Repository screenshots show the recorded candidate workflow; live services require a configured backend. |
 
 ## Interaction contract
 
@@ -34,7 +38,7 @@ The tenant supplies candidates first. Do not start with a free-text “暮らし
 4. **Confirm a priority.** A tentative selection or AI proposal is not a requirement. Confirmation updates the comparison and memo; the tenant can reconsider.
 5. **Take the next step.** Leave with an editable brief and questions that would change the decision. Preserve the session locally.
 
-Future work-destination and leisure questions belong after candidate analysis. A workplace cannot be inferred from a listing: request the destination when the tenant chooses to examine commuting. Ask for a place/address and relevant schedule, not an upfront lifestyle essay.
+Work-destination and leisure questions follow candidate comparison. A workplace cannot be inferred from a listing: request the destination when the tenant chooses to examine commuting. Ask for a place/address and relevant schedule, not an upfront lifestyle essay.
 
 ### Workspace behavior
 
@@ -54,7 +58,7 @@ Future work-destination and leisure questions belong after candidate analysis. A
 | Building reference | “102号室 is listed at this amount; candidate room unconfirmed.” | A reference price is a completed budget check. |
 | Maps observation | Resolved address, place, mode, route estimate, business status, retrieval time. | The entrance, walking experience, opening status, safety or quietness is guaranteed. |
 | AI interpretation | Explanation linked to evidence and confirmed preferences. | A prediction or unaccepted preference is a fact. |
-| Review — planned | Attributed experience, date, source and reviewed entity. | A nearby café review describes the apartment's resident experience. |
+| Building-place report | Attributed post, date, source and confirmed building place. | The author is a verified resident, or the statement applies to the exact unit. |
 
 Unknown is valid. Provider errors must remain errors, never fabricated facts or canned answers presented as live AI. Keep candidate order stable; explain fit by priority instead of making the final housing decision for the tenant.
 
@@ -76,16 +80,20 @@ Nearby search covers stations, supermarkets and convenience stores within 1.5 km
 
 `POST /api/advise` receives candidate evidence, available Maps observations, confirmed priorities and conversation answers. Insights/questions reference evidence IDs. Proposals require a literal quote from a user answer and explicit acceptance. Failed answers remain available for retry; changed evidence invalidates previous AI output.
 
+Commute/leisure/review provider content remains in memory. Confirmed intentions and the tenant's own viewing notes persist; a changed candidate identity/address invalidates observations. Google review bodies are displayed with attribution and never sent to the advisor or saved in a share.
+
+Sharing stores only an allowlisted brief, source links, confirmed intentions and explicitly included personal fields. Read/delete tokens are hashed; expiry is enforced on reads and expired rows are cleaned during access. A separate owner secret authorizes revocation. Links grant access to anyone who possesses them; downloaded copies cannot be revoked.
+
 IndexedDB stores user work. Uploaded images may be saved locally; server-side extraction handles images in request memory. Gemini receives extracted text for extraction and candidate/conversation data for advice, rather than image pixels. Provider secrets remain on the server.
 
 ## Validation and release state
 
-- **2026-09-22:** `npm test` — 86 frontend + 83 backend tests passed; 2 real-OCR tests skipped. Covers calculations, uncertainty, matching, automatic research, stale-response rejection, proposals, provider errors and storage boundaries.
+- **2026-09-22:** `npm test` — 96 frontend + 95 backend tests passed; 2 real-OCR tests skipped. Covers calculations, uncertainty, matching, automatic research, stale-response rejection, proposals, provider errors and storage boundaries.
 - Browser checks cover desktop/mobile flows, keyboard tabs, mobile pair swapping, question panel focus/resize, contextual AI requests and stale-response rejection with provider stubs, explicit confirmation, memo/image restoration, reference-price details, automatic exact-unit filling with a stubbed provider, and no duplicate lookup after reload.
 - Earlier local live checks confirmed Geocoding, Places and WALK Routes access. A small Gemini request succeeded; full candidate conversations and the latest automatic research check encountered provider busy responses. Full live end-to-end quality remains an open release task.
-- The public GitHub Pages demo responded on 2026-09-22 but serves the earlier UI. Current source/screenshots must not be described as already deployed. Pages hosts static files; live services need a separately configured API.
+- Pages hosts the static app; online research, routes, reviews, advice and shared links need a separately configured API. See the dated [validation record](docs/VALIDATION.md) for actual provider outcomes and the [code tour](docs/CODE_TOUR.md) for module boundaries.
 - No tenant usability study or measured decision-quality improvement is claimed.
 
 ## Next milestone
 
-Complete **one work destination → comparable commute evidence → one confirmed tradeoff → updated memo**. Then extend the same loop to leisure preferences. See [R1–R3 in ROADMAP](ROADMAP.md#r1--commutes-to-a-work-destination).
+Validate representative Japanese public-transit routes with a provider that actually returns results; validate a real matched building review; deploy and verify a public API and sharing lifecycle. See the remaining [roadmap](ROADMAP.md).

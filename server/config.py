@@ -13,7 +13,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-CURRENT_VERSION = "0.4.0"
+CURRENT_VERSION = "0.5.0"
 
 # Extraction pipeline: Docling reads the text on the sheet (OCR runs inside this server), then a
 # Gemini model maps the OCR lines to fields. Only the recognized text is sent to Google.

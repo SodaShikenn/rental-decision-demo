@@ -71,10 +71,10 @@ export function capabilityList({ extraction, model, maps = false }) {
       next: "",
     },
     { key: "rentHistory", name: "賃料の推移", kind: "planned", now: "表示していません。", next: "掲載・成約賃料の提供元と接続" },
-    { key: "reviews", name: "居住者の口コミ", kind: "planned", now: "表示していません。口コミサイトの内容は転載していません。", next: "再利用が許諾された提供元（Places API など）と接続" },
-    { key: "routes", name: "駅・周辺施設への徒歩経路", kind: maps ? "live" : "planned", now: maps ? "候補ごとに Google Maps で取得し、掲載の徒歩時間と照合します。通勤経路は未接続です。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
-    { key: "places", name: "周辺の駅・買い物", kind: maps ? "live" : "planned", now: maps ? "駅・スーパー・コンビニを取得し、徒歩経路と取得日時を表示します。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
-    { key: "persistence", name: "保存・共有", kind: "live", now: "候補・画像・希望・メモをこのブラウザに自動保存します。保存状態は画面上部で確認できます。地図情報は再取得が必要です。共有リンクは未実装です。", next: "" },
+    { key: "reviews", name: "建物地点の口コミ・内見記録", kind: maps ? "live" : "planned", now: maps ? "建物名と位置を照合し、作者・出典付きの投稿を表示します。投稿者の居住は未確認です。自分の内見記録は分けて保存します。" : "地図サーバーを接続すると建物地点の口コミを照合できます。自分の内見記録は接続なしでも残せます。", next: maps ? "" : "Google Maps を設定" },
+    { key: "routes", name: "駅・周辺施設への徒歩経路", kind: maps ? "live" : "planned", now: maps ? "候補ごとに Google Maps で取得し、掲載の徒歩時間と照合します。同じ目的地・日時での通勤比較も可能ですが、公共交通の経路が返らない地域・条件があります。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
+    { key: "places", name: "周辺の駅・買い物", kind: maps ? "live" : "planned", now: maps ? "駅・スーパー・コンビニに加え、公園・ジム・カフェと徒歩経路を取得し、利用したい場所から希望を確認します。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
+    { key: "persistence", name: "保存・共有", kind: "live", now: "候補・画像・希望・メモをこのブラウザに自動保存します。保存状態は画面上部で確認できます。地図情報は再取得が必要です。HTML出力と、バックエンド接続時の期限付き共有・削除に対応します。公開デモの共有には公開APIが必要です。", next: "" },
   ];
 }
 

@@ -10,3 +10,6 @@ requirements-dev.txt
 pytest.ini
 Dockerfile
 .dockerignore
+
+# Hosted briefs contain private user data.
+data/

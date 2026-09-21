@@ -1,19 +1,13 @@
 from fastapi import APIRouter, Depends, Request
 import httpx
 from apps.listing import apply_rate_limit
-from helper import AppError, json_response
+from helper import json_response
+from providers.dependencies import maps_key
 from providers.google_maps import GoogleMaps, place_view
 from .models import CommuteRequest, DestinationQuery
 from .services import compare_commutes
 
 router = APIRouter(prefix='/api', tags=['commute'], dependencies=[Depends(apply_rate_limit)])
-
-
-def maps_key(request: Request):
-    key = request.app.state.settings.google_maps_api_key
-    if not key:
-        raise AppError(503, 'maps_not_configured', 'Google Maps が未設定です。')
-    return key
 
 
 @router.post('/destinations')

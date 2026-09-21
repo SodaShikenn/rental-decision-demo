@@ -8,6 +8,7 @@ import * as glossary from "./apps/glossary/index.js";
 import * as advisor from "./apps/advisor/index.js";
 import { restoreSession, attachSession } from "./extensions/session.js";
 import * as workspace from "./apps/workspace/index.js";
+import * as leisure from "./apps/leisure/index.js";
 import * as commute from "./apps/commute/index.js";
 import * as maps from "./apps/maps/index.js";
 import * as research from "./apps/research/index.js";
@@ -23,7 +24,7 @@ import { restoreRecordedResearch } from "./apps/research/automatic.js";
 // Registration order is render order: capability chips first, then the comparison table and the
 // condition memo built from the same sheets. Intake adds sheets; the glossary answers [data-term]
 // clicks anywhere on the page.
-const APPS = [capabilities, compare, priorities, needs, intake, research, maps, commute, glossary, workspace, advisor];
+const APPS = [capabilities, compare, priorities, needs, intake, research, maps, commute, leisure, glossary, workspace, advisor];
 
 export async function createApp() {
   const app = { config, extensions: {} };

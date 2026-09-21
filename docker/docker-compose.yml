@@ -14,6 +14,8 @@ services:
       ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
       # Only nginx can reach this container, so trust its X-Forwarded-For for client IPs.
       FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - share-data:/app/data
     expose:
       - "8000"
     restart: unless-stopped
@@ -31,3 +33,6 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  share-data:

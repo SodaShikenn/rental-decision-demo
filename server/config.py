@@ -44,6 +44,8 @@ class Settings:
     # Kill switch: EXTRACTION_ENABLED=false stops extraction without a code change.
     extraction_enabled: bool = True
     research_enabled: bool = True
+    sharing_enabled: bool = True
+    share_db_path: str = str(Path(__file__).resolve().parent / "data" / "shares.sqlite3")
     google_maps_api_key: str = ""
     gemini_api_key: str = ""
     gemini_model: str = DEFAULT_GEMINI_MODEL
@@ -67,6 +69,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         allowed_origins=_split(env.get("ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS)),
         extraction_mode="mock" if env.get("EXTRACTION_MODE") == "mock" else "live",
         extraction_enabled=env.get("EXTRACTION_ENABLED", "true").lower() != "false",
+        sharing_enabled=env.get("SHARING_ENABLED", "true").lower() != "false",
+        share_db_path=env.get("SHARE_DB_PATH") or str(Path(__file__).resolve().parent / "data" / "shares.sqlite3"),
         research_enabled=env.get("RESEARCH_ENABLED", "true").lower() != "false",
         gemini_api_key=env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY", ""),
         google_maps_api_key=env.get("GOOGLE_MAPS_API_KEY") or env.get("GOOGLE_MAP_API", ""),

@@ -24,7 +24,8 @@ RUN python -c "from extensions.ext_ocr import build_converter; build_converter()
     && chmod -R a+rX /opt/models
 ENV HF_HUB_OFFLINE=1
 
-RUN useradd --system --uid 10001 --no-create-home app
+RUN useradd --system --uid 10001 --no-create-home app \
+    && mkdir -p /app/data && chown app /app/data
 USER app
 
 EXPOSE 8000

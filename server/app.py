@@ -43,9 +43,9 @@ def create_app(settings: Settings | None = None, *, gemini_client: Any = None, o
         await app.state.close_gemini()
 
     app = FastAPI(
-        title="Rental Helper 募集図面読み取り API",
+        title="Rental Helper API",
         version=CURRENT_VERSION,
-        description="募集図面の画像をサーバー内の OCR（Docling）で読み取り、Gemini が項目に対応付けます。項目ごとに OCR の信頼度と根拠の位置を返します。",
+        description="候補の情報抽出・出典付き補完・徒歩と通勤・余暇・口コミ・対話・期限付き共有を独立した機能として提供します。",
         lifespan=lifespan,
         redoc_url=None,
     )
@@ -98,6 +98,8 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(leisure_router)
     from apps.reviews import router as reviews_router
     app.include_router(reviews_router)
+    from apps.sharing import router as sharing_router
+    app.include_router(sharing_router)
 
 
 def register_error_handlers(app: FastAPI) -> None:

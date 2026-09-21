@@ -31,3 +31,12 @@
 .review-author img { border-radius: 50%; }
 .review-entry > p { white-space: pre-wrap; font-size: 13px; margin-block: 12px; overflow-wrap: anywhere; }
 .context-question > .button { margin-bottom: 12px; white-space: normal; text-align: left; }
+
+.share-options { display: grid; gap: 12px; font-size: 13px; margin-block: 16px; }
+.share-preview { max-height: 480px; overflow: auto; padding: 20px; border: 1px solid var(--line); background: var(--surface); }
+.share-preview pre, .shared-page pre { white-space: pre-wrap; font: inherit; }
+.share-preview h3, .shared-page h3 { margin-block: 20px 10px; }
+.share-preview ul, .shared-page ul { padding-left: 20px; }
+.shared-page { max-width: 900px; margin: 32px auto; padding: 20px; }
+.shared-page article { padding-block: 12px; border-bottom: 1px solid var(--line); }
+.shared-page h1 { margin-bottom: 24px; }

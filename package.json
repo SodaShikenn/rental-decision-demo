@@ -1,0 +1,17 @@
+{
+  "name": "rental-decision-demo",
+  "private": true,
+  "description": "NEST: explainable rental decisions. Static front end (web/) plus a Cloudflare Worker extraction server (server/).",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "python3 -m http.server 4173 --bind 127.0.0.1 --directory web",
+    "dev:server": "npm --prefix server run dev",
+    "test": "npm run test:web && npm run test:server",
+    "test:web": "node --test \"web/tests/**/*.test.js\"",
+    "test:server": "npm --prefix server test",
+    "smoke": "npm --prefix server run smoke"
+  }
+}

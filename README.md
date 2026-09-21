@@ -27,9 +27,9 @@ NESTは、家賃・間取り・駅徒歩だけでは比較しにくい賃貸候�
 
 |機能|状態|
 |---|---|
-|募集図面の読み取り|**実装済み（解析サーバー設定時）**。`worker/` のCloudflare Workerが `claude-opus-5` で読み取り、信頼度・原文・根拠領域を返す。信頼度はモデルの自己申告で、較正はしていない|
-|公開デモ（GitHub Pages）の読み取り|**固定サンプル値**。`config.js` の `extractionApiUrl` が空のため、画像は外部送信せず、表示値も画像とは無関係|
-|解析サーバーのモックモード|**テスト用の固定応答**（架空の図面 `worker/test/fixtures/listing-sheet.png` に対応）。画面上は MOCK と表示|
+|募集図面の読み取り|**実装済み（解析サーバー設定時）**。`server/` のCloudflare Workerが `claude-opus-5` で読み取り、信頼度・原文・根拠領域を返す。信頼度はモデルの自己申告で、較正はしていない|
+|公開デモ（GitHub Pages）の読み取り|**固定サンプル値**。`web/env.js` の `extractionApiUrl` が空のため、画像は外部送信せず、表示値も画像とは無関係|
+|解析サーバーのモックモード|**テスト用の固定応答**（架空の図面 `server/tests/fixtures/listing-sheet.png` に対応）。画面上は MOCK と表示|
 |物件、経路、掲載賃料、レビュー、施設評価|**架空のデモデータ**|
 |チャット|**ルールベース**（LLMではない）|
 |Routes / Places / Geocoding、データ保存|**未実装**。再読み込みでデータは消える|
@@ -38,39 +38,40 @@ NESTは、家賃・間取り・駅徒歩だけでは比較しにくい賃貸候�
 
 ## ローカルで起動する
 
-依存パッケージはありません。
+フロントエンド（`web/`）はビルド不要の静的ファイルで、依存パッケージはありません。コマンドはリポジトリ直下で実行します（Node.js 22以上、Python 3）。
 
 ```bash
-python3 -m http.server 4173
+npm run dev:web          # http://localhost:4173 （web/ を配信）
+npm ci --prefix server   # 初回のみ：サーバーの依存パッケージ
+npm test                 # フロントエンドとサーバーの単体テスト
 ```
 
-ブラウザで `http://localhost:4173` を開きます。リポジトリ直下に `index.html` があるため、GitHub Pagesにもそのまま公開できます。この状態では募集図面の読み取りは固定サンプル値です。
+`index.html` を `file://` で直接開かず、上記のURLを使います。この状態では募集図面の読み取りは固定サンプル値です。
 
-## 画像解析サーバー（worker/）
+GitHub Pagesへは、`main` へのpush時にGitHub Actions（`.github/workflows/pages.yml`）がテストを実行してから `web/` だけを公開します。
 
-`POST /api/extract-listing`（`multipart/form-data`、フィールド名 `image`）を提供するCloudflare Workerです。フロントエンドとは別に依存パッケージを持ちます（Node.js 22以上）。
+## 画像解析サーバー（server/）
+
+`POST /api/extract-listing`（`multipart/form-data`、フィールド名 `image`）を提供するCloudflare Workerです。
 
 ```bash
-cd worker
-npm install
-cp .dev.vars.example .dev.vars   # 既定は EXTRACTION_MODE=mock（APIキー不要・課金なし）
-npm test                         # 単体テスト
-npm run dev                      # http://localhost:8787
-npm run smoke                    # 架空の図面を送り、正解値と照合
+cp server/.dev.vars.example server/.dev.vars   # 既定は EXTRACTION_MODE=mock（APIキー不要・課金なし）
+npm run dev:server                              # http://localhost:8787
+npm run smoke                                   # 架空の図面を送り、正解値と照合
 ```
 
-フロントエンドから使うには、ローカルの `config.js` で `extractionApiUrl: "http://localhost:8787"` を設定します（コミットしない）。実際にClaudeで読み取る場合は、`.dev.vars` を `EXTRACTION_MODE=live` にして `ANTHROPIC_API_KEY` を設定します。1回の読み取りごとに課金されます。
+フロントエンドから使うには、ローカルの `web/env.js` で `extractionApiUrl: "http://localhost:8787"` を設定します（コミットしない）。実際にClaudeで読み取る場合は、`server/.dev.vars` を `EXTRACTION_MODE=live` にして `ANTHROPIC_API_KEY` を設定します。1回の読み取りごとに課金されます。
 
 デプロイ：
 
 ```bash
-cd worker
+cd server
 npx wrangler login
 npx wrangler secret put ANTHROPIC_API_KEY
 npm run deploy
 ```
 
-デプロイ後のURLを `config.js` の `extractionApiUrl` に設定すると、公開デモからも読み取りが有効になります。有料APIを公開することになるため、設定するかどうかは利用状況とコストを踏まえて判断してください。
+デプロイ後のURLを `web/env.js` の `extractionApiUrl` に設定すると、公開デモからも読み取りが有効になります。有料APIを公開することになるため、設定するかどうかは利用状況とコストを踏まえて判断してください。
 
 **応答の形式**：`fields` の各項目は `value`（読み取れない場合は `null`）、`confidence`（0〜1、モデルの自己申告）、`evidence`（画像に対する正規化済み `[x, y, 幅, 高さ]`）、`sourceText`（図面上の原文）を持ちます。`warnings` は図面内の不一致や判読困難な箇所を示し、`meta` に抽出モード、モデル、抽出時刻を含みます。
 
@@ -94,16 +95,16 @@ npm run deploy
 cp .env.example .env
 ```
 
-フロントエンドは `.env` を読み込みません。Routes、Places、物件データ、チャット用LLMなどを今後サーバー側に接続する際の受け皿として用意しています。画像解析サーバーの秘密情報は、ローカルでは `worker/.dev.vars`、本番では `wrangler secret put` で設定します（どちらもGit管理対象外）。
+フロントエンドは `.env` を読み込みません。Routes、Places、物件データ、チャット用LLMなどを今後サーバー側に接続する際の受け皿として用意しています。画像解析サーバーの秘密情報は、ローカルでは `server/.dev.vars`、本番では `wrangler secret put` で設定します（どちらもGit管理対象外）。
 
-公開デモの `config.js` には空のキーと空の `extractionApiUrl` だけを置いています。地図表示をローカルで試す場合は、HTTPリファラーと利用APIを制限したブラウザ用キーを一時的に設定し、実キーをコミットしないでください。
+公開デモの `web/env.js` には空のキーと空の `extractionApiUrl` だけを置いています。このファイルはサイトと一緒に公開されるため、秘密情報は置きません。地図表示をローカルで試す場合は、HTTPリファラーと利用APIを制限したブラウザ用キーを一時的に設定し、実キーをコミットしないでください。
 
 ## 実サービスに必要な連携
 
 |目的|候補となる連携|設計上の要点|
 |---|---|---|
 |物件情報|契約・再利用許諾を得た物件データ|物件ID、掲載時点、住所、賃料、間取りを追跡する|
-|募集図面の構造化|Cloudflare Worker + Claude（**実装済み**、`worker/`）|画像を一時処理し、フィールド単位の信頼度と根拠領域を返して人が確定する|
+|募集図面の構造化|Cloudflare Worker + Claude（**実装済み**、`server/`）|画像を一時処理し、フィールド単位の信頼度と根拠領域を返して人が確定する|
 |住所・目的地の座標化|Geocoding API|住所またはPlace IDを座標へ変換する|
 |地図表示|Maps JavaScript API|ブラウザ用キーにHTTPリファラー制限とAPI制限を適用する|
 |通勤・日常動線|Routes API|候補×目的地を `computeRouteMatrix` で比較し、曜日、時刻、交通手段を根拠として保存する|
@@ -122,22 +123,62 @@ cp .env.example .env
 4. **根拠を分離する** — 適合理由、データ、注意点を分け、ランキングを検証可能にする。
 5. **データの限界を示す** — デモデータ、掲載賃料、実取引、主観レビューを混同しない。
 
-## ファイル構成
+## 構成
+
+フロントエンド（`web/`）と解析サーバー（`server/`）を分け、どちらも [LLM-RAG_KBQA](https://github.com/SodaShikenn/LLM-RAG_KBQA) と同じ方針で構成しています。起点の `app.js` が拡張機能（`extensions/ext_*.js`）を初期化して機能ごとのアプリ（`apps/<name>/`）を登録し、設定は `config.js`、共通関数は `helper.js` にまとめます。
 
 ```text
 .
-├── index.html           # 画面構造
-├── styles.css          # レスポンシブUI
-├── app.js              # 評価、再順位付け、チャット
-├── config.js           # 公開用の空の設定（Maps、解析サーバーURL）
-├── config.example.js   # ブラウザ用設定例
-├── .env.example        # 将来のサーバー連携用設定例
-├── assets/demo.png     # README用プレビュー（架空の図面を使用）
-└── worker/             # 画像解析サーバー（Cloudflare Worker）
-    ├── src/            # リクエスト処理、画像検証、Claude呼び出し、応答スキーマ、モック
-    ├── test/           # 単体テストと架空の図面フィクスチャ
-    └── scripts/        # 正解値との照合スクリプト
+├── package.json              # 開発・テスト用コマンド（依存パッケージなし）
+├── .github/workflows/        # テスト（ci.yml）とGitHub Pagesへの公開（pages.yml）
+├── assets/demo.png           # README用プレビュー（架空の図面を使用）
+├── web/                      # フロントエンド（静的ファイル、GitHub Pagesで公開）
+│   ├── index.html            # 画面構造
+│   ├── app.js                # 起点：拡張機能の初期化と各アプリの登録
+│   ├── config.js             # 設定値（env.js の値を読み込む）
+│   ├── env.js                # 公開環境ごとの値（Mapsキー、解析サーバーURL。秘密情報は置かない）
+│   ├── helper.js             # 共通関数（金額表示、エスケープなど）
+│   ├── extensions/           # ext_store（状態と変更イベント）、ext_google_maps
+│   ├── apps/
+│   │   ├── shortlist/        # 生活条件、候補の順位付け、地図ピン
+│   │   ├── insights/         # 選択候補の根拠、賃料推移、レビュー
+│   │   ├── chat/             # ルールベースの分析チャット
+│   │   └── intake/           # 募集図面の取り込みと読み取り結果の確認
+│   ├── static/               # CSS、ファビコン
+│   └── tests/                # 単体テスト（node:test）
+└── server/                   # 画像解析サーバー（Cloudflare Worker）
+    ├── wrangler.jsonc        # Worker設定（レート制限、許可オリジン、モード）
+    ├── src/
+    │   ├── index.js          # Workerの入口
+    │   ├── app.js            # 起点：拡張機能の初期化、ブループリント登録、共通のCORS・エラー処理・ログ
+    │   ├── config.js         # 設定値（モデル、上限値、環境変数の読み込み）
+    │   ├── helper.js         # 共通関数（AppError、JSON応答）
+    │   ├── extensions/       # ext_anthropic、ext_cors、ext_logger、ext_rate_limit
+    │   └── apps/listing/     # 募集図面の読み取りAPI
+    │       ├── index.js      # ルートと前処理（停止スイッチ、レート制限）
+    │       ├── views.js      # リクエスト処理
+    │       ├── forms.js      # 画像の検証
+    │       ├── services.js   # Claude呼び出し
+    │       ├── prompts.js    # プロンプト
+    │       ├── models.js     # 応答スキーマと公開形式への変換
+    │       └── mock.js       # モック応答
+    ├── commands/smoke.js     # 正解値との照合コマンド
+    └── tests/                # 単体テストと架空の図面フィクスチャ
 ```
+
+各アプリのファイルの役割は共通です。
+
+- `index.js`：アプリの登録
+- `views.js`：画面（またはHTTP）の処理
+- `services.js`：画面に依存しないロジック（単体テストの対象）
+- `models.js`：データ定義
+
+### 機能を追加するには
+
+- **フロントエンド**：`web/apps/<name>/index.js` に `initApp(app)` を定義し、`web/app.js` の `APPS` に追加します。状態は `app.extensions.store` から読み、変更は `store.on("change", ...)` で受け取ります。
+- **サーバーのAPI**：`server/src/apps/<name>/index.js` で `bp`（`prefix`、`routes`、`beforeRequest`）を定義し、`server/src/app.js` の `BLUEPRINTS` に追加します。
+- **外部サービス**：`extensions/ext_<name>.js` に `initApp(app)` を定義し、`app.js` の `initializeExtensions` に追加します。テストでは `createApp(env, { <name>: stub })` のように差し替えます。
+- **設定値**：固定値は `config.js`、環境ごとの値はブラウザなら `web/env.js`、サーバーなら `wrangler.jsonc` とWorkerのシークレットに置きます。
 
 ## 検証済みの操作
 
@@ -147,8 +188,9 @@ cp .env.example .env
 - 解析サーバーのエラー、接続失敗、不正な応答時の表示と、明示的なサンプル値への切り替え
 - 賃料が未取得の候補を予算内として扱わない（中立値で暫定評価）
 - 候補選択に連動する理由、賃料推移、レビューの更新
-- 妥協条件に対するチャット応答
+- 妥協条件に対するチャット応答（入力文字列はHTMLとして解釈しない）
 - デスクトップ／モバイル向けレスポンシブ表示
+- 単体テスト（`npm test`）：スコア計算、画像の縮小規則、要確認の判定、出典表示、チャット応答、サーバーの検証・Claude呼び出し・ルーティング
 - APIキー未設定時のデモ用マップへのフォールバック
 
 ## 今後の拡張

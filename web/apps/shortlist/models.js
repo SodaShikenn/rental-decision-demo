@@ -1,0 +1,67 @@
+// Demo inventory and shortlist vocabulary (≈ models.py). All properties, routes, rent histories,
+// and reviews are fictional demo data.
+
+export const PRIORITY_LABELS = { commute: "短い通勤", late: "夜の買い物", quiet: "静けさ", space: "作業空間" };
+
+export const DEMO_PROPERTIES = [
+  {
+    id: "kiyosumi",
+    name: "清澄白河リバーサイド",
+    area: "江東区 / 1LDK / 36.8㎡",
+    rent: 129000,
+    commute: 31,
+    grocery: 4,
+    late: 8,
+    quiet: 7,
+    space: 7,
+    weekend: 6,
+    route: "清澄白河 → 虎ノ門ヒルズ / 乗換1回",
+    tags: ["夜22時までのスーパー", "川沿いの静けさ", "自宅作業向き"],
+    tradeoff: "駅まで11分。雨の日の徒歩負担は内見で要確認です。",
+    rents: [121, 121, 123, 122, 124, 125, 126, 126, 127, 128, 128, 129],
+    reviews: [
+      { from: "2024年入居 / 30代", text: "平日夜の買い物がしやすく、在宅勤務の日も過ごしやすい。" },
+      { from: "2023年入居 / 20代", text: "川沿いは静かだが、駅からの道は夜に一度確認した方がよい。" },
+    ],
+  },
+  {
+    id: "musashi",
+    name: "武蔵小山ワークス",
+    area: "品川区 / 1DK / 31.2㎡",
+    rent: 143000,
+    commute: 27,
+    grocery: 9,
+    late: 9,
+    quiet: 5,
+    space: 6,
+    weekend: 8,
+    route: "武蔵小山 → 虎ノ門ヒルズ / 乗換1回",
+    tags: ["商店街が近い", "短い通勤", "夜の選択肢が多い"],
+    tradeoff: "通勤と買い物は最良ですが、予算を13,000円超えます。",
+    rents: [136, 137, 137, 138, 138, 140, 140, 141, 142, 142, 143, 143],
+    reviews: [
+      { from: "2025年入居 / 20代", text: "帰宅が遅くても食事や日用品に困らない。週末は人通りが多い。" },
+      { from: "2023年入居 / 30代", text: "駅周辺は便利。静けさを優先する場合は部屋の向きが重要。" },
+    ],
+  },
+  {
+    id: "koenji",
+    name: "高円寺サイドノート",
+    area: "杉並区 / 1DK / 34.1㎡",
+    rent: 116000,
+    commute: 45,
+    grocery: 8,
+    late: 7,
+    quiet: 6,
+    space: 8,
+    weekend: 9,
+    route: "高円寺 → 虎ノ門ヒルズ / 乗換2回",
+    tags: ["予算に余裕", "作業空間が広い", "週末の外出に便利"],
+    tradeoff: "家賃には余裕がありますが、平日朝の通勤時間が長めです。",
+    rents: [110, 111, 111, 112, 113, 113, 114, 114, 115, 115, 116, 116],
+    reviews: [
+      { from: "2024年入居 / 20代", text: "部屋の形が使いやすく、休日に外出する人には便利。" },
+      { from: "2022年入居 / 30代", text: "都心通勤は混雑時間を避けられる働き方なら許容しやすい。" },
+    ],
+  },
+];

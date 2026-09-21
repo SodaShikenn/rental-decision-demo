@@ -3,6 +3,6 @@
 .DS_Store
 output/
 .playwright-cli/
-worker/node_modules/
-worker/.dev.vars
-worker/.wrangler/
+server/node_modules/
+server/.dev.vars
+server/.wrangler/

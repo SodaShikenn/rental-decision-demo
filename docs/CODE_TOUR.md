@@ -66,6 +66,8 @@ The [browser smoke scenario](../scripts/browser-smoke.js) stubs provider results
 
 For interface work, start with [UI design decisions](UI_DESIGN.md). Cross-feature motion and touch behavior live in `web/static/interactions.css`; its small `web/shared/interactions.js` companion owns presentation state only. The workspace controller owns responsive panel placement; business rules stay in the feature modules.
 
+Feature navigation has one [registry](../web/apps/workspace/navigation.js) for the desktop tabs, grouped mobile select, help text and old route aliases. [Navigation views](../web/apps/workspace/navigation-views.js) renders that configuration; the controller switches panel visibility without recreating feature instances. Routing does not write to preferences or provider state.
+
 ## How to add a feature
 
 Create its frontend controller/pure service/view and API router/model/service; register them in [web/app.js](../web/app.js) and [server/app.py](../server/app.py). Add only necessary shared primitives. Add transport-based provider tests, uncertainty/stale-response cases and a short walkthrough. Update [PRODUCT.md](../PRODUCT.md) and [ROADMAP.md](../ROADMAP.md) with separate implementation and live-validation states.

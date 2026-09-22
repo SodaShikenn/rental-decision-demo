@@ -22,9 +22,26 @@ Rental Helper brings candidate facts and sources together, asks focused question
 | A product or design reviewer | [Product principles](PRODUCT.md), [interface decisions and interaction checks](docs/UI_DESIGN.md), then [upcoming user journeys](ROADMAP.md). |
 | An engineering reviewer | [8-step code tour](docs/CODE_TOUR.md), [architecture and setup](docs/DEVELOPMENT.md), and [validation](docs/VALIDATION.md). |
 
+## Find a feature
+
+Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page shows its candidate scope and the next step; switching pages preserves current drafts and retrieved results until reload.
+
+| Open the demo at… | What to do there |
+| --- | --- |
+| [候補比較 — compare](https://sodashikenn.github.io/rental-helper/#compare) | Add images/links, compare facts, and confirm candidate-based priorities with AI or numeric questions. |
+| [通勤 — commute](https://sodashikenn.github.io/rental-helper/#commute) | Confirm a work destination and compare scheduled routes. |
+| [駅・買い物 — essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check each candidate's listed walking claims against Maps. |
+| [余暇 — leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Find nearby parks, gyms and cafés before discussing preferences. |
+| [口コミ・内見 — reviews/viewings](https://sodashikenn.github.io/rental-helper/#reviews) | Inspect attributed building reports and keep separate personal notes. |
+| [暮らしの試算 — scenarios](https://sodashikenn.github.io/rental-helper/#scenarios) | Change weekly commuting frequency and compare the tradeoffs. |
+| [条件メモ — brief](https://sodashikenn.github.io/rental-helper/#needs) | Edit and copy the decision brief. |
+| [共有・出力 — share/export](https://sodashikenn.github.io/rental-helper/#sharing) | Preview included information, download HTML or manage expiring links. |
+
+Live research, Maps, AI and hosted sharing require a configured API; the public demo exposes the same interface.
+
 ## Try the three-step journey
 
-The current app keeps comparison and discovery in one workspace, with a separate decision brief. Use cost, space, access, equipment/contracts or full-list views; questions stay beside the evidence. On mobile, select two candidates and open the questions in a bottom panel. Each screenshot below opens at full size; expand the steps for a guided tour. [Run this version locally](docs/DEVELOPMENT.md#run-locally) to interact with it.
+The app has eight directly accessible feature tabs. On phones, the **機能を選ぶ** dropdown exposes the same pages. Comparison and discovery stay together in **候補比較**, with separate pages for routes, surroundings, reviews, scenarios, the memo and sharing. Use cost, space, access, equipment/contracts or full-list views; questions stay beside the evidence. On mobile, select two candidates and open the questions in a bottom panel. Each screenshot below opens at full size; expand the steps for a guided tour. [Run this version locally](docs/DEVELOPMENT.md#run-locally) to interact with it.
 
 | 01 · Compare / 比較する | 02 · Discover / 希望を整理する | 03 · Takeaway / メモを持ち出す |
 | --- | --- | --- |
@@ -45,7 +62,7 @@ With the backend configured, missing monthly charges trigger research automatica
 <details>
 <summary><strong>02 — Discover: turn a vague preference into a confirmed choice</strong></summary>
 
-In **比較ワークスペース**, select **AIと深める** in the side panel (on mobile, open **この違いから希望を整理** first). With Gemini available, start candidate analysis: the conversation asks one evidence-linked question, offers choices and deferral, and proposes priorities for explicit acceptance.
+In **候補比較**, select **AIと深める** in the side panel (on mobile, open **この違いから希望を整理** first). With Gemini available, start candidate analysis: the conversation asks one evidence-linked question, offers choices and deferral, and proposes priorities for explicit acceptance.
 
 For a no-key walkthrough, use **費用 → ひとつずつ確認**. Pick a candidate-derived monthly budget, then choose whether it is a must-have or flexible preference. A tentative choice alone does not update requirements. After confirmation, inspect each candidate's fit, conflict or unknown state.
 
@@ -58,18 +75,18 @@ The screenshots use this real numeric fallback; they do not depict a fabricated 
 
 Open **条件メモ**. The memo combines confirmed priorities, selected equipment and questions to check with an agent. Edit and copy it. Reload to confirm that local candidates, preferences and memo edits survive.
 
-Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Open **プレビューして共有・ファイル出力** to preview the brief, download HTML, or create a 1–7 day link with a connected backend. The creator can revoke the link; downloaded copies remain with recipients.
+Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Open the **共有・出力** tab to preview the brief, download HTML, or create a 1–7 day link with a connected backend. The creator can revoke the link; downloaded copies remain with recipients.
 
 </details>
 
 <details>
 <summary><strong>Explore the new modules: commute, leisure, reviews and sharing</strong></summary>
 
-- **駅・買い物 → 勤務先への通勤を比べる:** find and confirm a destination, set a Japan-time schedule, then compare returned journeys. Confirm the route objective only after seeing evidence.
-- **周辺から余暇の希望を見つける:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
-- **費用・通勤・余暇の組み合わせを考える:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
-- **設備・契約 → 建物の口コミと、自分の内見記録:** confirm the matched building, read attributed reports, turn concerns into viewing checks, and record your own observations separately.
-- **条件メモ → プレビューして共有・ファイル出力:** review exactly which fields are included. Images/chat are optional local HTML attachments; hosted links use a smaller allowlisted document.
+- **通勤:** find and confirm a destination, set a Japan-time schedule, then compare returned journeys. Confirm the route objective only after seeing evidence.
+- **余暇:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
+- **暮らしの試算:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
+- **口コミ・内見:** confirm the matched building, read attributed reports, turn concerns into viewing checks, and record your own observations separately.
+- **共有・出力:** review exactly which fields are included. Images/chat are optional local HTML attachments; hosted links use a smaller allowlisted document.
 
 [![Commute destination and schedule form](docs/images/commute.png)](docs/images/commute.png)
 

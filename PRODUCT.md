@@ -28,7 +28,7 @@ The tenant supplies candidates first. Do not start with a free-text “暮らし
 | Reviews | Match normalized building name and nearby location, reject shops; explicit place confirmation; attributed relevance-ordered reports; viewing-question shortcuts and separate personal notes. | Posts do not prove residency. Live Louvre matching returned no confirmed place, so no reviews were attached. |
 | Takeaway/sharing | Editable/copyable memo, HTML download, content preview, optional personal details, 1–7 day SQLite-backed links and owner revocation. | Shared links require a reachable API. Images/eligible chat are local HTML only; provider routes and review text are excluded. Single-instance storage; no accounts. |
 | Persistence | IndexedDB saves candidates, image blobs, answers, preferences, memo edits and eligible conversation history; deletion control included. | Local to browser/origin. Maps observations and conversations reproducing them are temporary; accepted preferences persist. |
-| UI | Guided comparison workspace with five concern views, adjacent numeric/AI questions, confirmed-priority pills, and a separate memo. Mobile pair selection and a question panel; keyboard navigation and reduced motion. | Repository screenshots show the recorded candidate workflow; live services require a configured backend. |
+| UI | Eight feature tabs (mobile grouped dropdown), dedicated feature pages with candidate scope and instructions; five comparison concerns, adjacent numeric/AI questions, confirmed-priority pills, and separate memo/sharing views. Mobile pair selection and a question panel; keyboard navigation and reduced motion. | Repository screenshots show the recorded candidate workflow; live services require a configured backend. |
 
 ## Interaction contract
 
@@ -41,6 +41,10 @@ The tenant supplies candidates first. Do not start with a free-text “暮らし
 Work-destination and leisure questions follow candidate comparison. A workplace cannot be inferred from a listing: request the destination when the tenant chooses to examine commuting. Ask for a place/address and relevant schedule, not an upfront lifestyle essay.
 
 ### Workspace behavior
+
+- Top navigation exposes comparison, commute, essentials, leisure, reviews/viewings, scenarios, memo and sharing. The phone dropdown lists all eight pages, grouped by task. Primary feature forms are immediately visible, without an extra disclosure.
+- Hash links, browser Back/Forward and keyboard tab navigation select the same page. Legacy feature anchors resolve to the corresponding page. View changes hide/show existing DOM; they do not remount modules or discard in-memory results. Reload still clears temporary provider data.
+- Candidate scope is shown on feature pages. Essentials checks cover the entire shortlist, including on mobile; the two-candidate selector is local to the comparison table.
 
 - Cost, space/building, access, equipment/contracts and full-list tabs change the comparison and question context. Selecting a view does not confirm a preference.
 - At widths of 760 px or less, show two selected candidates side by side. Selecting the other slot swaps them; removing a selected candidate fills the slot from remaining candidates. Desktop preserves the full shortlist in input order, with horizontal scrolling when needed.

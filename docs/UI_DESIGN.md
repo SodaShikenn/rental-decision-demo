@@ -17,9 +17,24 @@ This pass applies [Emil Kowalski's design engineering skill](https://github.com/
 | Commute/leisure/scenarios hidden inside access; reviews inside equipment; sharing below the memo | Eight visible desktop tabs and a grouped phone dropdown; each feature opens its own page with forms already visible | Make features discoverable without knowing where they used to be nested. |
 | No route identity for a feature | Dedicated hash links, Back/Forward and consistent title/selection | Let users return to the same tool and link directly to it. |
 
+## Typography and density
+
+The reading baseline is **16 px**, supporting copy is generally **14–15 px**, and page titles use **26–32 px**. Compact table annotations retain **12–13 px** on narrow phones. Shared tokens live in `app.css`; workspace and feature styles own their respective density and breakpoints.
+
+| Before | After |
+| --- | --- |
+| Small, similarly weighted navigation labels | Larger tabs with a filled selected state; the phone retains a native feature selector |
+| Promotional titles and repeated English captions | Short functional titles matching the navigation |
+| Repeated candidate names, price ranges and empty-priority instructions | Candidate counts, the actual comparison values, and priorities only after a choice/pending item exists |
+| Always-visible help beside every form | One main column; usage steps in a native disclosure below the controls/results |
+| Export actions below a long preview | Export/share controls above the preview, alongside explicit inclusion options |
+| Long save-status text crowds the phone header | Compact success status; storage failures remain fully reported |
+
+Source links, reference-price labels, unknown values, nearby-review scope and privacy choices remain visible. The inspector labels **比較から選ぶ / AI 分析** make both discovery methods explicit. Increasing font size exposed a 320 px perspective-tab overflow; the tab strip now scrolls within its own width without widening the document. Keyboard tab navigation remains immediate.
+
 ## Feature navigation
 
-The eight destinations are **候補比較 / 通勤 / 駅・買い物 / 余暇 / 口コミ分析 / 暮らしの試算 / 条件メモ / 共有・出力**. On mobile, a native grouped select replaces the tab row so every feature remains discoverable at 320 px. Each feature page shows candidate scope, its form, three steps and a relevant next destination. The review page is automatic analysis; the decision brief is generated and read-only. There are no manual diary or free-text requirement controls.
+The eight destinations are **候補比較 / 通勤 / 駅・買い物 / 余暇 / 口コミ分析 / 暮らしの試算 / 条件メモ / 共有・出力**. On mobile, a native grouped select replaces the tab row so every feature remains discoverable at 320 px. Each feature page shows a functional title, compact candidate count, its controls/results, and an optional **使い方を見る** disclosure with three steps and a relevant next destination. The review page is automatic analysis; the decision brief is generated and read-only. There are no manual diary or free-text requirement controls.
 
 Navigation toggles existing panels, so a draft or retrieved result survives switching. It never changes a confirmed preference. The reviews page starts an automatic public-web search when opened or when its candidate changes; a 30-minute session cache prevents repeated calls while navigating. Other tabs retain their explicit provider actions. Browser refresh restores the route but follows the existing rules for temporary Maps content. The comparison's mobile pair picker does not limit the standalone essentials page.
 
@@ -41,14 +56,14 @@ No duplicate tab lists, simulated gestures or custom modal focus traps are intro
 
 Start `npm run dev:web`, then run `npm run smoke:ui`. The [browser scenario](../scripts/browser-ui-smoke.js) uses an isolated Chromium session and requires no API credentials. It checks keyboard tabs, disclosure dismissal, focus return, interrupted dialog open/close, reduced motion, open/closed sheet resizing, 320/390/760 px touch layouts, 16 px form controls and dark mode. `npm run smoke:browser` additionally exercises the existing feature workflow with stubbed providers and a real local sharing API.
 
-Navigation checks additionally cover all eight desktop/mobile destinations, one selected tab, dropdown synchronization, draft preservation across Back/Forward, reload/deep links, legacy anchors and overflow on all eight pages at 320/390/760 px. The full feature check now traverses the top tabs from commute through leisure, scenarios, reviews, memo and sharing.
+Navigation checks additionally cover all eight desktop/mobile destinations, one selected tab, dropdown synchronization, draft preservation across Back/Forward, reload/deep links, legacy anchors and overflow on all eight pages at 320/390/760 px. Typography checks additionally cover 761/800/1024 px desktop navigation, the 16 px body baseline, and opening/closing the folded usage steps. The full feature check now traverses the top tabs from commute through leisure, scenarios, reviews, memo and sharing.
 
 [![Comparison workspace](images/compare.png)](images/compare.png)
 
 <details>
 <summary>Mobile question panel — actual recorded-candidate flow</summary>
 
-<img src="images/mobile-guide.png" width="390" alt="A mobile question panel asks which observed monthly amount the tenant would accept; choosing an answer still requires confirmation." />
+<img src="images/mobile-guide.png" width="390" alt="A mobile question panel asks which observed floor area the tenant would accept; choosing an answer still requires confirmation." />
 
 </details>
 
@@ -56,7 +71,7 @@ Browser emulation is not a physical-device sign-off. The soft keyboard, actual i
 
 ## Automatic review discovery
 
-The candidate selector is the entry point: choosing a home starts research, with a visible status and a manual refresh button. Results show short, source-linked AI summaries with building/unit scope and a posting date only when available. Unmatched buildings, listing copy and inaccessible pages are in a separate disclosure. No overall star score is inferred. Keyword-linked questions require an explicit click to enter the generated brief. The brief is read-only; preferences are refined through candidate-based choices rather than typed requirements.
+The mobile review screenshot uses a stubbed successful empty response to illustrate layout; it is not evidence of a live building search. The candidate selector is the entry point: choosing a home starts research, with a visible status and a manual refresh button. Results show short, source-linked AI summaries with building/unit scope and a posting date only when available. Unmatched buildings, listing copy and inaccessible pages are in a separate disclosure. No overall star score is inferred. Keyword-linked questions require an explicit click to enter the generated brief. The brief is read-only; preferences are refined through candidate-based choices rather than typed requirements.
 
 A successful search without usable reviews leaves the evidence area blank with a small completed status. Provider failure and pending search remain explicit states. A direct web-search link remains available. Error/results are cached only in memory; changing a candidate cancels and ignores old responses. The automated browser checks stub review retrieval so opening the new page never spends provider quota during those tests.
 

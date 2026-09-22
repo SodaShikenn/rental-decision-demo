@@ -24,7 +24,7 @@ Rental Helper brings candidate facts and sources together, asks focused question
 
 ## Find a feature
 
-Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page shows its candidate scope and the next step; switching pages preserves current drafts and retrieved results until reload.
+Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page puts its controls first, with usage tips under **使い方を見る**; switching pages preserves current drafts and retrieved results until reload.
 
 | Open the demo at… | What to do there |
 | --- | --- |
@@ -62,9 +62,9 @@ With the backend configured, missing monthly charges trigger research automatica
 <details>
 <summary><strong>02 — Discover: turn a vague preference into a confirmed choice</strong></summary>
 
-In **候補比較**, select **AIと深める** in the side panel (on mobile, open **この違いから希望を整理** first). With Gemini available, start candidate analysis: the conversation asks one evidence-linked question, offers choices and deferral, and proposes priorities for explicit acceptance.
+In **候補比較**, select **AI 分析** in the side panel (on mobile, open **この違いから希望を整理** first). With Gemini available, start candidate analysis: the conversation asks one evidence-linked question, offers choices and deferral, and proposes priorities for explicit acceptance.
 
-For a no-key walkthrough, use **費用 → ひとつずつ確認**. Pick a candidate-derived monthly budget, then choose whether it is a must-have or flexible preference. A tentative choice alone does not update requirements. After confirmation, inspect each candidate's fit, conflict or unknown state.
+For a no-key walkthrough, use **費用 → 比較から選ぶ**. Pick a candidate-derived monthly budget, then choose whether it is a must-have or flexible preference. A tentative choice alone does not update requirements. After confirmation, inspect each candidate's fit, conflict or unknown state.
 
 The screenshots use this real numeric fallback; they do not depict a fabricated live AI conversation.
 

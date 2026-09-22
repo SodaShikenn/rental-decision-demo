@@ -32,7 +32,7 @@ Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page shows its 
 | [通勤 — commute](https://sodashikenn.github.io/rental-helper/#commute) | Confirm a work destination and compare scheduled routes. |
 | [駅・買い物 — essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check each candidate's listed walking claims against Maps. |
 | [余暇 — leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Find nearby parks, gyms and cafés before discussing preferences. |
-| [口コミ・内見 — reviews/viewings](https://sodashikenn.github.io/rental-helper/#reviews) | Inspect attributed building reports and keep separate personal notes. |
+| [口コミ・内見 — reviews/viewings](https://sodashikenn.github.io/rental-helper/#reviews) | Automatically search public web reviews for a candidate, inspect sources/unit scope, and keep separate viewing notes. |
 | [暮らしの試算 — scenarios](https://sodashikenn.github.io/rental-helper/#scenarios) | Change weekly commuting frequency and compare the tradeoffs. |
 | [条件メモ — brief](https://sodashikenn.github.io/rental-helper/#needs) | Edit and copy the decision brief. |
 | [共有・出力 — share/export](https://sodashikenn.github.io/rental-helper/#sharing) | Preview included information, download HTML or manage expiring links. |
@@ -85,7 +85,7 @@ Saving is specific to this browser. Maps observations and conversations containi
 - **通勤:** find and confirm a destination, set a Japan-time schedule, then compare returned journeys. Confirm the route objective only after seeing evidence.
 - **余暇:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
 - **暮らしの試算:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
-- **口コミ・内見:** confirm the matched building, read attributed reports, turn concerns into viewing checks, and record your own observations separately.
+- **口コミ・内見:** select a candidate to automatically search public apartment reviews. Read source-linked AI summaries, distinguish other rooms and excluded pages, then turn concerns into viewing checks. Your own observations stay separate.
 - **共有・出力:** review exactly which fields are included. Images/chat are optional local HTML attachments; hosted links use a smaller allowlisted document.
 
 [![Commute destination and schedule form](docs/images/commute.png)](docs/images/commute.png)
@@ -110,7 +110,7 @@ These screenshots show the actual forms and preview, without fabricated provider
 | Preference fit, editable memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
 | Commute and scenario comparison | Implemented; one confirmed destination/schedule, alternatives and explicit priorities. Live Tokyo transit query returned **no routes**; Maps fallback and coverage follow-up remain. |
 | Leisure discovery | Implemented; real parks/gyms/cafés, optional regular destination, frequency/importance confirmation. Live park/WALK slice succeeded. |
-| Building-place reviews / own viewing notes | Implemented with identity checks and attribution. Posts are not verified resident reports; live sample building match was unavailable. |
+| Automatic web reviews / own viewing notes | Implemented with cited summaries, name/address checks, unit scope and excluded-source explanations. Live GRAN PASEO search returned Gemini busy; successful retrieval and source coverage still need validation. |
 | Brief export and sharing | HTML preview/download; backend links expire in 1–7 days and support revocation. Public sharing requires API hosting. |
 
 **Validation:** 191 tests passed on September 22, 2026: 96 frontend and 95 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
@@ -163,7 +163,7 @@ flowchart LR
 The feature modules are implemented; the remaining work is provider coverage and release validation:
 
 1. Obtain and validate usable public-transit routes for representative Japanese commutes.
-2. Validate attributed review display against a real matched apartment building and evaluate source coverage.
+2. Validate automatic web-review retrieval against real apartment buildings and evaluate source coverage.
 3. Deploy the API with durable share storage; verify public access, expiry and revocation.
 4. Evaluate live Gemini quality, provider latency/cost and tenant usability.
 

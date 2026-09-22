@@ -24,7 +24,7 @@ The live Tokyo transit test returned no routes. The code retains that result and
 | Commute | Same destination/time, route alternatives, confirmed intent | [commute](../web/apps/commute/) | [commute](../server/apps/commute/) | [web](../web/tests/apps/commute/) / [API](../server/tests/apps/commute/) |
 | Leisure | Actual places → frequency/importance → accepted preference | [leisure](../web/apps/leisure/) | [leisure](../server/apps/leisure/) | [web](../web/tests/apps/leisure/) / [API](../server/tests/apps/leisure/) |
 | Scenarios | Explain known costs and route tradeoffs without a total score | [scenarios](../web/apps/scenarios/) | Pure client calculation | [web](../web/tests/apps/scenarios/) |
-| Reviews | Match a building, attribute reports, record viewing observations separately | [reviews](../web/apps/reviews/) | [reviews](../server/apps/reviews/) | [web](../web/tests/apps/reviews/) / [API](../server/tests/apps/reviews/) |
+| Reviews | Automatically find web reviews, verify source identity/scope, keep viewing observations separate | [reviews](../web/apps/reviews/) | [reviews](../server/apps/reviews/) | [web](../web/tests/apps/reviews/) / [API](../server/tests/apps/reviews/) |
 | Sharing | Preview/export; expiring links with owner revocation | [sharing](../web/apps/sharing/) | [sharing](../server/apps/sharing/) | [web](../web/tests/apps/sharing/) / [API](../server/tests/apps/sharing/) |
 | Existing foundation | Intake, provenance, price research, numeric/AI discovery | [apps](../web/apps/) | [apps](../server/apps/) | [web](../web/tests/) / [API](../server/tests/) |
 
@@ -45,7 +45,7 @@ flowchart LR
 ```
 
 - `index.js` owns events and request lifetimes; `services.js` owns testable transformations; `views.js` owns presentation. Scenarios are small enough to keep their controller/template together.
-- Backend features do not import one another's business logic. They share the provider adapter and normalized route contract.
+- Backend features do not import one another's business logic. They share the Maps adapter, normalized route contract, Gemini transport and citation parsing.
 - Observations live in feature closures. `context-updated` lets scenarios/advice consume fresh observations without putting provider content into persistent application state.
 - `change` describes saved user work. `workspace` describes temporary view/pair changes. Neither navigating a tab nor receiving AI output confirms a requirement.
 - Scenarios depend on commute/leisure observation contracts. Advice receives a bounded, candidate-scoped evidence projection. Neither reaches into another controller's DOM.
@@ -66,8 +66,18 @@ The [browser smoke scenario](../scripts/browser-smoke.js) stubs provider results
 
 For interface work, start with [UI design decisions](UI_DESIGN.md). Cross-feature motion and touch behavior live in `web/static/interactions.css`; its small `web/shared/interactions.js` companion owns presentation state only. The workspace controller owns responsive panel placement; business rules stay in the feature modules.
 
-Feature navigation has one [registry](../web/apps/workspace/navigation.js) for the desktop tabs, grouped mobile select, help text and old route aliases. [Navigation views](../web/apps/workspace/navigation-views.js) renders that configuration; the controller switches panel visibility without recreating feature instances. Routing does not write to preferences or provider state.
+Feature navigation has one [registry](../web/apps/workspace/navigation.js) for the desktop tabs, grouped mobile select, help text and old route aliases. [Navigation views](../web/apps/workspace/navigation-views.js) renders that configuration; the controller switches panel visibility without recreating feature instances. Routing does not write to preferences. It emits a `view` event; the reviews controller uses it to start automatic research only when its page is visible.
 
 ## How to add a feature
 
 Create its frontend controller/pure service/view and API router/model/service; register them in [web/app.js](../web/app.js) and [server/app.py](../server/app.py). Add only necessary shared primitives. Add transport-based provider tests, uncertainty/stale-response cases and a short walkthrough. Update [PRODUCT.md](../PRODUCT.md) and [ROADMAP.md](../ROADMAP.md) with separate implementation and live-validation states.
+
+## Follow a web review from search to display
+
+1. [Session controller](../web/apps/reviews/research.js) sends identity fields only, caches per candidate for 30 minutes, and aborts/ignores stale requests. [Controller tests](../web/tests/apps/reviews/research.test.js) cover switching, expiry and failure retry.
+2. [Review endpoint](../server/apps/reviews/__init__.py) and [bounded models](../server/apps/reviews/web_models.py) validate `POST /api/reviews/web` under the existing rate limit.
+3. [Web research service](../server/apps/reviews/web_research.py) searches with Google grounding/URL context, then maps only citation-supported text. Its pure assembly functions reject mismatched identities and invented summary text and preserve room scope. [Boundary tests](../server/tests/apps/reviews/test_web_reviews.py) exercise those checks.
+4. [Shared Gemini transport](../server/providers/gemini.py), [citation parsing](../server/providers/grounded_search.py) and [public URL validation](../server/providers/web_urls.py) are provider infrastructure shared with listing research/advice, not imports from another feature's business logic.
+5. [Views](../web/apps/reviews/views.js) escape text, label summaries/scope and keep excluded pages separate. Google search suggestions render in a sandboxed iframe. Only explicitly accepted generic questions and the tenant's own notes enter persistent state.
+
+The older confirmed-place Google Maps review endpoints remain available as a separate backend capability. They are not the review page's default source. Grounding is attribution to provider-reported evidence, not proof of every claim or review author's residency.

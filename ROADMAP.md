@@ -52,15 +52,15 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [x] Test that a confirmed objective changes route selection, while missing evidence never gains an advantage.
 - [ ] Evaluate explanation quality and conflicting objectives with tenants; extend to a broader set of real routes after R1 coverage is resolved.
 
-## R4 — attributed reviews and viewing checks
+## R4 — automatic web reviews and viewing checks
 
-- [x] Use Places API responses with author/date/source attribution, relevance ordering and temporary storage.
-- [x] Require strict normalized building-name/proximity checks and user place confirmation; reject nearby shops and distant namesakes.
-- [x] Keep building-place posts separate from verified residency claims and the tenant's own viewing notes.
-- [x] Group mentioning posts by keywords while retaining opposing reports. Offer explicit actions to add a viewing question, not factual conclusions.
-- [x] Persist the tenant's own dated observations and include them in the memo; sharing them is optional.
-- [ ] Validate a real matched building with reviews. The live Louvre example returned no confirmed match and correctly attached no reviews.
-- [ ] Add a permitted resident-specific source only after access terms and building/unit identity can be validated. Google place authors are not verified residents.
+- [x] Automatically search public apartment-review sites and posts when opening reviews or changing the selected candidate; manual refresh and a bounded session cache.
+- [x] Use provider-grounded citations, match name/address within the same source, distinguish same-unit/building/other-unit scope, and separate ads/unreadable/unmatched pages.
+- [x] Label AI summaries and unknown posting dates; never infer residency, an overall rating, or absence of problems from missing reviews.
+- [x] Preserve opposing reports and offer explicit actions to add generic viewing questions. Keep personal dated notes separate and persist them for optional sharing.
+- [x] Retain the optional Google Places review endpoints with building/proximity checks and explicit confirmation; the default UI now uses public-web research.
+- [ ] Validate successful live web-review retrieval and source coverage. GRAN PASEO明大前Ⅳ returned Gemini `upstream_busy` on 2026-09-22; deterministic tests do not establish coverage.
+- [ ] Evaluate permitted resident-specific sources if stronger author/residency verification is needed; public review authors remain unverified.
 
 ## R5 — shareable comparisons and decision brief
 

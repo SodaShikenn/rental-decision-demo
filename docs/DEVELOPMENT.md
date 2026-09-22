@@ -114,6 +114,7 @@ Add frontend features through `initApp(app)` in `web/app.js`; add API routers th
 | `POST /api/destinations` | Search places for explicit destination confirmation. |
 | `POST /api/commutes` | Up to 6 candidates, confirmed destination ID, aware schedule, mode/objective; independent journey results. |
 | `POST /api/leisure` | Nearby categories or a confirmed named destination; dated places and WALK routes. |
+| `POST /api/reviews/web` | Automatic public-web search; Gemini grounded summaries, source identity and unit scope. Requires Gemini + `RESEARCH_ENABLED`; no Maps key required. |
 | `POST /api/reviews/search` | Match building name and origin against returned places. |
 | `POST /api/reviews` | Recheck confirmed building identity, then return attributed relevance-ordered posts. |
 | `POST /api/shares` | Store an allowlisted brief for 1–7 days; return separate read and deletion secrets. |
@@ -139,7 +140,7 @@ npm run test:server
 git diff --check
 ```
 
-The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 96 frontend + 95 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 101 frontend + 115 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
 
 With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
 

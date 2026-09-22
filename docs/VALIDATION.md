@@ -44,15 +44,32 @@ while retaining strict local Pydantic validation. [Regression tests](../server/t
 protect those limits. Daily quota exhaustion also has a distinct error path rather
 than being treated as a short-lived overload.
 
-## Public sample check
+## Earlier public sample check
 
 On 2026-09-22, a fresh browser opened the public Pages URL without an account or
 API interception. Sample comparison, a confirmed ¥110,000 budget, the generated
 memo, an actual HTML download, and outbound/return Maps links worked. AI advice,
 automatic web reviews and hosted-share creation reported an unconfigured server.
 The deployed API base URL was empty. Local provider success therefore does not
-establish public availability. The README and film page label this as a sample
-preview; the existing video is an earlier concept walkthrough, not a full live release.
+establish public availability. This finding led to removal of the public sample: Pages now hosts the video only.
+The complete app is available through the documented self-hosted setup.
+
+## Live walkthrough verification
+
+The replacement film was recorded locally on 2026-09-22 with real provider calls.
+It includes 13 chapters covering image/link intake and all eight feature pages.
+Fresh GRAN PASEO research returned a same-building reference; the confirmed rent
+remained unknown. AI returned a budget proposal that was explicitly accepted.
+Maps walking results, leisure places and cited building-level reviews were shown.
+The HTML export was downloaded, and the share reader was recorded both before and
+after revocation (HTTP 404). No demonstration shares remained in the local API database.
+
+The complete MP4 decoded successfully. Chapter result frames, source/confirmation
+screens and the share reader were inspected. Player checks passed for playback,
+seeking, 13 bilingual caption cues and transcript sections, download, and 320/390 px
+layouts. Raw takes and inspection images remain in ignored local output.
+Production Compose and Caddy configuration validation passed locally; Docker image
+runtime and public-host acceptance are separate from these configuration checks.
 
 ## Commute and demonstration boundaries
 
@@ -62,10 +79,12 @@ alternatives with the correct endpoints; date/time remained a separate Maps sett
 No returned timetable, fare or weekly commute total is inferred from that click.
 [URL contract tests](../web/tests/apps/commute/links.test.js).
 
-The [film](DEMO.md) uses real interface actions with recorded candidate data and
-labelled, scripted AI replies. It does not demonstrate live provider performance.
-GitHub Pages serves the frontend; the public API and complete deployed recording
-remain pending. See the [release checklist](DEPLOYMENT.md#acceptance-from-the-published-app).
+The replacement [film](DEMO.md) records the local app with real Gemini and Maps
+requests, including image/link intake and all eight workspace views. There are no
+recording response fixtures. Share creation, reading and revocation are real;
+provider empty results remain visible. This proves the recorded local flow, not a
+public deployment. Public-host acceptance remains separate in the
+[deployment guide](DEPLOYMENT.md#4-verify-the-complete-flow).
 
 No tenant-study results, verified resident identities or measured decision-quality
 improvement are claimed. The [roadmap](../ROADMAP.md) separates implemented behavior

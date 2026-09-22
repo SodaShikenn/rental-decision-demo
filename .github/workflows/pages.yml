@@ -1,4 +1,4 @@
-# Publish web/ to GitHub Pages. Requires Settings → Pages → Source: "GitHub Actions".
+# Publish the video to GitHub Pages; the complete app is self-hosted. Requires Settings → Pages → Source: "GitHub Actions".
 name: Deploy web to GitHub Pages
 
 on:
@@ -26,13 +26,12 @@ jobs:
           node-version: 22
       - name: Test front end
         run: npm run test:web
-      - name: Assemble site (web/ without tests)
-        run: rsync -a --exclude tests/ web/ _site/
-      - name: Connect the deployed API
-        if: ${{ vars.RENTAL_API_URL != '' }}
-        env:
-          RENTAL_API_URL: ${{ vars.RENTAL_API_URL }}
-        run: node scripts/configure-pages.mjs _site/env.js
+      - name: Assemble the video site
+        run: |
+          mkdir -p _site/static
+          cp -R web/demo _site/demo
+          cp web/static/favicon.svg _site/static/
+          printf '%s\n' '<!doctype html><html lang="en"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=demo/"><title>Rental Helper</title><a href="demo/">Watch the walkthrough</a></html>' > _site/index.html
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

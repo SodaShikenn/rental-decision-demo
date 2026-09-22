@@ -8,7 +8,7 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 | R1 — commute | Tokyo hubs/custom address, direct outbound/return Maps links, schedule reminders; no API required | Tenant handoff evaluation; in-app transit comparison is a future extension |
 | R2 — leisure | Real nearby options, regular destination, frequency/importance confirmation | Broader real-world hours/route evaluation |
 | R3 — scenarios | Frequency, cost, route objective, leisure evidence, missing-value explanations | Evaluate competing objectives with tenants |
-| R4 — reports | Room → building → nearby fallback, cited analysis and evidence-linked choices | Real matched-building display; verified resident-source coverage |
+| R4 — reports | Room → building → nearby fallback, cited analysis and evidence-linked choices | Broader source accuracy; verified resident-source coverage |
 | R5 — sharing | Preview, HTML, expiring/revocable SQLite links | Public HTTPS API and durable-host verification |
 
 ## R0 — validate and release the current prototype
@@ -20,7 +20,9 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [ ] Measure provider cost and broader retrieval/conversation quality across representative cases.
 - [ ] Run a small tenant usability study and validate claims against measured results.
 - [ ] Deploy the backend; verify live API behavior from the public frontend.
-- [ ] Record all eight feature pages and image/link intake against the public API, including real results, sharing and revocation; replace the explicitly scripted film.
+- [x] Replace the scripted film with a local live-API recording covering image/link intake, eight feature views, sharing and revocation.
+- [x] Provide a reproducible HTTPS deployment configuration and acceptance guide.
+- [ ] Repeat the full acceptance flow on a publicly hosted API; the film does not establish public availability.
 
 ## R1 — commutes to a work destination
 
@@ -33,7 +35,7 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [ ] Evaluate the handoff on real Android/iOS devices and with tenants.
 - [ ] Optional future extension: integrate and validate a provider covering Japan transit for in-app duration/fare comparison and evidence-based tradeoff questions. [Google explicitly excludes Japan](https://developers.google.com/maps/faq#transit_directions_countries).
 
-**Current delivery:** usable Maps handoff on the static public demo. **Future numeric comparison:** only independently retrieved journeys may become evidence or weekly totals. Listing station walk never substitutes for commute time.
+**Current delivery:** usable Maps handoff in the app. **Future numeric comparison:** only independently retrieved journeys may become evidence or weekly totals. Listing station walk never substitutes for commute time.
 
 ## R2 — discover leisure preferences through nearby options
 

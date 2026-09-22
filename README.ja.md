@@ -7,17 +7,17 @@
 検討中の物件から、出典付きの比較、具体的な質問、<br>
 本人が確認した希望をまとめた相談メモへ。
 
-[**サンプルを試す ↗**](https://sodashikenn.github.io/rental-helper/) · [**コンセプト動画を見る ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**English**](README.md)
+[**デプロイ手順**](docs/DEPLOYMENT.md) · [**操作動画を見る ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**English**](README.md)
 
 [![Tests](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml)
 
 [![候補比較・根拠の確認・希望の整理を動画で見る](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
 
-**約84秒のコンセプト動画・AI応答は固定データ** · [日本語 / 英語字幕](https://sodashikenn.github.io/rental-helper/demo/) · [字幕テキスト](web/demo/media/transcript.md)
+**最新の操作フロー・Gemini / Maps実接続・ローカル収録** · [日本語 / 英語字幕](https://sodashikenn.github.io/rental-helper/demo/) · [字幕テキスト](web/demo/media/transcript.md)
 
 </div>
 
-> **公開サンプル：** 比較・選択式の希望整理・Mapsリンク・HTML出力はアカウント不要で利用できます。現在の公開サイトにはバックエンドが接続されていないため、画像・リンクの解析、AI、徒歩の照合、余暇の検索、口コミ、共有リンクは利用できません。動画は以前に収録した固定AI応答によるコンセプト紹介で、現在の全機能や公開環境での実接続を示すものではありません。[ローカルでの起動方法](docs/DEVELOPMENT.md)
+> 動画はローカル環境から実際のAPIを呼び出した記録です。全機能を利用するには[デプロイ手順](docs/DEPLOYMENT.md)または[ローカル起動方法](docs/DEVELOPMENT.md)を参照してください。GitHub Pagesでは動画のみを公開しています。
 
 ## 解決したいこと
 
@@ -27,13 +27,13 @@
 
 最初に希望を書くフォームや、理由の分からない総合スコアはありません。
 
-## 3つの操作で体験する
+## 操作の流れ
 
-1. **根拠を比べる。** [候補比較](https://sodashikenn.github.io/rental-helper/#compare)で月額を押し、内訳と出典を確認。別室の賃料は参考価格として扱います。
-2. **希望を見つける。** 「費用 → 比較から選ぶ」で候補に基づく目安を選び、重要度を確認。API接続時は「AI 分析」で候補の根拠に沿った追加質問に答えられます。
-3. **次の行動につなげる。** [通勤リンク](https://sodashikenn.github.io/rental-helper/#commute)で経路を確認し、[条件メモ](https://sodashikenn.github.io/rental-helper/#needs)を読み、[HTMLで保存](https://sodashikenn.github.io/rental-helper/#sharing)します。
+1. **候補を追加。** 図面や掲載リンクを取り込み、出典を確認して不足情報を調査します。
+2. **大切な条件を見つける。** 候補に基づく質問に答え、AIの解釈を自分で確認します。
+3. **暮らしを比較。** 徒歩・通勤リンク・余暇・口コミを調べ、条件メモを保存または共有します。
 
-**動画の見どころ：** [価格の根拠](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) · [AI対話](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) · [希望の確認](https://sodashikenn.github.io/rental-helper/demo/#chapter=3) · [通勤](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) · [メモと出力](https://sodashikenn.github.io/rental-helper/demo/#chapter=5)
+**動画の見どころ：** [画像追加](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) · [リンク調査](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) · [AI対話](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) · [通勤](https://sodashikenn.github.io/rental-helper/demo/#chapter=5) · [口コミ](https://sodashikenn.github.io/rental-helper/demo/#chapter=8) · [出力と共有](https://sodashikenn.github.io/rental-helper/demo/#chapter=11)
 
 <details>
 <summary><strong>8つの画面でできること</strong></summary>

@@ -7,17 +7,17 @@
 A rental decision assistant for Japan that turns a shortlist into<br>
 sourced comparisons, candidate-based questions, and confirmed priorities.
 
-[**Explore the sample ↗**](https://sodashikenn.github.io/rental-helper/) · [**Watch the concept video ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**日本語**](README.ja.md)
+[**Deployment guide**](docs/DEPLOYMENT.md) · [**Watch the walkthrough ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**日本語**](README.ja.md)
 
 [![Tests](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml)
 
 [![Play the Rental Helper walkthrough: compare candidates, inspect evidence and confirm priorities](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
 
-**84-second concept video · scripted AI** · [English / Japanese captions](https://sodashikenn.github.io/rental-helper/demo/) · [Transcript](web/demo/media/transcript.md)
+**Latest workflow · live Gemini & Maps · recorded locally** · [English / Japanese captions](https://sodashikenn.github.io/rental-helper/demo/) · [Transcript](web/demo/media/transcript.md)
 
 </div>
 
-> **Public sample:** comparison, guided choices, Maps links and HTML export work without an account. Image/link analysis, AI, walking checks, leisure discovery, web reviews and hosted sharing are currently unavailable on this public site because no backend is connected. The video is an earlier recorded concept walkthrough with scripted AI; it does not cover all current features or demonstrate a fully deployed app. [Local setup](docs/DEVELOPMENT.md)
+> The video uses real API requests in a local environment. To use the complete app, follow the [deployment guide](docs/DEPLOYMENT.md) or [local setup](docs/DEVELOPMENT.md). GitHub Pages hosts the video only.
 
 ## The problem
 
@@ -27,13 +27,13 @@ Listings scatter prices, floor plans and location claims across images and websi
 
 No upfront requirements essay. No unexplained overall score.
 
-## Explore in three steps
+## Follow the workflow
 
-1. **Compare the evidence.** [Open the shortlist](https://sodashikenn.github.io/rental-helper/#compare) and click a monthly price. Another unit's rent appears as a reference, not as this home's confirmed cost.
-2. **Discover a priority.** Choose **費用 → 比較から選ぶ**, select a budget suggested by the candidates, then confirm its importance. With the API connected, **AI 分析** asks follow-up questions grounded in candidate evidence.
-3. **Take a useful next step.** [Check commute links](https://sodashikenn.github.io/rental-helper/#commute), read the [generated brief](https://sodashikenn.github.io/rental-helper/#needs), and [download HTML](https://sodashikenn.github.io/rental-helper/#sharing).
+1. **Bring the candidates.** Import a listing image or URL, inspect its sources, and research missing information.
+2. **Discover what matters.** Answer questions grounded in the candidates, then explicitly confirm the AI's interpretation.
+3. **Compare daily life.** Check walking claims, commute links, nearby leisure and apartment reviews; export or share the resulting brief.
 
-**Skip to a video chapter:** [Price evidence](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) · [AI dialogue](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) · [Explicit confirmation](https://sodashikenn.github.io/rental-helper/demo/#chapter=3) · [Commute](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) · [Brief & export](https://sodashikenn.github.io/rental-helper/demo/#chapter=5)
+**Watch a chapter:** [Image import](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) · [Link research](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) · [AI dialogue](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) · [Commute](https://sodashikenn.github.io/rental-helper/demo/#chapter=5) · [Reviews](https://sodashikenn.github.io/rental-helper/demo/#chapter=8) · [Export & sharing](https://sodashikenn.github.io/rental-helper/demo/#chapter=11)
 
 <details>
 <summary><strong>All eight workspace views</strong></summary>

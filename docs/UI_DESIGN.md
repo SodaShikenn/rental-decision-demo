@@ -84,6 +84,6 @@ The retrieval ladder is visible beside the candidate selector: **この部屋 �
 | Resolve a destination via API, then wait for unsupported Japan transit results | Eight Tokyo hubs or a custom address; immediate outbound/return Maps buttons |
 | Errors and route settings dominate the page | Candidate name/address and two clear external actions |
 | Date/time appear to be sent to the route result | Visible 08:00 arrival / 18:00 departure reminder; explicit instruction to set date/time in Maps |
-| Route requests block the public demo | Keyless links work on static Pages; destination and transport changes update them immediately |
+| Route requests block commute exploration | Keyless links work without an API; destination and transport changes update them immediately |
 
 The suggestion is a transparent district heuristic, not an inferred job or shortest-time claim. Users confirm resolved endpoints and schedules inside Maps. Dates stay under a native disclosure; mobile actions have 44 px touch targets and distinct accessible names per candidate/direction. An external click never creates a verified observation or a saved preference. Screenshots show real UI and generated links, not route results.

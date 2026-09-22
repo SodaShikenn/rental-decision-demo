@@ -166,9 +166,9 @@ Track source, tests and fixtures, reproducible tooling, design/setup guides, and
 
 ## Deployment state
 
-GitHub Actions [CI](../.github/workflows/ci.yml) defines frontend/backend tests, API-image build and Compose validation. [Pages](../.github/workflows/pages.yml) publishes `web/` without tests after frontend tests, on matching `main` changes or manual dispatch. Documentation-only changes do not automatically trigger the Pages workflow.
+GitHub Actions [CI](../.github/workflows/ci.yml) runs frontend/backend tests, builds the API image and validates local and production Compose configurations. [Pages](../.github/workflows/pages.yml) publishes only the video, captions and poster; the site root redirects to the video. It no longer exposes a frontend-only sample app.
 
-Pushing frontend changes to `main` triggers the Pages workflow. The repository contains the full app; the Pages environment serves static files. GitHub Pages cannot host the Python API. After deploying a backend, set repository variable `RENTAL_API_URL`; Pages validates live configuration and CORS before injecting that public address into its built `env.js`. Keys remain server-side. With no variable, the deployment remains frontend-only. Compose uses [same-origin configuration](../docker/web/env.js). See the [public deployment and live-film checklist](DEPLOYMENT.md).
+Deploy the complete app using the [HTTPS deployment guide](DEPLOYMENT.md). The production Compose configuration serves the frontend and API on one origin and preserves shares in a named volume. `scripts/configure-pages.mjs` remains an optional utility for custom separate-origin hosting; it is not used by the current Pages workflow. API keys stay server-side.
 
 ## Share storage and deployment limits
 
@@ -204,4 +204,4 @@ An address is preferred; a building name with a known district is a visibly tent
 
 ## README video
 
-The static chaptered player lives at `web/demo/`; recording-only fixtures remain in `scripts/`. Use `npm run dev:demo` for byte-range video playback on port 4174 and `npm run smoke:demo` to check it. [Recording, encoding and simulation boundaries](DEMO.md).
+The static chaptered player lives at `web/demo/`; live recording automation and caption decoration remain in `scripts/`. Use `npm run dev:demo` for byte-range video playback on port 4174 and `npm run smoke:demo` to check it. [Recording, encoding and environment boundaries](DEMO.md).

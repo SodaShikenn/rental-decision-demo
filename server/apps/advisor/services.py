@@ -1,7 +1,7 @@
 import asyncio
 from google.genai import types
 from pydantic import ValidationError
-from apps.research.services import generate
+from providers.gemini import generate
 from helper import AppError
 from .models import AdvisorReply
 

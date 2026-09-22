@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from config import GEMINI_MAX_OUTPUT_TOKENS
 from extensions.ext_ocr import OcrPage
 from helper import AppError
+from providers.gemini import to_app_error as _to_app_error
 
 from .checks import detect_checks
 from .evidence import build_costs, build_fields
@@ -51,21 +52,6 @@ def check_reading(mapping: MapperOutput, page: OcrPage, model: str, usage: Any =
     fields, warnings = build_fields(mapping, page)
     costs, cost_warnings = build_costs(mapping, page)
     return ListingReading(page=page, fields=fields, costs=costs, checks=detect_checks(page, fields), warnings=warnings + cost_warnings, model=model, usage=usage)
-
-
-def _key_rejected(error: genai_errors.APIError) -> bool:
-    # Google answers an invalid key with HTTP 400 and reason API_KEY_INVALID rather than 401.
-    return error.code in (401, 403) or (error.code == 400 and "API_KEY_INVALID" in str(error.details))
-
-
-def _to_app_error(error: genai_errors.APIError) -> AppError:
-    if error.code == 429:
-        return AppError(503, "upstream_busy", "解析サービスが混み合っています。少し待ってから再試行してください。")
-    if _key_rejected(error):
-        return AppError(503, "not_configured", "Gemini API キーの設定に問題があります。")
-    if error.code == 504:
-        return AppError(504, "upstream_timeout", "解析がタイムアウトしました。もう一度お試しください。")
-    return AppError(502, "upstream_error", "解析サービスでエラーが発生しました。")
 
 
 async def map_fields(page: OcrPage, app: FastAPI) -> tuple[MapperOutput, str, Any]:

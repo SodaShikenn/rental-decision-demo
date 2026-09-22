@@ -9,12 +9,12 @@ import re
 import unicodedata
 from datetime import UTC, datetime
 
-import httpx
-from google.genai import errors, types
+from google.genai import types
 from pydantic import ValidationError
 
 from helper import AppError
-from apps.listing.services import _to_app_error
+from providers.gemini import generate
+from providers.grounded_search import cited_evidence
 from .models import ResearchMapping, ResearchRequest, public_url
 
 UNIT_FIELDS = {"rent", "managementFee", "layout", "areaSqm"}
@@ -48,61 +48,6 @@ def relation(request, listing):
     if request.room and listing.room and normalized_room(request.room) == normalized_room(listing.room):
         return "same_unit"
     return "same_building"
-
-
-def cited_evidence(response):
-    """Keep only text with provider citation metadata, never model-invented URLs."""
-    candidate = response.candidates[0]
-    metadata = getattr(candidate, "grounding_metadata", None)
-    chunks = getattr(metadata, "grounding_chunks", None) or []
-    evidence = []
-    for support in getattr(metadata, "grounding_supports", None) or []:
-        segment = getattr(support, "segment", None)
-        text = getattr(segment, "text", None)
-        if not text:
-            continue
-        for index in support.grounding_chunk_indices or []:
-            if index < 0 or index >= len(chunks):
-                continue
-            web = getattr(chunks[index], "web", None)
-            if not web:
-                continue
-            try:
-                url = public_url(web.uri)
-            except (ValueError, TypeError):
-                continue
-            evidence.append({"text": text[:3500], "url": url, "title": (web.title or url)[:300]})
-    # URL context does not always include search grounding spans. With exactly one
-    # successfully read URL, the requested-page report can be attributed to it.
-    if not evidence:
-        context = getattr(candidate, "url_context_metadata", None)
-        successful = [item.retrieved_url for item in getattr(context, "url_metadata", None) or [] if str(item.url_retrieval_status).endswith("SUCCESS")]
-        if len(successful) == 1:
-            try:
-                url = public_url(successful[0])
-                evidence.append({"text": (response.text or "")[:16000], "url": url, "title": url})
-            except (ValueError, TypeError):
-                pass
-    return evidence[:40]
-
-
-def checked_response(response):
-    candidate = response.candidates[0] if response.candidates else None
-    if not candidate or str(candidate.finish_reason).split(".")[-1] != "STOP" or (getattr(response, "prompt_feedback", None) and response.prompt_feedback.block_reason):
-        raise AppError(502, "incomplete_research", "調査結果を確認できませんでした。時間をおいて再試行してください。")
-    return response
-
-
-async def generate(app, **kwargs):
-    try:
-        response = await app.state.gemini().aio.models.generate_content(model=app.state.settings.gemini_model, **kwargs)
-        return checked_response(response)
-    except errors.APIError as error:
-        raise _to_app_error(error) from error
-    except httpx.TimeoutException as error:
-        raise AppError(504, "research_timeout", "オンライン調査がタイムアウトしました。再試行してください。") from error
-    except httpx.HTTPError as error:
-        raise AppError(502, "research_unavailable", "検索サービスに接続できませんでした。") from error
 
 
 def value_in_evidence(key, value, text):

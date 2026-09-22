@@ -130,6 +130,9 @@ def test_health_reports_mode_readiness_and_pipeline(settings_for):
     live = client_for(settings_for(EXTRACTION_MODE="live")).get("/healthz").json()
     assert (live["mode"], live["configured"], live["model"]) == ("live", False, "gemini-3.8-flash")
     assert live["ocr"].startswith("Docling")
+    assert live["sharing"] == {"enabled": True}
+    disabled = client_for(settings_for(SHARING_ENABLED="false")).get("/healthz").json()
+    assert disabled["sharing"] == {"enabled": False}
 
 
 def test_sideways_phone_photos_are_turned_upright_before_ocr():

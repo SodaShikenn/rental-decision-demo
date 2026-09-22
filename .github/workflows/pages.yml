@@ -4,7 +4,7 @@ name: Deploy web to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ["web/**", "package.json", ".github/workflows/pages.yml"]
+    paths: ["web/**", "package.json", "scripts/configure-pages.mjs", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -28,6 +28,11 @@ jobs:
         run: npm run test:web
       - name: Assemble site (web/ without tests)
         run: rsync -a --exclude tests/ web/ _site/
+      - name: Connect the deployed API
+        if: ${{ vars.RENTAL_API_URL != '' }}
+        env:
+          RENTAL_API_URL: ${{ vars.RENTAL_API_URL }}
+        run: node scripts/configure-pages.mjs _site/env.js
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

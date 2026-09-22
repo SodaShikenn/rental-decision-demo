@@ -67,6 +67,7 @@ def create_app(settings: Settings | None = None, *, gemini_client: Any = None, o
             "ocr": OCR_ENGINE_LABEL,
             "research": {"enabled": settings.research_enabled, "configured": bool(settings.gemini_api_key)},
             "maps": {"configured": bool(settings.google_maps_api_key)},
+            "sharing": {"enabled": settings.sharing_enabled},
         }
 
     return app

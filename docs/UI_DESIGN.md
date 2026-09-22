@@ -76,3 +76,14 @@ The mobile review screenshot uses a stubbed successful empty response to illustr
 A successful search without usable reviews leaves the evidence area blank with a small completed status. Provider failure and pending search remain explicit states. A direct web-search link remains available. Error/results are cached only in memory; changing a candidate cancels and ignores old responses. The automated browser checks stub review retrieval so opening the new page never spends provider quota during those tests.
 
 The retrieval ladder is visible beside the candidate selector: **この部屋 → 同じ建物 → 近隣300m以内**. Nearby summaries have a distinct reference notice, the actual building name/address, a Maps location link and a straight-line distance. They cannot be read as reports about the target apartment. Search stops as soon as a closer evidence tier has usable reviews.
+
+## Destination-first commute
+
+| Before | After |
+| --- | --- |
+| Empty destination search | Eight Tokyo hubs, with Shibuya suggested from these candidates' areas; custom address search remains an explicit menu option |
+| Single 09:00 schedule | Next Japan weekday, 08:00 destination arrival and 18:00 departure for the return; times remain editable |
+| Five settings open at once | Date and morning/evening first; transport mode, frequency and objective under a native disclosure |
+| Single result per candidate | Separate outbound/return legs, status counts and direction-specific Maps links |
+
+The suggestion is a transparent district heuristic, not an inferred job or a shortest-time claim. Multiple exact station matches stay selectable. Destination changes abort pending searches/route calls and clear old observations. Phones put the two time fields side by side; defaults never become confirmed requirements automatically. Japan transit is explicitly marked unavailable under Google's published coverage; no WALK substitution or fabricated durations appear.

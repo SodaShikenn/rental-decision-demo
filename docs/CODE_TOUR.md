@@ -15,7 +15,7 @@ Follow **commute comparison** from the screen to the provider and back:
 7. [Provider adapter](../server/providers/google_maps.py) and [normalization](../server/providers/routes.py): HTTP details and missing-field handling. No API key reaches the browser.
 8. [Contract tests](../server/tests/apps/commute/test_commute.py): injected HTTP transport, no provider calls or keys.
 
-The live Tokyo transit test returned no routes. The code retains that result and a Maps link; successful walking access is not presented as proof of transit coverage.
+The [destination module](../web/apps/commute/destinations.js) owns hub suggestions and Japan-time morning/evening defaults. Both route directions are requested independently; only complete pairs produce weekly round-trip estimates. Google officially excludes Japan transit, matching the empty live six-direction test; successful WALK is not evidence of transit coverage. [Repeat the diagnostic](../server/commands/check_maps.py).
 
 ## Feature map
 

@@ -112,7 +112,7 @@ Add frontend features through `initApp(app)` in `web/app.js`; add API routers th
 | `POST /api/advise` | Candidate evidence, confirmed priorities and conversation; returns cited insights/questions/options and proposed preferences. |
 
 | `POST /api/destinations` | Search places for explicit destination confirmation. |
-| `POST /api/commutes` | Up to 6 candidates, confirmed destination ID, aware schedule, mode/objective; independent journey results. |
+| `POST /api/commutes` | Up to 6 candidates, confirmed destination ID, aware `at` and optional later `returnAt`, mode/objective; `returnTrip` has independent routes/status and reversed origin/destination. |
 | `POST /api/leisure` | Nearby categories or a confirmed named destination; dated places and WALK routes. |
 | `POST /api/reviews/web` | Automatic room → building → nearby web search; grounded summaries and explicit source identity/distance. Requires Gemini + `RESEARCH_ENABLED`; Maps is additionally required if the room/building tiers are empty and nearby fallback is needed. |
 | `POST /api/reviews/search` | Match building name and origin against returned places. |
@@ -140,7 +140,7 @@ npm run test:server
 git diff --check
 ```
 
-The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 103 frontend + 126 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 108 frontend + 130 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
 
 With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
 
@@ -175,3 +175,19 @@ Tokens carry read access; the owner has a separate delete secret. SQLite stores 
 Share pages use `share.html#token`, no indexing and no referrer. The reader uses the deployment's configured API URL. A link to localhost is only usable on that machine; a public link needs both a public frontend and reachable HTTPS API. No public backend was provisioned by a Git push.
 
 Review fallback has a 180 s overall backend deadline and a 190 s browser timeout. Each of the at most three search stages makes a grounded search call and, when citations exist, a mapping call. Nearby discovery uses a precise candidate geocode and residential Nearby Search; only the nearest three eligible returned buildings within 300 m are researched. This is bounded discovery, not exhaustive coverage. Failures stop expansion and stay errors. Legacy share-note fields are accepted for compatibility but excluded from newly stored output.
+
+## Commute defaults and live Maps verification
+
+`web/apps/commute/destinations.js` owns the eight curated Tokyo hubs, candidate-area suggestion, unambiguous station matching and next-weekday defaults. Holidays are not detected. A suggestion does not enter saved requirements. `08:00` means arrival at the destination; `18:00` means departure from it, both interpreted as Japan time regardless of the browser timezone. Other schedules remain editable.
+
+`returnAt` is optional for API compatibility, must follow `at`, and stays within the provider time window. Each leg has independent failure handling; a failed return does not discard an available outbound route. Weekly round-trip estimates require both directions. The UI retains each Maps link; official Maps direction URLs do not carry these times, so users must set them again there.
+
+Google [excludes Japan transit from Routes API coverage](https://developers.google.com/maps/faq#transit_directions_countries). Places, Geocoding and WALK availability do not imply electric-rail/bus routing availability. Live time comparison for Japan needs a different transit provider.
+
+To repeat the bounded, **billed** check with configured credentials, from `server/` run:
+
+```sh
+.venv/bin/python -m commands.check_maps
+```
+
+It searches Shibuya station, uses the first exact Tokyo match as a diagnostic target (reports the matching entity count), checks all three public sample buildings in both directions, and independently checks WALK for one building. Only status summaries are printed; keys and full provider route data are neither printed nor persisted. Unlike this diagnostic, the UI asks users to pick when multiple matching station entities exist. `/healthz` reports key configuration only, not live capability.

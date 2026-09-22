@@ -128,10 +128,10 @@ npm run smoke:browser   # web + backend running
 
 </details>
 
-## Delivery status
+## What's next
 
-**Development prototype · September 22, 2026.** 241 tests passed: 111 frontend + 130 backend; 2 optional real-OCR tests skipped. Desktop/mobile browser checks and CI pass. These establish implementation behavior, not model accuracy or tenant outcomes.
-
-The public site hosts the frontend and this film. Live extraction, research, Gemini advice, walking checks, review retrieval and hosted sharing need a separately deployed API. Recent Gemini research/advice returned busy responses; successful live review coverage remains unverified. Commute handoff works on the public site, but automatic Japanese transit-time comparison needs another provider.
-
-**Next:** tenant usability evaluation, live AI/review validation, and a public backend with durable share storage. [Acceptance criteria and roadmap →](ROADMAP.md)
+- [ ] Compare Japanese train and bus commutes directly in the app, including travel time, transfers and fares.
+- [ ] Recommend candidates based on the combined picture of work destinations, leisure interests and daily costs.
+- [ ] Broaden apartment-review coverage and make recurring themes easier to compare.
+- [ ] Refine AI follow-up questions to uncover priorities when preferences are vague or competing.
+- [ ] Make comparison briefs easier to share and revisit across devices.

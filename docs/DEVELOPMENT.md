@@ -114,7 +114,7 @@ Add frontend features through `initApp(app)` in `web/app.js`; add API routers th
 | `POST /api/destinations` | Search places for explicit destination confirmation. |
 | `POST /api/commutes` | Up to 6 candidates, confirmed destination ID, aware schedule, mode/objective; independent journey results. |
 | `POST /api/leisure` | Nearby categories or a confirmed named destination; dated places and WALK routes. |
-| `POST /api/reviews/web` | Automatic public-web search; Gemini grounded summaries, source identity and unit scope. Requires Gemini + `RESEARCH_ENABLED`; no Maps key required. |
+| `POST /api/reviews/web` | Automatic room → building → nearby web search; grounded summaries and explicit source identity/distance. Requires Gemini + `RESEARCH_ENABLED`; Maps is additionally required if the room/building tiers are empty and nearby fallback is needed. |
 | `POST /api/reviews/search` | Match building name and origin against returned places. |
 | `POST /api/reviews` | Recheck confirmed building identity, then return attributed relevance-ordered posts. |
 | `POST /api/shares` | Store an allowlisted brief for 1–7 days; return separate read and deletion secrets. |
@@ -140,7 +140,7 @@ npm run test:server
 git diff --check
 ```
 
-The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 101 frontend + 115 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 103 frontend + 126 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
 
 With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
 
@@ -173,3 +173,5 @@ The API defaults to `server/data/shares.sqlite3`. The directory is excluded from
 Tokens carry read access; the owner has a separate delete secret. SQLite stores their SHA-256 hashes, enforces expiry, deletes expired rows during access and limits active documents to 1,000. Expiry uses server time. This is a single-instance prototype; multiple replicas need a shared repository and distributed rate limiting. Revocation cannot remove copies already downloaded by recipients.
 
 Share pages use `share.html#token`, no indexing and no referrer. The reader uses the deployment's configured API URL. A link to localhost is only usable on that machine; a public link needs both a public frontend and reachable HTTPS API. No public backend was provisioned by a Git push.
+
+Review fallback has a 180 s overall backend deadline and a 190 s browser timeout. Each of the at most three search stages makes a grounded search call and, when citations exist, a mapping call. Nearby discovery uses a precise candidate geocode and residential Nearby Search; only the nearest three eligible returned buildings within 300 m are researched. This is bounded discovery, not exhaustive coverage. Failures stop expansion and stay errors. Legacy share-note fields are accepted for compatibility but excluded from newly stored output.

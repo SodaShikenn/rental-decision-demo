@@ -19,11 +19,11 @@ This pass applies [Emil Kowalski's design engineering skill](https://github.com/
 
 ## Feature navigation
 
-The eight destinations are **候補比較 / 通勤 / 駅・買い物 / 余暇 / 口コミ・内見 / 暮らしの試算 / 条件メモ / 共有・出力**. On mobile, a native grouped select replaces the tab row so every feature remains discoverable at 320 px. Each feature page shows candidate scope, its form, three steps and a relevant next destination. Reviews and personal viewing notes have separate headings; memo editing and sharing have separate destinations.
+The eight destinations are **候補比較 / 通勤 / 駅・買い物 / 余暇 / 口コミ分析 / 暮らしの試算 / 条件メモ / 共有・出力**. On mobile, a native grouped select replaces the tab row so every feature remains discoverable at 320 px. Each feature page shows candidate scope, its form, three steps and a relevant next destination. The review page is automatic analysis; the decision brief is generated and read-only. There are no manual diary or free-text requirement controls.
 
 Navigation toggles existing panels, so a draft or retrieved result survives switching. It never changes a confirmed preference. The reviews page starts an automatic public-web search when opened or when its candidate changes; a 30-minute session cache prevents repeated calls while navigating. Other tabs retain their explicit provider actions. Browser refresh restores the route but follows the existing rules for temporary Maps content. The comparison's mobile pair picker does not limit the standalone essentials page.
 
-<img src="images/navigation-mobile.png" width="390" alt="Mobile reviews page with the feature selector, candidate scope, automatic web-review search and separate viewing notes." />
+<img src="images/navigation-mobile.png" width="390" alt="Mobile reviews page with the feature selector, candidate scope and automatic review search order." />
 
 ## Ownership
 
@@ -56,6 +56,8 @@ Browser emulation is not a physical-device sign-off. The soft keyboard, actual i
 
 ## Automatic review discovery
 
-The candidate selector is the entry point: choosing a home starts research, with a visible status and a manual refresh button. Results show short, source-linked AI summaries with building/unit scope and a posting date only when available. Unmatched buildings, listing copy and inaccessible pages are in a separate disclosure. No overall star score is inferred. Keyword-linked viewing questions require an explicit click to enter the brief; personal dated notes have their own section.
+The candidate selector is the entry point: choosing a home starts research, with a visible status and a manual refresh button. Results show short, source-linked AI summaries with building/unit scope and a posting date only when available. Unmatched buildings, listing copy and inaccessible pages are in a separate disclosure. No overall star score is inferred. Keyword-linked questions require an explicit click to enter the generated brief. The brief is read-only; preferences are refined through candidate-based choices rather than typed requirements.
 
-Provider failure, a successful search without usable reviews, and a pending search have different messages. A direct web-search link remains available. Error/results are cached only in memory; changing a candidate cancels and ignores old responses. The automated browser checks stub review retrieval so opening the new page never spends provider quota during those tests.
+A successful search without usable reviews leaves the evidence area blank with a small completed status. Provider failure and pending search remain explicit states. A direct web-search link remains available. Error/results are cached only in memory; changing a candidate cancels and ignores old responses. The automated browser checks stub review retrieval so opening the new page never spends provider quota during those tests.
+
+The retrieval ladder is visible beside the candidate selector: **この部屋 → 同じ建物 → 近隣300m以内**. Nearby summaries have a distinct reference notice, the actual building name/address, a Maps location link and a straight-line distance. They cannot be read as reports about the target apartment. Search stops as soon as a closer evidence tier has usable reviews.

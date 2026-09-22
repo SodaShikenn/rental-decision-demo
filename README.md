@@ -32,9 +32,9 @@ Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page shows its 
 | [通勤 — commute](https://sodashikenn.github.io/rental-helper/#commute) | Confirm a work destination and compare scheduled routes. |
 | [駅・買い物 — essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check each candidate's listed walking claims against Maps. |
 | [余暇 — leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Find nearby parks, gyms and cafés before discussing preferences. |
-| [口コミ・内見 — reviews/viewings](https://sodashikenn.github.io/rental-helper/#reviews) | Automatically search public web reviews for a candidate, inspect sources/unit scope, and keep separate viewing notes. |
+| [口コミ分析 — review analysis](https://sodashikenn.github.io/rental-helper/#reviews) | Automatically search public web reviews for a candidate, inspect sources/unit scope, and use the resulting analysis without writing requirements. |
 | [暮らしの試算 — scenarios](https://sodashikenn.github.io/rental-helper/#scenarios) | Change weekly commuting frequency and compare the tradeoffs. |
-| [条件メモ — brief](https://sodashikenn.github.io/rental-helper/#needs) | Edit and copy the decision brief. |
+| [条件メモ — brief](https://sodashikenn.github.io/rental-helper/#needs) | Read and copy the generated decision brief. |
 | [共有・出力 — share/export](https://sodashikenn.github.io/rental-helper/#sharing) | Preview included information, download HTML or manage expiring links. |
 
 Live research, Maps, AI and hosted sharing require a configured API; the public demo exposes the same interface.
@@ -46,7 +46,7 @@ The app has eight directly accessible feature tabs. On phones, the **機能を�
 | 01 · Compare / 比較する | 02 · Discover / 希望を整理する | 03 · Takeaway / メモを持ち出す |
 | --- | --- | --- |
 | [![Compare candidates](docs/images/compare.png)](docs/images/compare.png) | [![Discover priorities](docs/images/discovery.png)](docs/images/discovery.png) | [![Take away a decision brief](docs/images/memo.png)](docs/images/memo.png) |
-| Understand differences and inspect sources. | Confirm a priority through a question. | Edit, copy and revisit the brief. |
+| Understand differences and inspect sources. | Confirm a priority through a question. | Copy and revisit the automatically generated brief. |
 
 <details>
 <summary><strong>01 — Compare: what is known, and where did it come from?</strong></summary>
@@ -73,7 +73,7 @@ The screenshots use this real numeric fallback; they do not depict a fabricated 
 <details>
 <summary><strong>03 — Takeaway: leave with a useful next action</strong></summary>
 
-Open **条件メモ**. The memo combines confirmed priorities, selected equipment and questions to check with an agent. Edit and copy it. Reload to confirm that local candidates, preferences and memo edits survive.
+Open **条件メモ**. The memo combines confirmed priorities, selected equipment and questions to check with an agent. Copy it; revise preferences through candidate-based questions. Reload to confirm that local candidates, preferences and confirmed answers survive.
 
 Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Open the **共有・出力** tab to preview the brief, download HTML, or create a 1–7 day link with a connected backend. The creator can revoke the link; downloaded copies remain with recipients.
 
@@ -85,7 +85,7 @@ Saving is specific to this browser. Maps observations and conversations containi
 - **通勤:** find and confirm a destination, set a Japan-time schedule, then compare returned journeys. Confirm the route objective only after seeing evidence.
 - **余暇:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
 - **暮らしの試算:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
-- **口コミ・内見:** select a candidate to automatically search public apartment reviews. Read source-linked AI summaries, distinguish other rooms and excluded pages, then turn concerns into viewing checks. Your own observations stay separate.
+- **口コミ分析:** select a candidate; the app searches the room, then its building, then up to three Maps-verified neighboring residences within 300 m. Read source-linked summaries with the actual building and distance, then choose which concerns matter. If none are found, the review area stays blank.
 - **共有・出力:** review exactly which fields are included. Images/chat are optional local HTML attachments; hosted links use a smaller allowlisted document.
 
 [![Commute destination and schedule form](docs/images/commute.png)](docs/images/commute.png)
@@ -107,13 +107,13 @@ These screenshots show the actual forms and preview, without fabricated provider
 | Automatic missing-price research | Implemented with source, unit-match and conflict checks; recorded GRAN PASEO reference included. |
 | Station and grocery walking checks | Geocoding + Places (New) + WALK Routes integrated; previous local live checks succeeded. |
 | Candidate-based AI conversation | Implemented with cited context and explicit preference confirmation; live-provider reliability remains under evaluation. |
-| Preference fit, editable memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
+| Preference fit, generated memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
 | Commute and scenario comparison | Implemented; one confirmed destination/schedule, alternatives and explicit priorities. Live Tokyo transit query returned **no routes**; Maps fallback and coverage follow-up remain. |
 | Leisure discovery | Implemented; real parks/gyms/cafés, optional regular destination, frequency/importance confirmation. Live park/WALK slice succeeded. |
-| Automatic web reviews / own viewing notes | Implemented with cited summaries, name/address checks, unit scope and excluded-source explanations. Live GRAN PASEO search returned Gemini busy; successful retrieval and source coverage still need validation. |
+| Automatic review analysis | Implemented: room → building → nearby residential references within 300 m. Empty evidence stays blank; no manual diary or requirement entry. Live GRAN PASEO search returned Gemini busy; successful retrieval and source coverage still need validation. |
 | Brief export and sharing | HTML preview/download; backend links expire in 1–7 days and support revocation. Public sharing requires API hosting. |
 
-**Validation:** 191 tests passed on September 22, 2026: 96 frontend and 95 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
+**Validation:** 229 tests passed on September 22, 2026: 103 frontend and 126 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
 
 ## What this project demonstrates
 

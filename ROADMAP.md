@@ -8,7 +8,7 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 | R1 — commute | Destination confirmation, shared schedule, returned alternatives, explicit intent | Usable Japan public-transit coverage; live three-candidate journey |
 | R2 — leisure | Real nearby options, regular destination, frequency/importance confirmation | Broader real-world hours/route evaluation |
 | R3 — scenarios | Frequency, cost, route objective, leisure evidence, missing-value explanations | Evaluate competing objectives with tenants |
-| R4 — reports | Strict building matching, attributed posts, viewing questions, own observations | Real matched-building display; verified resident-source coverage |
+| R4 — reports | Room → building → nearby fallback, cited analysis and evidence-linked choices | Real matched-building display; verified resident-source coverage |
 | R5 — sharing | Preview, HTML, expiring/revocable SQLite links | Public HTTPS API and durable-host verification |
 
 ## R0 — validate and release the current prototype
@@ -57,7 +57,8 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [x] Automatically search public apartment-review sites and posts when opening reviews or changing the selected candidate; manual refresh and a bounded session cache.
 - [x] Use provider-grounded citations, match name/address within the same source, distinguish same-unit/building/other-unit scope, and separate ads/unreadable/unmatched pages.
 - [x] Label AI summaries and unknown posting dates; never infer residency, an overall rating, or absence of problems from missing reviews.
-- [x] Preserve opposing reports and offer explicit actions to add generic viewing questions. Keep personal dated notes separate and persist them for optional sharing.
+- [x] Preserve opposing reports and offer evidence-linked choices. No personal diary, free-text requirement entry or manually editable memo.
+- [x] Enforce room → building → nearby fallback; use Maps to locate up to three residential references within 300 m, label distance and identity, leave absent review evidence blank.
 - [x] Retain the optional Google Places review endpoints with building/proximity checks and explicit confirmation; the default UI now uses public-web research.
 - [ ] Validate successful live web-review retrieval and source coverage. GRAN PASEO明大前Ⅳ returned Gemini `upstream_busy` on 2026-09-22; deterministic tests do not establish coverage.
 - [ ] Evaluate permitted resident-specific sources if stronger author/residency verification is needed; public review authors remain unverified.
@@ -65,7 +66,7 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 ## R5 — shareable comparisons and decision brief
 
 - [x] Preview an allowlisted brief with known listing values, source links, confirmed priorities and unanswered questions.
-- [x] Keep personal observations and the user-entered destination opt-in. Images and eligible conversation history are optional local HTML attachments.
+- [x] Keep the user-entered destination opt-in; retired personal notes are excluded. Images and eligible conversation history are optional local HTML attachments.
 - [x] Exclude raw Maps observations/reviews from persisted shares and export; Maps-derived conversations cannot be attached.
 - [x] Implement 1–7 day links, separate owner revocation secrets, hashed tokens, read-time expiry, capacity limits and a sharing kill switch.
 - [x] Verify backend create/read/revoke, expiry, forbidden fields, token logging boundaries and browser privacy defaults.

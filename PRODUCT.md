@@ -6,7 +6,7 @@ Updated **2026-09-22**. This document separates the implemented local prototype 
 
 Help tenants compare homes they already found, understand the evidence behind their differences, and discover what matters through an interactive conversation. A successful session ends with confirmed priorities, visible compromises, and useful questions for a viewing or agent.
 
-The tenant supplies candidates first. Do not start with a free-text “暮らしの希望” form or a requirements questionnaire. Similarities among candidates are hypotheses, not proof of a preference. OCR supports entry; examining OCR output is not the main experience.
+The tenant supplies candidates first. The app analyzes them and offers grounded choices; it has no personal viewing diary, free-text requirement form, or manually editable decision brief. Do not start with a free-text “暮らしの希望” form or a requirements questionnaire. Similarities among candidates are hypotheses, not proof of a preference. OCR supports entry; examining OCR output is not the main experience.
 
 ## Current progress
 
@@ -25,9 +25,9 @@ The tenant supplies candidates first. Do not start with a free-text “暮らし
 | Commute | Confirm a destination, choose Japan-time arrival/departure, mode and frequency; compare returned alternatives by duration, transfers or walking; confirm intent. | Live Tokyo TRANSIT check returned no routes. Maps fallback is available; Japan transit coverage remains unresolved. |
 | Leisure | Parks/gyms/cafés, dated WALK observations, named regular destination, frequency/importance confirmation. | Max 2/category within 1.5 km by straight-line distance; not exhaustive. Hours and activity suitability require verification. |
 | Scenarios | Change weekly frequency; compare known monthly cost, selected commute objective, outbound-time estimates and accepted leisure interests. | No hidden total score; no invented return journey, fares or data for missing routes. |
-| Reviews | Automatically search public apartment-review sites/posts on entering the review page or changing candidate. Show cited AI summaries, matched building/address, unit scope, excluded sources, viewing questions and separate personal notes. | Public retrieval is not exhaustive; summaries do not prove residency or current conditions. Live GRAN PASEO request returned Gemini busy; successful live review retrieval remains open. |
-| Takeaway/sharing | Editable/copyable memo, HTML download, content preview, optional personal details, 1–7 day SQLite-backed links and owner revocation. | Shared links require a reachable API. Images/eligible chat are local HTML only; provider routes and review text are excluded. Single-instance storage; no accounts. |
-| Persistence | IndexedDB saves candidates, image blobs, answers, preferences, memo edits and eligible conversation history; deletion control included. | Local to browser/origin. Maps observations and conversations reproducing them are temporary; accepted preferences persist. |
+| Reviews | Automatically search public apartment-review sites/posts on entering the review page or changing candidate. Show cited AI summaries, matched building/address, unit scope and explicit nearby references. | Public retrieval is not exhaustive; summaries do not prove residency or current conditions. Live GRAN PASEO request returned Gemini busy; successful live review retrieval remains open. |
+| Takeaway/sharing | Automatically generated, read-only/copyable memo, HTML download, content preview, optional personal details, 1–7 day SQLite-backed links and owner revocation. | Shared links require a reachable API. Images/eligible chat are local HTML only; provider routes and review text are excluded. Single-instance storage; no accounts. |
+| Persistence | IndexedDB saves candidates, image blobs, answers, preferences, eligible conversation history; deletion control included. | Local to browser/origin. Maps observations and conversations reproducing them are temporary; accepted preferences persist. |
 | UI | Eight feature tabs (mobile grouped dropdown), dedicated feature pages with candidate scope and instructions; five comparison concerns, adjacent numeric/AI questions, confirmed-priority pills, and separate memo/sharing views. Mobile pair selection and a question panel; keyboard navigation and reduced motion. | Repository screenshots show the recorded candidate workflow; live services require a configured backend. |
 
 ## Interaction contract
@@ -36,13 +36,13 @@ The tenant supplies candidates first. Do not start with a free-text “暮らし
 2. **Understand differences.** Compare costs, space, access, equipment and contracts. Open a value for its source or calculation.
 3. **Explore one question.** AI uses available evidence; the numeric fallback works without AI. Offer deferral and contextual follow-up.
 4. **Confirm a priority.** A tentative selection or AI proposal is not a requirement. Confirmation updates the comparison and memo; the tenant can reconsider.
-5. **Take the next step.** Leave with an editable brief and questions that would change the decision. Preserve the session locally.
+5. **Take the next step.** Leave with a generated brief and questions that would change the decision. Preserve the session locally.
 
 Work-destination and leisure questions follow candidate comparison. A workplace cannot be inferred from a listing: request the destination when the tenant chooses to examine commuting. Ask for a place/address and relevant schedule, not an upfront lifestyle essay.
 
 ### Workspace behavior
 
-- Top navigation exposes comparison, commute, essentials, leisure, reviews/viewings, scenarios, memo and sharing. The phone dropdown lists all eight pages, grouped by task. Primary feature forms are immediately visible, without an extra disclosure.
+- Top navigation exposes comparison, commute, essentials, leisure, review analysis, scenarios, memo and sharing. The phone dropdown lists all eight pages, grouped by task. Primary feature forms are immediately visible, without an extra disclosure.
 - Hash links, browser Back/Forward and keyboard tab navigation select the same page. Legacy feature anchors resolve to the corresponding page. View changes hide/show existing DOM; they do not remount modules or discard in-memory results. Reload still clears temporary provider data.
 - Candidate scope is shown on feature pages. Essentials checks cover the entire shortlist, including on mobile; the two-candidate selector is local to the comparison table.
 
@@ -85,11 +85,13 @@ Nearby search covers stations, supermarkets and convenience stores within 1.5 km
 
 `POST /api/advise` receives candidate evidence, available Maps observations, confirmed priorities and conversation answers. Insights/questions reference evidence IDs. Proposals require a literal quote from a user answer and explicit acceptance. Failed answers remain available for retry; changed evidence invalidates previous AI output.
 
-Opening **口コミ・内見** or selecting another candidate automatically searches public web reviews using the building name, address, room and source link. It does not send images or personal notes. A bounded 30-minute session cache avoids repeat calls during navigation; manual refresh is available. Errors also wait for explicit retry or cache expiry, rather than triggering an automatic retry loop.
+Opening **口コミ分析** or selecting another candidate automatically searches public web reviews using the building name, address, room and source link. It does not send images or personal notes. A bounded 30-minute session cache avoids repeat calls during navigation; manual refresh is available. Errors also wait for explicit retry or cache expiry, rather than triggering an automatic retry loop.
 
-Only provider-cited text supports the returned summaries. Name/address must match within evidence attributed to the same source. Same-unit, building-level and other-unit reports stay distinct; advertisements, neighborhood information and inaccessible or unmatched pages are excluded from the review list. Results label AI summaries, unknown posting dates and source links. Retrieval dates are not posting dates. Search/identity checks reduce wrong attachments but are not proof of a source's accuracy or an exhaustive crawl. Missing-address candidates cannot receive matched reviews until their identity is established.
+Search order is enforced in code: exact room (when known) → same building → at most three other residential buildings within 300 m, located and distance-checked with Maps. Stop at the first tier with usable reviews. Nearby opinions identify their actual building/address and straight-line distance, and never establish conditions in the target home. A successful empty search leaves the review area blank; provider failures remain errors.
 
-Commute/leisure/review provider content remains in memory. Confirmed intentions and the tenant's own viewing notes persist; a changed candidate identity/address invalidates observations. Web review summaries and source links are temporary and never sent to the advisor or saved in a share. Only generic viewing questions explicitly accepted by the tenant persist.
+Only provider-cited text supports the returned summaries. Name/address must match within evidence attributed to the same source. Same-unit, building-level and other-unit reports stay distinct; advertisements, general neighborhood claims and inaccessible or unmatched pages are excluded from the review list. Results label AI summaries, unknown posting dates and source links. Retrieval dates are not posting dates. Search/identity checks reduce wrong attachments but are not proof of a source's accuracy or an exhaustive crawl. Missing-address candidates cannot receive matched reviews until their identity is established.
+
+Commute/leisure/review provider content remains in memory. Confirmed intentions persist; a changed candidate identity/address invalidates observations. Web review summaries and source links are temporary and never sent to the advisor or saved in a share. Only generic viewing questions explicitly accepted by the tenant persist.
 
 Sharing stores only an allowlisted brief, source links, confirmed intentions and explicitly included personal fields. Read/delete tokens are hashed; expiry is enforced on reads and expired rows are cleaned during access. A separate owner secret authorizes revocation. Links grant access to anyone who possesses them; downloaded copies cannot be revoked.
 
@@ -97,7 +99,7 @@ IndexedDB stores user work. Uploaded images may be saved locally; server-side ex
 
 ## Validation and release state
 
-- **2026-09-22:** `npm test` — 101 frontend + 115 backend tests passed; 2 real-OCR tests skipped. Covers calculations, uncertainty, matching, automatic research, stale-response rejection, proposals, provider errors and storage boundaries.
+- **2026-09-22:** `npm test` — 103 frontend + 126 backend tests passed; 2 real-OCR tests skipped. Covers calculations, uncertainty, matching, automatic research, stale-response rejection, proposals, provider errors and storage boundaries.
 - Browser checks cover desktop/mobile flows, keyboard tabs, mobile pair swapping, question panel focus/resize, contextual AI requests and stale-response rejection with provider stubs, explicit confirmation, memo/image restoration, reference-price details, automatic exact-unit filling with a stubbed provider, and no duplicate lookup after reload.
 - Earlier local live checks confirmed Geocoding, Places and WALK Routes access. A small Gemini request succeeded; full candidate conversations and the latest automatic research check encountered provider busy responses. Full live end-to-end quality remains an open release task.
 - Pages hosts the static app; online research, routes, reviews, advice and shared links need a separately configured API. See the dated [validation record](docs/VALIDATION.md) for actual provider outcomes and the [code tour](docs/CODE_TOUR.md) for module boundaries.

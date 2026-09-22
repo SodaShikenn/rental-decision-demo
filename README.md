@@ -7,17 +7,17 @@
 A rental decision assistant for Japan that turns a shortlist into<br>
 sourced comparisons, candidate-based questions, and confirmed priorities.
 
-[**Try the app ↗**](https://sodashikenn.github.io/rental-helper/) · [**Watch the demo ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**日本語**](README.ja.md)
+[**Explore the sample ↗**](https://sodashikenn.github.io/rental-helper/) · [**Watch the concept video ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**日本語**](README.ja.md)
 
 [![Tests](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml)
 
 [![Play the Rental Helper walkthrough: compare candidates, inspect evidence and confirm priorities](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
 
-**84-second walkthrough** · [English / Japanese captions](https://sodashikenn.github.io/rental-helper/demo/) · [Transcript](web/demo/media/transcript.md)
+**84-second concept video · scripted AI** · [English / Japanese captions](https://sodashikenn.github.io/rental-helper/demo/) · [Transcript](web/demo/media/transcript.md)
 
 </div>
 
-> The video uses recorded listings and explicitly scripted AI replies in the real interface. The public app supports sample comparison, guided choices, Maps links and HTML export; live research and AI features need a connected backend. [Setup](docs/DEVELOPMENT.md)
+> **Public sample:** comparison, guided choices, Maps links and HTML export work without an account. Image/link analysis, AI, walking checks, leisure discovery, web reviews and hosted sharing are currently unavailable on this public site because no backend is connected. The video is an earlier recorded concept walkthrough with scripted AI; it does not cover all current features or demonstrate a fully deployed app. [Local setup](docs/DEVELOPMENT.md)
 
 ## The problem
 

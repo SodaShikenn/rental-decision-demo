@@ -7,17 +7,17 @@
 検討中の物件から、出典付きの比較、具体的な質問、<br>
 本人が確認した希望をまとめた相談メモへ。
 
-[**アプリを試す ↗**](https://sodashikenn.github.io/rental-helper/) · [**デモ動画を見る ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**English**](README.md)
+[**サンプルを試す ↗**](https://sodashikenn.github.io/rental-helper/) · [**コンセプト動画を見る ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**English**](README.md)
 
 [![Tests](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml)
 
 [![候補比較・根拠の確認・希望の整理を動画で見る](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
 
-**約84秒の操作デモ** · [日本語 / 英語字幕](https://sodashikenn.github.io/rental-helper/demo/) · [字幕テキスト](web/demo/media/transcript.md)
+**約84秒のコンセプト動画・AI応答は固定データ** · [日本語 / 英語字幕](https://sodashikenn.github.io/rental-helper/demo/) · [字幕テキスト](web/demo/media/transcript.md)
 
 </div>
 
-> 動画は記録済みの物件と、録画専用と明示したAI応答を使った実画面の操作です。公開アプリではサンプル比較・選択式の希望整理・Mapsリンク・HTML出力を利用できます。リアルタイムの調査やAIにはバックエンド接続が必要です。[起動方法](docs/DEVELOPMENT.md)
+> **公開サンプル：** 比較・選択式の希望整理・Mapsリンク・HTML出力はアカウント不要で利用できます。現在の公開サイトにはバックエンドが接続されていないため、画像・リンクの解析、AI、徒歩の照合、余暇の検索、口コミ、共有リンクは利用できません。動画は以前に収録した固定AI応答によるコンセプト紹介で、現在の全機能や公開環境での実接続を示すものではありません。[ローカルでの起動方法](docs/DEVELOPMENT.md)
 
 ## 解決したいこと
 

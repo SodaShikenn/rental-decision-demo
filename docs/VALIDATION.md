@@ -44,6 +44,16 @@ while retaining strict local Pydantic validation. [Regression tests](../server/t
 protect those limits. Daily quota exhaustion also has a distinct error path rather
 than being treated as a short-lived overload.
 
+## Public sample check
+
+On 2026-09-22, a fresh browser opened the public Pages URL without an account or
+API interception. Sample comparison, a confirmed ¥110,000 budget, the generated
+memo, an actual HTML download, and outbound/return Maps links worked. AI advice,
+automatic web reviews and hosted-share creation reported an unconfigured server.
+The deployed API base URL was empty. Local provider success therefore does not
+establish public availability. The README and film page label this as a sample
+preview; the existing video is an earlier concept walkthrough, not a full live release.
+
 ## Commute and demonstration boundaries
 
 Google [excludes Japan transit from Routes API](https://developers.google.com/maps/faq#transit_directions_countries).

@@ -622,24 +622,7 @@
 .advisor-proposal .button {
   white-space: normal;
 }
-#advisorReplyForm {
-  display: grid;
-  gap: 10px;
-}
-#advisorReplyForm label {
-  font-size: 12px;
-}
-#advisorReply {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  background: var(--surface);
-  resize: vertical;
-}
-#advisorReplyForm button {
-  justify-self: start;
-}
+
 #advisorStatus {
   color: var(--ink-2);
   font-size: 12px;

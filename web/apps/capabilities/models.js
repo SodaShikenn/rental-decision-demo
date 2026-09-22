@@ -71,7 +71,7 @@ export function capabilityList({ extraction, model, maps = false, research = fal
       next: "",
     },
     { key: "rentHistory", name: "賃料の推移", kind: "planned", now: "表示していません。", next: "掲載・成約賃料の提供元と接続" },
-    { key: "reviews", name: "ネットの口コミ・内見記録", kind: research ? "live" : "planned", now: research ? "候補の公開口コミを自動検索し、建物名・住所を照合した出典付き要約を表示します。別の部屋の声と自分の内見記録は分けて扱います。" : "Geminiを接続すると公開口コミを自動検索できます。自分の内見記録は接続なしでも残せます。", next: research ? "" : "Gemini とオンライン調査を設定" },
+    { key: "reviews", name: "口コミの自動分析", kind: research ? "live" : "planned", now: research ? "部屋・同じ建物・近隣の順で公開口コミを自動検索します。近隣は地図で300m以内を確認し、参考情報として区別します。" : "Geminiを接続すると公開口コミを自動検索できます。近隣の参考情報には地図接続も必要です。", next: research ? "" : "Gemini とオンライン調査を設定" },
     { key: "routes", name: "駅・周辺施設への徒歩経路", kind: maps ? "live" : "planned", now: maps ? "候補ごとに Google Maps で取得し、掲載の徒歩時間と照合します。同じ目的地・日時での通勤比較も可能ですが、公共交通の経路が返らない地域・条件があります。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
     { key: "places", name: "周辺の駅・買い物", kind: maps ? "live" : "planned", now: maps ? "駅・スーパー・コンビニに加え、公園・ジム・カフェと徒歩経路を取得し、利用したい場所から希望を確認します。" : "地図の確認サーバーに接続すると利用できます。", next: maps ? "" : "地図の確認サーバーを接続" },
     { key: "persistence", name: "保存・共有", kind: "live", now: "候補・画像・希望・メモをこのブラウザに自動保存します。保存状態は画面上部で確認できます。地図情報は再取得が必要です。HTML出力と、バックエンド接続時の期限付き共有・削除に対応します。公開デモの共有には公開APIが必要です。", next: "" },

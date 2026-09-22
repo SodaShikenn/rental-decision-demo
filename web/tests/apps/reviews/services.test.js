@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { reviewTopics, observation } from "../../../apps/reviews/services.js";
-import { resultsMarkup } from "../../../apps/reviews/views.js";
+import { reviewTopics } from "../../../apps/reviews/services.js";
+import { markup, resultsMarkup } from "../../../apps/reviews/views.js";
 test("opposing reports stay together rather than producing a factual verdict", () => {
   const topics = reviewTopics([
     { text: "静かです" },
@@ -30,10 +30,39 @@ test("review markup escapes source content and rejects executable links", () => 
   assert.ok(!html.includes("javascript:"));
   assert.match(html, /住人であることは未確認/);
 });
-test("own observations are explicitly separated and bounded", () => {
+test("missing reviews leave the evidence area blank and never ask for manual notes", () => {
   assert.equal(
-    observation("a", "  夜の内見  ", "2026-09-22").kind,
-    "own_viewing",
+    resultsMarkup({
+      reviews: [],
+      otherPages: [{ title: "広告", url: "https://example.com" }],
+    }),
+    "",
   );
-  assert.throws(() => observation("a", "x".repeat(1001), "2026-09-22"));
+  assert.doesNotMatch(markup, /textarea|observationForm|自分の内見記録/);
+});
+test("nearby references identify their building and distance without asserting candidate conditions", () => {
+  const html = resultsMarkup({
+    tier: "nearby",
+    sourceCount: 1,
+    checkedAt: "2026-09-22",
+    reviews: [
+      {
+        text: "管理についての投稿",
+        scope: "nearby_building",
+        url: "https://example.com/review",
+        sourceTitle: "出典",
+        reference: {
+          name: "別の公寓",
+          address: "東京都渋谷区2-1",
+          distanceMeters: 80,
+          url: "https://maps.google.com",
+          attributions: [],
+        },
+      },
+    ],
+  });
+  assert.match(html, /別の公寓/);
+  assert.match(html, /直線 約80m/);
+  assert.match(html, /近隣の参考情報/);
+  assert.match(html, /この候補に当てはめることはできません/);
 });

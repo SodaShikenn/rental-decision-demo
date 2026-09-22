@@ -1,7 +1,7 @@
 import { $, escapeHTML as e } from "../../helper.js";
 import { post } from "../../shared/api.js";
 import { sourceLink, saveNote } from "../../shared/maps.js";
-import { observation, reviewTopics } from "./services.js";
+import { reviewTopics } from "./services.js";
 import { markup, resultsMarkup } from "./views.js";
 import { createReviewResearch } from "./research.js";
 export function initApp(app) {
@@ -26,15 +26,20 @@ export function initApp(app) {
       );
       $("#reviewStatus").textContent = {
         empty: "まず、比較したい候補を追加してください。",
-        loading:
-          "公開の口コミを検索しています。建物名・住所と出典を照合するため、少し時間がかかります…",
-        ready:
-          "検索が完了しました。投稿の内容と、自分で確かめたことを分けて考えましょう。",
+        loading: "部屋・同じ建物・近隣の順に口コミを調べています…",
+        ready: result?.reviews?.length
+          ? "出典付きの口コミを取得しました。"
+          : "検索済み",
         error: entry.message,
       }[entry.status];
       $("#reviewResults").innerHTML = result ? resultsMarkup(result) : "";
       $("#reviewSuggestions").replaceChildren();
-      if (result?.searchSuggestions) {
+      const suggestions = Array.isArray(result?.searchSuggestions)
+        ? result.searchSuggestions
+        : result?.searchSuggestions
+          ? [result.searchSuggestions]
+          : [];
+      for (const suggestion of suggestions) {
         const frame = document.createElement("iframe");
         frame.title = "Google 検索の関連候補";
         frame.setAttribute(
@@ -42,7 +47,7 @@ export function initApp(app) {
           "allow-popups allow-popups-to-escape-sandbox",
         );
         frame.referrerPolicy = "no-referrer";
-        frame.srcdoc = result.searchSuggestions;
+        frame.srcdoc = suggestion;
         $("#reviewSuggestions").append(frame);
       }
       const p = property();
@@ -54,16 +59,6 @@ export function initApp(app) {
         : "";
     },
   });
-  function renderOwn() {
-    const p = property();
-    $("#ownObservations").innerHTML = (store.state.observations || [])
-      .filter((o) => o.candidateId === p?.id)
-      .map(
-        (o) =>
-          `<article class="review-entry"><h4>自分の内見記録 · ${e(o.date)}</h4><p>${e(o.text)}</p><button class="link-button" data-remove-observation="${e(o.id)}">この記録を削除</button></article>`,
-      )
-      .join("");
-  }
   function render() {
     const select = $("#reviewCandidate"),
       old = select.value;
@@ -71,7 +66,6 @@ export function initApp(app) {
       .map((p) => `<option value="${e(p.id)}">${e(p.name)}</option>`)
       .join("");
     if (store.state.properties.some((p) => p.id === old)) select.value = old;
-    renderOwn();
     if (active) research.select(property());
   }
   $("#reviewCandidate").addEventListener("change", render);
@@ -98,32 +92,6 @@ export function initApp(app) {
       $("#reviewStatus").textContent =
         "投稿を事実として断定せず、内見での確認事項に加えました。";
     }
-  });
-  $("#observationForm [name=date]").value = new Date(Date.now() + 9 * 3600000)
-    .toISOString()
-    .slice(0, 10);
-  $("#observationForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    try {
-      const form = Object.fromEntries(new FormData(event.target));
-      const entry = observation(property()?.id, form.text, form.date);
-      store.setObservations(
-        [...(store.state.observations || []), entry].slice(-100),
-      );
-      $("#observationForm [name=text]").value = "";
-      $("#reviewStatus").textContent = "自分の内見記録を保存しました。";
-    } catch (error) {
-      $("#reviewStatus").textContent = error.message;
-    }
-  });
-  $("#ownObservations").addEventListener("click", (event) => {
-    const b = event.target.closest("[data-remove-observation]");
-    if (b)
-      store.setObservations(
-        store.state.observations.filter(
-          (o) => o.id !== b.dataset.removeObservation,
-        ),
-      );
   });
   store.on("change", render);
   render();

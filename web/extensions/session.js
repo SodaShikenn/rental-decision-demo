@@ -1,5 +1,5 @@
 const DB_NAME = 'rental-helper-session';
-const KEYS = ['properties', 'settings', 'priorities', 'rentOverrides', 'pickOverrides', 'answers', 'memoEdit', 'memoEditVersion', 'sheetsVersion', 'advisor', 'observations'];
+const KEYS = ['properties', 'settings', 'priorities', 'rentOverrides', 'pickOverrides', 'answers', 'sheetsVersion', 'advisor'];
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -38,7 +38,11 @@ export async function restoreSession() {
     const blob = snapshot.images?.[property.id];
     if (blob instanceof Blob && property.sheet) property.sheet.image = URL.createObjectURL(blob);
   }
-  return snapshot.state;
+  return restoredState(snapshot.state);
+}
+// Old handwritten notes/memo overrides never re-enter the generated analysis.
+export function restoredState(state) {
+  return Object.fromEntries(KEYS.filter((key) => key in state).map((key) => [key, state[key]]));
 }
 export function sessionSnapshot(state) {
   const copy = structuredClone(Object.fromEntries(KEYS.map((key) => [key, state[key]])));
@@ -71,7 +75,7 @@ export function attachSession(store, initialError = false) {
       if (current === revision) status.textContent = 'このブラウザに保存済み';
     }).catch(() => { if (current === revision) status.textContent = '保存できませんでした。このタブを閉じる前にメモをコピーしてください。'; });
   };
-  store.on('change', save); store.on('memo', save); store.on('advisor', save);
+  store.on('change', save); store.on('advisor', save);
   status.textContent = initialError ? '保存データを復元できませんでした。次の変更から保存します。' : 'このブラウザに自動保存';
   if (!initialError) save();
   document.querySelector('#clearSession').addEventListener('click', async () => {

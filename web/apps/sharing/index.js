@@ -9,7 +9,6 @@ export function initApp(app) {
   let busy = false;
   const brief = () =>
     buildBrief(store.state, {
-      includeObservations: $("#shareObservations").checked,
       includeDestination: $("#shareDestination").checked,
       destination: app.extensions.workDestination?.() || "",
     });

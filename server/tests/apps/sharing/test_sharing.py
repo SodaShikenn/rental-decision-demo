@@ -63,11 +63,19 @@ def test_api_roundtrip_rejects_provider_blobs_and_keeps_tokens_out_of_paths(
             ocr_reader=stub_ocr(),
         )
     )
-    response = client.post("/api/shares", json={"brief": brief(), "expiresInDays": 1})
+    response = client.post(
+        "/api/shares",
+        json={
+            "brief": {**brief(), "observations": ["retired private viewing note"]},
+            "expiresInDays": 1,
+        },
+    )
     assert response.status_code == 201
     created = response.json()
     read = client.post("/api/shares/read", json={"token": created["token"]})
     assert read.status_code == 200 and read.headers["cache-control"] == "no-store"
+    assert "observations" not in read.json()["brief"]
+    assert "retired private viewing note" not in read.text
     assert (
         client.post(
             "/api/shares",

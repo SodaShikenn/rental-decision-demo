@@ -37,9 +37,10 @@ test("share uses an allowlist and private details require explicit selection", (
       .destination,
     "勤務先",
   );
-  assert.equal(
-    buildBrief(state, { includeObservations: true }).observations.length,
-    1,
+  assert.ok(
+    !JSON.stringify(buildBrief(state, { includeObservations: true })).includes(
+      "自分の記録",
+    ),
   );
 });
 test("shared and downloaded markup cannot execute untrusted content", () => {

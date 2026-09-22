@@ -42,7 +42,7 @@ export function createReviewResearch({
     controller = new AbortController();
     const signal = controller.signal;
     const controllerForRequest = controller;
-    const timer = setTimeout(() => controllerForRequest.abort(), 120_000);
+    const timer = setTimeout(() => controllerForRequest.abort(), 190_000);
     const update = (entry) => {
       if (id !== generation) return;
       cache.set(key, { ...entry, at: now() });

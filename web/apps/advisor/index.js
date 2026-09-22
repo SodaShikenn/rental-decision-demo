@@ -34,8 +34,6 @@ export function initApp(app) {
     $('#advisorBody').innerHTML = reply ? `<p class="eyebrow">AI の分析 · 解釈は確認してください</p>${reply.insights.map((i) => `<div class="advisor-insight"><p>${e(i.text)}</p>${source(i.evidenceIds)}</div>`).join('')}
       ${reply.proposals.map((p, index) => `<div class="advisor-proposal"><h4>回答から見えてきた希望（まだ未確定）</h4><p>${e(p.text)}</p><p>重要度：${e(LEVELS[p.level])}${p.key !== 'note' ? ` · ${e(formatPriority(p.key, p.value))}${p.key === 'area' ? '以上' : '以下'}` : ''}</p><p class="section-hint">あなたの回答：「${e(p.userQuote)}」</p><button class="button" data-confirm-proposal="${index}" ${busy ? 'disabled' : ''}>この理解で希望に加える</button><button class="button button--text" data-dismiss-proposal="${index}" ${busy ? 'disabled' : ''}>今回は加えない</button></div>`).join('')}
       <h3 id="advisorQuestion" tabindex="-1">${e(reply.question)}</h3>${source(reply.evidenceIds)}<div class="discovery-options">${[...reply.options, 'まだ決められない・条件による'].map((option) => `<button class="button" data-advisor-answer="${e(option)}" ${busy ? 'disabled' : ''}>${e(option)}</button>`).join('')}</div>` : '<p>候補の費用・広さ・設備・契約と、確認済みの地図情報から考えます。最初に希望を書く必要はありません。</p>';
-    $('#advisorReplyForm').hidden = !reply;
-    $('#advisorReplyForm button').disabled = busy;
     $('#advisorHistory').innerHTML = (session.history ?? []).map((turn) => `<p><strong>${turn.role === 'user' ? 'あなた' : 'AI'}：</strong>${e(turn.text)}</p>`).join('') || '<p>相談を始めると、ここに会話が残ります。</p>';
     $('#advisorNotes').innerHTML = (store.state.priorities.notes ?? []).map((note, i) => `<li>${e(LEVELS[note.level])}：${e(note.text)} <button class="link-button" data-remove-note="${i}">取り消す</button></li>`).join('');
     $('#advisorRetry').hidden = !retryHistory;
@@ -67,7 +65,6 @@ export function initApp(app) {
         $('#advisorStatus').textContent = '候補や希望が変わりました。今の情報で相談を再開してください。'; return;
       }
       store.setAdvisor({ history: history.slice(-22), reply, fingerprint, usesMaps: items.some((i) => i.kind === 'maps') });
-      $('#advisorReply').value = '';
       $('#advisorStatus').textContent = 'AIの解釈です。提案した希望は、確認してからメモに反映します。';
     } catch (error) {
       if (id === sequence) { retryHistory = history; $('#advisorStatus').textContent = error.name === 'AbortError' ? '相談がタイムアウトしました。再試行できます。' : error.message; }
@@ -92,7 +89,6 @@ export function initApp(app) {
     $('#advisorStatus').textContent = confirm != null ? '希望を確認しました。数値条件は候補との比較に、それ以外の希望はメモに反映しました。' : '希望には加えませんでした。';
     render();
   });
-  $('#advisorReplyForm').addEventListener('submit', (event) => { event.preventDefault(); const value = $('#advisorReply').value.trim(); if (value) run(value); });
   $('#advisorNotes').addEventListener('click', (event) => {
     const button = event.target.closest('[data-remove-note]'); if (!button) return;
     store.setPriorities({ ...store.state.priorities, notes: store.state.priorities.notes.filter((_, i) => i !== Number(button.dataset.removeNote)) });

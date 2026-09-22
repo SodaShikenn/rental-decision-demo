@@ -5,11 +5,7 @@ import { safeLink } from "../../shared/maps.js";
 /** Build a fresh allowlisted document, never serialize application state wholesale. */
 export function buildBrief(
   state,
-  {
-    includeObservations = false,
-    includeDestination = false,
-    destination = "",
-  } = {},
+  { includeDestination = false, destination = "" } = {},
 ) {
   return {
     title: "住まい選びの条件メモ",
@@ -33,14 +29,6 @@ export function buildBrief(
     })),
     preferences: priorityMemo(state.priorities),
     questions: buildTenantMemo(state).ask,
-    observations: includeObservations
-      ? (state.observations || [])
-          .filter((o) => state.properties.some((p) => p.id === o.candidateId))
-          .map(
-            (o) =>
-              `${state.properties.find((p) => p.id === o.candidateId).name}（${o.date}）: ${o.text}`,
-          )
-      : [],
     destination: includeDestination ? destination : "",
   };
 }

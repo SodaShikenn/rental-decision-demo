@@ -1,14 +1,14 @@
 // Condition-memo DOM: chips for what the sheets print (with counts), questions raised by clauses on the
-// sheets, and the memo itself, which the person can edit and copy to take to a listing portal or an agent.
+// sheets, and the memo itself, which is generated from confirmed choices and can be copied to take to a listing portal or an agent.
 import { $, $$, escapeHTML } from "../../helper.js";
 import { buildTenantMemo } from "./services.js";
 
 // What the last render showed, so a chip whose count moved (a sheet was added or removed) flashes
-// once, and an edited memo can say what changed since the edit began.
-const view = { counts: null, sheetsAtEdit: null, textAtEdit: null };
+// once when its underlying candidate evidence changes.
+const view = { counts: null };
 
-function leadText(n) {
-  return "自分で選んだ条件と、次に確認したいこと。必要に応じて書き換えられます。";
+function leadText() {
+  return "候補の分析と確認した回答から、自動で整理しています。";
 }
 
 function chipTitle(chip) {
@@ -49,54 +49,18 @@ function keepFocus(container, redraw) {
   if (key) $(key, container)?.focus();
 }
 
-function noticeText(state, generated) {
-  const n = state.properties.length;
-  if (state.memoEditVersion != null && state.sheetsVersion !== state.memoEditVersion) {
-    if (n > view.sheetsAtEdit) return "図面が増えました";
-    if (n < view.sheetsAtEdit) return "図面が減りました";
-    return "図面が変わりました";
-  }
-  if (view.textAtEdit != null && generated !== view.textAtEdit) return "選んだ条件が変わりました";
-  return "";
-}
-
-/** Grow the textarea to its text, so the whole memo reads without an inner scrollbar. */
-function fitMemo(textarea) {
-  textarea.style.height = "auto";
-  textarea.style.height = `${textarea.scrollHeight + 2}px`;
-}
-
-/** Put the memo in the textarea unless the person is editing it; show 元に戻す and what changed since the edit. */
-function renderMemoText(state, generated) {
-  const textarea = $("#memo");
-  const edited = state.memoEdit != null;
-  if (!edited) {
-    view.sheetsAtEdit = null;
-    view.textAtEdit = null;
-    if (textarea.value !== generated) textarea.value = generated;
-  } else if (document.activeElement !== textarea && textarea.value !== state.memoEdit) {
-    textarea.value = state.memoEdit;
-  }
-  fitMemo(textarea);
-  $("#memoReset").hidden = !edited;
-  const notice = edited ? noticeText(state, generated) : "";
-  $("#memoNotice").hidden = !notice;
-  $("#memoNoticeText").textContent = notice;
-}
-
-/** Only the memo text and its controls: after the person typed, or asked for the generated text back. */
-export function renderMemo(app) {
-  const { state } = app.extensions.store;
-  renderMemoText(state, buildTenantMemo(state).text);
+/** A read-only output of candidate analysis and explicitly confirmed choices. */
+function renderMemoText(generated) {
+  const memo = $("#memo");
+  if (memo.textContent !== generated) memo.textContent = generated;
 }
 
 export function renderNeeds(app) {
   const { state } = app.extensions.store;
-  const n = state.properties.length;
   const memo = buildTenantMemo(state);
   const generated = memo.text;
 
-  $("#needsLead").textContent = leadText(n);
+  $("#needsLead").textContent = leadText();
 
   const counts = new Map(memo.chips.map((chip) => [chip.key, chip.count]));
   const changed = new Set(view.counts ? memo.chips.filter((chip) => view.counts.get(chip.key) !== chip.count).map((chip) => chip.key) : []);
@@ -113,22 +77,26 @@ export function renderNeeds(app) {
   });
   $("#questionBlock").hidden = memo.questions.length === 0;
 
-  renderMemoText(state, generated);
+  renderMemoText(generated);
   $("#copyMemo").disabled = false;
 }
 
 /** Copy with the Clipboard API; where it is refused, select the text and try the older copy command. */
 async function copyMemo() {
-  const textarea = $("#memo");
+  const memo = $("#memo");
   const status = $("#memoStatus");
   status.textContent = "";
   try {
     if (!navigator.clipboard?.writeText) throw new Error("unavailable");
-    await navigator.clipboard.writeText(textarea.value);
+    await navigator.clipboard.writeText(memo.textContent);
     status.textContent = "コピーしました";
   } catch {
-    textarea.focus();
-    textarea.select();
+    memo.focus();
+    const range = document.createRange();
+    range.selectNodeContents(memo);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
     let copied = false;
     try {
       copied = document.execCommand("copy");
@@ -141,7 +109,6 @@ async function copyMemo() {
 
 export function bindNeeds(app) {
   const { store } = app.extensions;
-  const textarea = $("#memo");
 
   $("#aspectChips").addEventListener("click", (event) => {
     const chip = event.target.closest("[data-aspect]");
@@ -156,25 +123,5 @@ export function bindNeeds(app) {
     store.answer(question, value);
   });
 
-  textarea.addEventListener("input", () => {
-    const generated = buildTenantMemo(store.state).text;
-    if (store.state.memoEdit == null) {
-      view.sheetsAtEdit = store.state.properties.length;
-      view.textAtEdit = generated;
-    }
-    // Typing the generated text back is the same as not having edited it.
-    store.setMemoEdit(textarea.value === generated ? null : textarea.value);
-    $("#memoStatus").textContent = "";
-  });
-  const reset = () => {
-    store.setMemoEdit(null);
-    $("#memoStatus").textContent = "";
-    textarea.focus();
-  };
-  $("#memoReset").addEventListener("click", reset);
-  $("#memoRebuild").addEventListener("click", reset);
   $("#copyMemo").addEventListener("click", copyMemo);
-  // Line wrapping changes with the width and once the web font arrives.
-  window.addEventListener("resize", () => fitMemo(textarea));
-  document.fonts?.ready.then(() => fitMemo(textarea));
 }

@@ -25,19 +25,3 @@ export function reviewTopics(reviews) {
     indices: reviews.flatMap((r, i) => (topic.words.test(r.text) ? [i] : [])),
   })).filter((t) => t.indices.length);
 }
-export function observation(candidateId, text, date) {
-  if (
-    !candidateId ||
-    !text.trim() ||
-    text.trim().length > 1000 ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(date)
-  )
-    throw new Error("候補・日付・確認した内容を入力してください。");
-  return {
-    id: crypto.randomUUID(),
-    candidateId,
-    text: text.trim(),
-    date,
-    kind: "own_viewing",
-  };
-}

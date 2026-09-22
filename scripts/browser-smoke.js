@@ -84,6 +84,45 @@ async (page) => {
   let reviewRequests = 0;
   await page.route("**/api/reviews/web", (route) => {
     reviewRequests++;
+    if (reviewRequests === 2)
+      return route.fulfill({
+        json: {
+          status: "found",
+          tier: "nearby",
+          sourceCount: 1,
+          checkedAt: new Date().toISOString(),
+          reviews: [
+            {
+              text: "検証用：近隣の建物での静かという声。",
+              scope: "nearby_building",
+              room: "",
+              publishedDate: null,
+              sourceTitle: "検証用の出典",
+              url: "https://example.com/neighbor-review",
+              reference: {
+                name: "検証用の近隣マンション",
+                address: "東京都テスト区1-2-3",
+                distanceMeters: 80,
+                url: "https://maps.google.com",
+                attributions: [],
+              },
+            },
+          ],
+          otherPages: [],
+          searchSuggestions: [],
+        },
+      });
+    if (reviewRequests === 3)
+      return route.fulfill({
+        json: {
+          status: "no_reviews",
+          tier: "none",
+          sourceCount: 0,
+          reviews: [],
+          otherPages: [],
+          searchSuggestions: [],
+        },
+      });
     return route.fulfill({
       json: {
         checkedAt: new Date().toISOString(),
@@ -144,43 +183,38 @@ async (page) => {
   if (reviewRequests !== 1)
     throw new Error("Review navigation must reuse session results");
   await page.locator("[data-review-topic=sound]").click();
-  await page
-    .locator("#observationForm textarea")
-    .fill("ブラウザ検証用：夜の音を現地で確認");
-  await page.locator("#observationForm button").click();
+  if (await page.locator("#observationForm, #advisorReplyForm").count())
+    throw Error("Manual requirement inputs must be removed");
   await page.locator("#tab-needs").click();
-  const memo = await page.locator("#memo").inputValue();
-  for (const phrase of [
-    "徒歩を少なく",
-    "公園を週に数回",
-    "週0日",
-    "ブラウザ検証用",
-  ])
+  const memo = await page.locator("#memo").textContent();
+  for (const phrase of ["徒歩を少なく", "公園を週に数回", "週0日"])
     if (!memo.includes(phrase)) throw Error("memo missing " + phrase);
+  if (
+    (await page
+      .locator("#memo")
+      .evaluate((el) => getComputedStyle(el).whiteSpace)) !== "pre-wrap"
+  )
+    throw Error("Generated brief must preserve paragraph and list breaks");
+  await page.locator("#copyMemo").click();
+  await page.getByText("コピーしました", { exact: true }).waitFor();
   await page.locator("#tab-sharing").click();
+  if (await page.locator("#shareObservations").count())
+    throw Error("Retired notes must not be shareable");
   if (
-    (await page.locator("#sharePreview").textContent()).includes(
-      "ブラウザ検証用",
-    )
+    await page
+      .locator("#memo")
+      .evaluate((el) => el.matches("textarea, input, [contenteditable=true]"))
   )
-    throw Error("own observation leaked by default");
-  await page.locator("#shareObservations").check();
-  if (
-    !(await page.locator("#sharePreview").textContent()).includes(
-      "ブラウザ検証用",
-    )
-  )
-    throw Error("observation opt-in failed");
+    throw Error("Decision brief must be generated and read-only");
   if (
     (await page.locator("#sharePreview").textContent()).includes(
       "検証用：昼は静かでした。",
     )
   )
-    throw Error("Provider review leaked into share preview");
+    throw Error("Review text leaked into share");
   const download = page.waitForEvent("download");
   await page.locator("#exportBrief").click();
   await (await download).saveAs("output/playwright/brief-export.html");
-  await page.locator("#shareObservations").uncheck();
   await page.locator("#createShare").click();
   await page.locator("#shareLinks a").first().waitFor();
   const link = await page.locator("#shareLinks a").first().getAttribute("href");
@@ -189,10 +223,10 @@ async (page) => {
   await reader.locator("#sharedBrief h2").waitFor();
   if (
     (await reader.locator("#sharedBrief").textContent()).includes(
-      "ブラウザ検証用",
+      "検証用：昼は静かでした。",
     )
   )
-    throw Error("shared private notes");
+    throw Error("provider review leaked into shared brief");
   await page.locator("[data-revoke-share]").first().click();
   await reader.reload();
   await reader
@@ -213,10 +247,26 @@ async (page) => {
     await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
   )
     throw Error("Review results mobile overflow");
+  await page.locator("#reviewSearch").click();
+  await page.locator(".review-reference").waitFor();
+  if (
+    !(await page.locator("#reviewResults").textContent()).includes("直線 約80m")
+  )
+    throw Error("Nearby distance missing");
+  if (
+    !(await page.locator("#reviewResults").textContent()).includes(
+      "この候補に当てはめることはできません",
+    )
+  )
+    throw Error("Nearby evidence was not distinguished");
   await page.screenshot({
     path: "output/playwright/reviews-mobile-fixture.png",
     fullPage: true,
   });
+  await page.locator("#reviewSearch").click();
+  await page.getByText("検索済み", { exact: true }).waitFor();
+  if ((await page.locator("#reviewResults").textContent()).trim())
+    throw Error("Empty search must leave reviews blank");
   await page.locator("#workspaceSelect").selectOption("surroundings");
   if (
     await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)

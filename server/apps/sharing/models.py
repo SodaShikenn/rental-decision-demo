@@ -33,7 +33,8 @@ class Brief(StrictModel):
     candidates: list[SharedCandidate] = Field(max_length=6)
     preferences: str = Field(max_length=8000)
     questions: list[str] = Field(max_length=100)
-    observations: list[str] = Field(default_factory=list, max_length=100)
+    # Accept older clients without saving or redisplaying their retired notes.
+    observations: list[str] = Field(default_factory=list, max_length=100, exclude=True)
     destination: str = Field(default="", max_length=300)
 
     @field_validator("questions", "observations")

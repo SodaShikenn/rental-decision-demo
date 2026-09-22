@@ -86,11 +86,6 @@ export function initApp(app) {
     document.title = `${VIEWS.find((entry) => entry.key === view).label} | Rental Helper`;
     if (updateUrl && location.hash !== `#${view}`)
       history.pushState(null, "", `#${view}`);
-    if (view === "needs") {
-      const memo = $("#memo");
-      memo.style.height = "auto";
-      memo.style.height = `${memo.scrollHeight + 2}px`;
-    }
     if (focus) $(`#panel-${view}`).focus({ preventScroll: true });
     store.emit("view", view);
   }

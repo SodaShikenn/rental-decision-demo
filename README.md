@@ -29,7 +29,7 @@ Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page puts its c
 | Open the demo at… | What to do there |
 | --- | --- |
 | [候補比較 — compare](https://sodashikenn.github.io/rental-helper/#compare) | Add images/links, compare facts, and confirm candidate-based priorities with AI or numeric questions. |
-| [通勤 — commute](https://sodashikenn.github.io/rental-helper/#commute) | Choose a Tokyo hub (Shibuya first for these samples), with 08:00 arrival / 18:00 return defaults. |
+| [通勤 — commute](https://sodashikenn.github.io/rental-helper/#commute) | Choose a Tokyo hub and open each candidate’s outbound/return route in Google Maps. Works without API keys. |
 | [駅・買い物 — essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check each candidate's listed walking claims against Maps. |
 | [余暇 — leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Find nearby parks, gyms and cafés before discussing preferences. |
 | [口コミ分析 — review analysis](https://sodashikenn.github.io/rental-helper/#reviews) | Automatically search public web reviews for a candidate, inspect sources/unit scope, and use the resulting analysis without writing requirements. |
@@ -82,7 +82,7 @@ Saving is specific to this browser. Maps observations and conversations containi
 <details>
 <summary><strong>Explore the new modules: commute, leisure, reviews and sharing</strong></summary>
 
-- **通勤:** choose from eight Tokyo hubs or search a work address. The sample areas suggest Shibuya; this is a starting point, not a preference or time ranking. Defaults are 08:00 arrival / 18:00 return departure, Japan time. Outbound and return are queried independently.
+- **通勤:** choose from eight Tokyo hubs or specify a work address. The sample areas suggest Shibuya; this is a starting point, not a preference or time ranking. Each candidate has immediate outbound/return buttons, prefilled with endpoints and transport mode. The 08:00 arrival / 18:00 departure reminders must be set inside Maps; official Maps URLs cannot carry date/time.
 - **余暇:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
 - **暮らしの試算:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
 - **口コミ分析:** select a candidate; the app searches the room, then its building, then up to three Maps-verified neighboring residences within 300 m. Read source-linked summaries with the actual building and distance, then choose which concerns matter. If none are found, the review area stays blank.
@@ -92,7 +92,7 @@ Saving is specific to this browser. Maps observations and conversations containi
 
 [![Share preview and privacy options](docs/images/sharing.png)](docs/images/sharing.png)
 
-These screenshots show the actual forms and preview, without fabricated provider results. Google officially [excludes Japan from Routes API transit coverage](https://developers.google.com/maps/faq#transit_directions_countries). Live checks on September 22 confirmed destination search, precise geocoding and walking routes; all six transit directions across the three sample buildings were empty. The UI states this limit and provides outbound/return Maps links; set the desired time again in Maps.
+These screenshots show the actual forms and preview, without fabricated provider results. Google officially [excludes Japan from Routes API transit coverage](https://developers.google.com/maps/faq#transit_directions_countries). Live checks on September 22 confirmed destination search, precise geocoding and walking routes; all six transit directions across the three sample buildings were empty. The commute page now opens Google Maps directly, without waiting for API results. [Official Maps URLs](https://developers.google.com/maps/documentation/urls/get-started) require no key and carry endpoints/mode, but not date/time. Results are not imported into the app.
 
 [Follow the implementation through the repository →](docs/CODE_TOUR.md)
 
@@ -108,12 +108,12 @@ These screenshots show the actual forms and preview, without fabricated provider
 | Station and grocery walking checks | Geocoding + Places (New) + WALK Routes integrated; previous local live checks succeeded. |
 | Candidate-based AI conversation | Implemented with cited context and explicit preference confirmation; live-provider reliability remains under evaluation. |
 | Preference fit, generated memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
-| Commute and scenario comparison | Implemented: hub menu, 08:00/18:00 defaults, separate outbound/return results and weekly totals only when both exist. **Google Routes does not cover Japan transit**; walking works, public-transport times need another provider. |
+| Commute and scenario comparison | Direct Google Maps handoff: eight hubs/custom destination, outbound/return links, transport mode and 08:00/18:00 reminders. Works on Pages without an API. In-app Japan transit times and automatic weekly totals await a suitable provider. |
 | Leisure discovery | Implemented; real parks/gyms/cafés, optional regular destination, frequency/importance confirmation. Live park/WALK slice succeeded. |
 | Automatic review analysis | Implemented: room → building → nearby residential references within 300 m. Empty evidence stays blank; no manual diary or requirement entry. Live GRAN PASEO search returned Gemini busy; successful retrieval and source coverage still need validation. |
 | Brief export and sharing | HTML preview/download; backend links expire in 1–7 days and support revocation. Public sharing requires API hosting. |
 
-**Validation:** 238 tests passed on September 22, 2026: 108 frontend and 130 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
+**Validation:** 241 tests passed on September 22, 2026: 111 frontend and 130 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
 
 ## What this project demonstrates
 
@@ -162,7 +162,7 @@ flowchart LR
 
 The feature modules are implemented; the remaining work is provider coverage and release validation:
 
-1. Obtain and validate usable public-transit routes for representative Japanese commutes.
+1. Evaluate the direct Maps commute workflow with tenants; consider an additional transit provider only for future in-app numeric comparison.
 2. Validate automatic web-review retrieval against real apartment buildings and evaluate source coverage.
 3. Deploy the API with durable share storage; verify public access, expiry and revocation.
 4. Evaluate live Gemini quality, provider latency/cost and tenant usability.

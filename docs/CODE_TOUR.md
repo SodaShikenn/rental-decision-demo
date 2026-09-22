@@ -4,24 +4,20 @@
 
 ## Start with one vertical slice
 
-Follow **commute comparison** from the screen to the provider and back:
+Follow **the commute handoff** without credentials or a running API:
 
-1. [Frontend controller](../web/apps/commute/index.js): confirms a destination, captures one schedule, cancels old requests and rejects stale results.
-2. [Pure input/question logic](../web/apps/commute/services.js): Japan-time conversion and explicit preference confirmation. [Tests](../web/tests/apps/commute/services.test.js).
-3. [View templates](../web/apps/commute/views.js): returned alternatives, unknown values, route attribution and the question.
-4. [API router](../server/apps/commute/__init__.py): configuration and rate-limit boundary.
-5. [Request models](../server/apps/commute/models.py): bounded shortlist, unique identities, aware timestamps and provider time window.
-6. [Service](../server/apps/commute/services.py): one destination/schedule, limited concurrency, independent candidate failures, recommendations within returned routes.
-7. [Provider adapter](../server/providers/google_maps.py) and [normalization](../server/providers/routes.py): HTTP details and missing-field handling. No API key reaches the browser.
-8. [Contract tests](../server/tests/apps/commute/test_commute.py): injected HTTP transport, no provider calls or keys.
+1. [Destination logic](../web/apps/commute/destinations.js): curated hubs, transparent area suggestions and Japan-weekday schedule reminders.
+2. [Controller](../web/apps/commute/index.js): ephemeral destination/mode changes update links immediately. It never turns navigation into route evidence or a preference.
+3. [Pure URL builder](../web/apps/commute/links.js): encoded endpoints, reversed return route, supported transport modes, missing-location and 2,048-character guards. [Tests](../web/tests/apps/commute/links.test.js).
+4. [Views](../web/apps/commute/views.js): accessible external links, qualified-name fallback labels, and an explicit date/time handoff reminder.
 
-The [destination module](../web/apps/commute/destinations.js) owns hub suggestions and Japan-time morning/evening defaults. Both route directions are requested independently; only complete pairs produce weekly round-trip estimates. Google officially excludes Japan transit, matching the empty live six-direction test; successful WALK is not evidence of transit coverage. [Repeat the diagnostic](../server/commands/check_maps.py).
+The existing [backend route service](../server/apps/commute/services.py), [request models](../server/apps/commute/models.py), [provider adapter](../server/providers/google_maps.py) and [contract tests](../server/tests/apps/commute/test_commute.py) remain independent, optional infrastructure. The current commute UI does not call them. `services.js` retains pure API-input/observation helpers for that integration; scenarios share its objective labels. Google excludes Japan transit from Routes API. The direct-link UI does not provide route observations to scenarios/advice, so automatic commute totals remain unknown. [Live diagnostic](../server/commands/check_maps.py).
 
 ## Feature map
 
 | Module | User outcome | Frontend | Backend | Focused tests |
 | --- | --- | --- | --- | --- |
-| Commute | Same destination/time, route alternatives, confirmed intent | [commute](../web/apps/commute/) | [commute](../server/apps/commute/) | [web](../web/tests/apps/commute/) / [API](../server/tests/apps/commute/) |
+| Commute | Prefilled Google Maps outbound/return links; no API required | [commute](../web/apps/commute/) | [commute](../server/apps/commute/) | [web](../web/tests/apps/commute/) / [API](../server/tests/apps/commute/) |
 | Leisure | Actual places → frequency/importance → accepted preference | [leisure](../web/apps/leisure/) | [leisure](../server/apps/leisure/) | [web](../web/tests/apps/leisure/) / [API](../server/tests/apps/leisure/) |
 | Scenarios | Explain known costs and route tradeoffs without a total score | [scenarios](../web/apps/scenarios/) | Pure client calculation | [web](../web/tests/apps/scenarios/) |
 | Reviews | Automatically find web reviews, verify source identity/scope, expand from unit to building to verified nearby references | [reviews](../web/apps/reviews/) | [reviews](../server/apps/reviews/) | [web](../web/tests/apps/reviews/) / [API](../server/tests/apps/reviews/) |

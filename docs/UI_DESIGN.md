@@ -81,9 +81,9 @@ The retrieval ladder is visible beside the candidate selector: **この部屋 �
 
 | Before | After |
 | --- | --- |
-| Empty destination search | Eight Tokyo hubs, with Shibuya suggested from these candidates' areas; custom address search remains an explicit menu option |
-| Single 09:00 schedule | Next Japan weekday, 08:00 destination arrival and 18:00 departure for the return; times remain editable |
-| Five settings open at once | Date and morning/evening first; transport mode, frequency and objective under a native disclosure |
-| Single result per candidate | Separate outbound/return legs, status counts and direction-specific Maps links |
+| Resolve a destination via API, then wait for unsupported Japan transit results | Eight Tokyo hubs or a custom address; immediate outbound/return Maps buttons |
+| Errors and route settings dominate the page | Candidate name/address and two clear external actions |
+| Date/time appear to be sent to the route result | Visible 08:00 arrival / 18:00 departure reminder; explicit instruction to set date/time in Maps |
+| Route requests block the public demo | Keyless links work on static Pages; destination and transport changes update them immediately |
 
-The suggestion is a transparent district heuristic, not an inferred job or a shortest-time claim. Multiple exact station matches stay selectable. Destination changes abort pending searches/route calls and clear old observations. Phones put the two time fields side by side; defaults never become confirmed requirements automatically. Japan transit is explicitly marked unavailable under Google's published coverage; no WALK substitution or fabricated durations appear.
+The suggestion is a transparent district heuristic, not an inferred job or shortest-time claim. Users confirm resolved endpoints and schedules inside Maps. Dates stay under a native disclosure; mobile actions have 44 px touch targets and distinct accessible names per candidate/direction. An external click never creates a verified observation or a saved preference. Screenshots show real UI and generated links, not route results.

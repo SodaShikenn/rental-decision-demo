@@ -140,7 +140,7 @@ npm run test:server
 git diff --check
 ```
 
-The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 108 frontend + 130 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 111 frontend + 130 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
 
 With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
 
@@ -178,9 +178,9 @@ Review fallback has a 180 s overall backend deadline and a 190 s browser timeout
 
 ## Commute defaults and live Maps verification
 
-`web/apps/commute/destinations.js` owns the eight curated Tokyo hubs, candidate-area suggestion, unambiguous station matching and next-weekday defaults. Holidays are not detected. A suggestion does not enter saved requirements. `08:00` means arrival at the destination; `18:00` means departure from it, both interpreted as Japan time regardless of the browser timezone. Other schedules remain editable.
+`web/apps/commute/destinations.js` owns the eight curated Tokyo hubs, candidate-area suggestion and next-weekday defaults (the station-matching helper remains for API clients). Holidays are not detected. A suggestion does not enter saved requirements. `08:00` means arrival at the destination; `18:00` means departure from it, both interpreted as Japan time regardless of the browser timezone. Other schedules remain editable.
 
-`returnAt` is optional for API compatibility, must follow `at`, and stays within the provider time window. Each leg has independent failure handling; a failed return does not discard an available outbound route. Weekly round-trip estimates require both directions. The UI retains each Maps link; official Maps direction URLs do not carry these times, so users must set them again there.
+`returnAt` is optional for API compatibility, must follow `at`, and stays within the provider time window. Each leg has independent failure handling; a failed return does not discard an available outbound route. Weekly round-trip estimates require both directions. This is an optional backend contract, not the current commute UI.
 
 Google [excludes Japan transit from Routes API coverage](https://developers.google.com/maps/faq#transit_directions_countries). Places, Geocoding and WALK availability do not imply electric-rail/bus routing availability. Live time comparison for Japan needs a different transit provider.
 
@@ -190,4 +190,10 @@ To repeat the bounded, **billed** check with configured credentials, from `serve
 .venv/bin/python -m commands.check_maps
 ```
 
-It searches Shibuya station, uses the first exact Tokyo match as a diagnostic target (reports the matching entity count), checks all three public sample buildings in both directions, and independently checks WALK for one building. Only status summaries are printed; keys and full provider route data are neither printed nor persisted. Unlike this diagnostic, the UI asks users to pick when multiple matching station entities exist. `/healthz` reports key configuration only, not live capability.
+It searches Shibuya station, uses the first exact Tokyo match as a diagnostic target (reports the matching entity count), checks all three public sample buildings in both directions, and independently checks WALK for one building. Only status summaries are printed; keys and full provider route data are neither printed nor persisted. The direct-link UI instead asks users to verify resolved locations inside Google Maps. `/healthz` reports key configuration only, not live capability.
+
+### Keyless commute handoff
+
+`web/apps/commute/links.js` constructs official Google Maps direction URLs. It sets only `api=1`, `origin`, `destination`, and `travelmode`; return links reverse the endpoints. The controller does not call Places or Routes, so this flow works on GitHub Pages. Date/time controls are reminders only: [official universal URLs](https://developers.google.com/maps/documentation/urls/get-started) do not support arrival/departure dates or times. Do not add undocumented encoded `data` blobs or imply that a click returns a route to the app.
+
+An address is preferred; a building name with a known district is a visibly tentative fallback. Missing locations never use the device location. Candidate changes rebuild links. Destination/schedule are transient; the opt-in share field includes only an explicitly selected destination, never an inferred workplace. `commuteObservation()` returns `null`; scenarios/advice receive no fabricated durations or evidence.

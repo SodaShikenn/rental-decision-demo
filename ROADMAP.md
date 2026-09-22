@@ -5,7 +5,7 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 | Milestone | Implementation | Remaining acceptance work |
 | --- | --- | --- |
 | R0 — release | Guided workspace and repeatable test/browser workflow | Public API, real Gemini evaluation, tenant usability study |
-| R1 — commute | Tokyo hub menu, 08:00/18:00 defaults, independent round-trip queries, explicit intent | Usable Japan public-transit coverage; live three-candidate journey |
+| R1 — commute | Tokyo hubs/custom address, direct outbound/return Maps links, schedule reminders; no API required | Tenant handoff evaluation; in-app transit comparison is a future extension |
 | R2 — leisure | Real nearby options, regular destination, frequency/importance confirmation | Broader real-world hours/route evaluation |
 | R3 — scenarios | Frequency, cost, route objective, leisure evidence, missing-value explanations | Evaluate competing objectives with tenants |
 | R4 — reports | Room → building → nearby fallback, cited analysis and evidence-linked choices | Real matched-building display; verified resident-source coverage |
@@ -22,18 +22,16 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 
 ## R1 — commutes to a work destination
 
-- [x] Suggest a Tokyo hub from candidate areas, preserve an explicit menu choice, and resolve ambiguous station entities visibly.
-- [x] Default to the next Japan weekday (holidays not detected), 08:00 arrival and 18:00 return departure; query and report each direction separately.
-- [x] Confirm a searched destination; require a timezone-aware schedule; compare all candidates with the same arrival/departure time and mode.
-- [x] Show returned duration, walking segments, transfers, boarding/alighting times, fare when supplied, source and retrieval time.
-- [x] Compare returned alternatives by time, fewer transfers or less walking; unknown metrics cannot win.
-- [x] Ask an evidence-based question, require importance confirmation, update the memo, and invalidate changed requests.
-- [x] Test timezone handling, missing routes/fares, partial failures and stale UI results.
-- [x] Run a live Tokyo check: destination search succeeded, but TRANSIT returned no routes. Preserve the missing result and Maps link.
-- [ ] Integrate and validate a provider covering Japan public transit. [Google explicitly excludes Japan](https://developers.google.com/maps/faq#transit_directions_countries); enabling its Routes API does not remove this coverage limit.
-- [ ] Demonstrate a live three-candidate journey and verify route/fare/time correctness independently.
+- [x] Suggest a Tokyo hub from candidate areas; preserve the user's explicit selection and allow a custom destination.
+- [x] Display outbound and return Google Maps buttons immediately for every locatable candidate. Prefill endpoints and transit/walking mode, without calling an API.
+- [x] Show next Japan weekday (holidays not detected), 08:00 arrival / 18:00 departure as editable reminders. Explain that official Maps URLs cannot carry date/time.
+- [x] Test reversed endpoints, encoded addresses, missing locations, length limits, custom destination changes, external-tab opening and absence of provider requests.
+- [x] Keep external navigation separate from verified observations and confirmed preferences. No automatic return of Maps results.
+- [x] Retain the independent backend route adapter and its timezone/partial-failure tests for future integration. Live checks found WALK usable but all six Japan transit directions empty.
+- [ ] Evaluate the handoff on real Android/iOS devices and with tenants.
+- [ ] Optional future extension: integrate and validate a provider covering Japan transit for in-app duration/fare comparison and evidence-based tradeoff questions. [Google explicitly excludes Japan](https://developers.google.com/maps/faq#transit_directions_countries).
 
-**Done when:** comparable real journeys support a confirmed tradeoff and memo. Listing station walk never substitutes for commute time. [Google transit contract](https://developers.google.com/maps/documentation/routes/transit-route).
+**Current delivery:** usable Maps handoff on the static public demo. **Future numeric comparison:** only independently retrieved journeys may become evidence or weekly totals. Listing station walk never substitutes for commute time.
 
 ## R2 — discover leisure preferences through nearby options
 
@@ -43,7 +41,7 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [x] Search and confirm an optional regular destination after interest is expressed; compare walking access.
 - [x] Keep proximity separate from running suitability, café work suitability, safety and current opening status.
 - [x] Test missing routes, closed facilities, empty results and ambiguous origins. Live park/WALK slice returned two places and two routes.
-- [ ] Evaluate more neighborhoods, opening-hours edge cases and longer regular journeys. Named leisure destinations currently use WALK; transit comparison is available in the commute module.
+- [ ] Evaluate more neighborhoods, opening-hours edge cases and longer regular journeys. Named leisure destinations currently use WALK; the commute module opens transit journeys in Google Maps.
 
 ## R3 — recommendations for explicit scenarios
 

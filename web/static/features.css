@@ -374,3 +374,62 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Direct map handoff: the candidate and its two actions remain the focal point. */
+.commute-handoff {
+  padding: 14px 18px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  margin-block: 8px 28px;
+}
+.commute-handoff p {
+  margin: 4px 0;
+}
+.commute-results-heading h3 {
+  margin-bottom: 8px;
+}
+.commute-candidate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 24px;
+  border-top: 1px solid var(--line);
+  padding-block: 22px;
+}
+.commute-candidate > div {
+  min-width: 0;
+}
+.commute-candidate h4 {
+  font-size: 18px;
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+.commute-candidate p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.commute-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.commute-actions .button {
+  min-height: 44px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .commute-candidate {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .commute-actions .button {
+    flex: 1;
+  }
+}
+.feature-workspace .feature-form.commute-form {
+  padding-block: 0;
+  border: 0;
+  margin-block: 18px 8px;
+  row-gap: 8px;
+}

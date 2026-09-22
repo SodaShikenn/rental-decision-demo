@@ -1,80 +1,13 @@
 async (page) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.route("**/api/destinations", (route) =>
-    route.fulfill({
-      json: {
-        places: [
-          {
-            id: "place_test",
-            name: "検証用勤務先",
-            address: "東京都テスト住所",
-            url: "https://www.google.com/maps",
-            attributions: [],
-          },
-        ],
-      },
-    }),
-  );
-  await page.route("**/api/commutes", (route) => {
-    const b = route.request().postDataJSON();
-    if (
-      b.timeKind !== "arrival" ||
-      !b.at.endsWith("T23:00:00.000Z") ||
-      !b.returnAt.endsWith("T09:00:00.000Z")
-    )
-      throw Error(
-        "Separate JST morning arrival and evening departure required",
-      );
-    return route.fulfill({
-      json: {
-        checkedAt: new Date().toISOString(),
-        destination: {
-          name: "検証用勤務先",
-          address: "東京都テスト住所",
-          url: "https://www.google.com/maps",
-        },
-        schedule: b,
-        candidates: b.candidates.map((c, i) => ({
-          ...c,
-          status: i === 2 ? "no_route" : "checked",
-          url: "https://www.google.com/maps",
-          recommended: i === 2 ? null : 0,
-          returnTrip: {
-            status: i === 1 ? "unavailable" : "checked",
-            recommended: i === 1 ? null : 0,
-            url: "https://www.google.com/maps",
-            routes:
-              i === 1
-                ? []
-                : [
-                    {
-                      minutes: 33 + i,
-                      walkingMinutes: 7,
-                      transfers: 1,
-                      lines: [],
-                      fare: null,
-                      warnings: [],
-                    },
-                  ],
-          },
-          routes:
-            i === 2
-              ? []
-              : [
-                  {
-                    minutes: 25 + i * 10,
-                    walkingMinutes: 5,
-                    transfers: i,
-                    lines: [],
-                    fare: null,
-                    warnings: [],
-                  },
-                ],
-        })),
-      },
+  let commuteApiRequests = 0;
+  for (const endpoint of ["destinations", "commutes"]) {
+    await page.route(`**/api/${endpoint}`, (route) => {
+      commuteApiRequests++;
+      return route.abort();
     });
-  });
+  }
   await page.route("**/api/leisure", (route) => {
     const b = route.request().postDataJSON();
     return route.fulfill({
@@ -181,29 +114,70 @@ async (page) => {
     (await page.locator("[name=evening]").inputValue()) !== "18:00"
   )
     throw Error("Morning/evening defaults missing");
-  await page.locator("#commuteForm button").click();
-  await page.locator("[data-destination]").waitFor();
-  await page.locator("[data-destination]").click();
-  await page.locator("#commuteResults .journey-candidate").first().waitFor();
-  await page.locator("#destinationPreset").selectOption("shinjuku");
-  if (await page.locator("#commuteResults .journey-candidate").count())
-    throw Error("Changed destination must clear old commute results");
-  await page.locator("#destinationPreset").selectOption("custom");
-  await page.locator("#destinationQuery").fill("新宿駅");
-  await page.locator("#destinationForm button").click();
-  await page.locator("[data-destination]").click();
-  await page.locator("#commuteForm button").click();
-  await page.locator("[data-commute-choice=fastest]").waitFor();
-  if (!(await page.locator("#commuteResults").textContent()).includes("33分"))
-    throw Error("Return journey missing");
+  const outbound = page.locator('[data-commute-link="outbound"]');
+  const returning = page.locator('[data-commute-link="return"]');
+  if ((await outbound.count()) !== 3 || (await returning.count()) !== 3)
+    throw Error(
+      "Each candidate needs immediately available outbound/return links",
+    );
+  const linkData = (link) =>
+    link.evaluate((el) => ({
+      href: el.href,
+      ...Object.fromEntries(new URL(el.href).searchParams),
+    }));
+  const outgoing = await linkData(outbound.first());
+  const incoming = await linkData(returning.first());
   if (
-    !(await page.locator("#commuteResults").textContent()).includes(
-      "対応する経路が返りませんでした",
+    outgoing.origin !== incoming.destination ||
+    outgoing.destination !== incoming.origin
+  )
+    throw Error("Return endpoints must be reversed");
+  if (
+    outgoing.destination !== "東京都 渋谷駅" ||
+    outgoing.travelmode !== "transit"
+  )
+    throw Error("Default destination/mode missing");
+  if (
+    !(await page.locator("#commuteTimeNotice").textContent()).includes(
+      "日時は引き継げない",
     )
   )
-    throw Error("partial failure missing");
-  await page.locator("[data-commute-choice=walking]").click();
-  await page.locator("[data-commute-level=prefer]").click();
+    throw Error("Time limitation must be visible");
+  await page.locator("#destinationPreset").selectOption("shinjuku");
+  if ((await linkData(outbound.first())).destination !== "東京都 新宿駅")
+    throw Error("Preset must update links immediately");
+  await page.locator("#destinationPreset").selectOption("custom");
+  if (await outbound.count())
+    throw Error("Empty destination must not launch a blank Maps route");
+  await page.locator("#destinationQuery").fill("東京都 新宿駅 西口 & 南口");
+  await page.locator("#commuteForm [name=mode]").selectOption("walking");
+  const custom = await linkData(outbound.first());
+  if (
+    custom.destination !== "東京都 新宿駅 西口 & 南口" ||
+    custom.travelmode !== "walking"
+  )
+    throw Error("Custom destination and mode must be encoded independently");
+  // Exercise the external-tab action without making a live Google request.
+  await page
+    .context()
+    .route("https://www.google.com/maps/**", (route) =>
+      route.fulfill({ body: "Maps handoff test" }),
+    );
+  const popupPromise = page.waitForEvent("popup");
+  await outbound.first().click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState();
+  if (popup.url() !== custom.href) throw Error("Wrong Maps handoff URL");
+  await popup.close();
+  if (commuteApiRequests)
+    throw Error("Maps links must work without backend/provider requests");
+  await page.locator("#tab-scenarios").click();
+  if (
+    !(await page.locator("#scenarioResults").textContent()).includes(
+      "検索結果は自動取得されません",
+    )
+  )
+    throw Error("External navigation must not become a verified route");
   await page.locator("#tab-leisure").click();
   await page.locator("#discoverLeisure").click();
   await page.locator("[data-interest=park]").click();
@@ -230,7 +204,7 @@ async (page) => {
     throw Error("Manual requirement inputs must be removed");
   await page.locator("#tab-needs").click();
   const memo = await page.locator("#memo").textContent();
-  for (const phrase of ["徒歩を少なく", "公園を週に数回", "週0日"])
+  for (const phrase of ["公園を週に数回", "週0日"])
     if (!memo.includes(phrase)) throw Error("memo missing " + phrase);
   if (
     (await page

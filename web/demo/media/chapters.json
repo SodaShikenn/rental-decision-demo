@@ -1,0 +1,58 @@
+[
+  {
+    "title": "Compare the homes you are already considering.",
+    "caption": "Recorded listing images become a side-by-side view. No requirements essay to get started.",
+    "start": 0,
+    "label": "Compare candidates",
+    "ja": "検討中の候補から比較を始めます。画像と記録済みの掲載情報を使い、最初に希望を書く必要はありません。"
+  },
+  {
+    "title": "A reference price is not a confirmed rent.",
+    "caption": "Inspect the source and room identity. Another unit's offer stays outside the budget calculation.",
+    "start": 5.5,
+    "label": "Inspect the evidence",
+    "ja": "別室の参考価格は、候補の確定賃料にしません。根拠と部屋の一致を確認します。"
+  },
+  {
+    "title": "Let the candidates start the conversation.",
+    "caption": "This AI exchange is scripted for the demo. The interface, evidence controls and actions are real.",
+    "start": 15.62,
+    "label": "Ask from real differences",
+    "ja": "候補の違いから質問します。この動画のAI応答は録画専用の固定データです。画面と操作は実際のアプリです。"
+  },
+  {
+    "title": "Choose a direction. Confirm the interpretation.",
+    "caption": "A tentative answer is not a saved requirement. Only your confirmation changes the comparison.",
+    "start": 26.26,
+    "label": "Confirm a priority",
+    "ja": "回答だけでは希望を保存しません。提案された解釈を本人が確認してから比較に反映します。"
+  },
+  {
+    "title": "Check the commute without retyping every address.",
+    "caption": "Tokyo hub menu + outbound/return Maps links. Set the 08:00 / 18:00 schedule inside Google Maps.",
+    "start": 39.48,
+    "label": "Check the commute",
+    "ja": "通勤先を選ぶと各候補の行き・帰りリンクを用意します。朝8時到着・夕18時出発はGoogle Maps側で設定します。"
+  },
+  {
+    "title": "Leave with a brief you can explain.",
+    "caption": "Confirmed priorities and unanswered questions are assembled automatically. No manual diary.",
+    "start": 52.82,
+    "label": "Read the decision brief",
+    "ja": "確認した希望と次の質問をメモに自動でまとめます。手入力の内見日記ではありません。"
+  },
+  {
+    "title": "Preview what leaves your browser.",
+    "caption": "Review the content, then save an HTML brief. Hosted share links need a connected backend.",
+    "start": 62.39,
+    "label": "Preview and export",
+    "ja": "共有する内容を確認してHTML保存。期限付きリンクにはバックエンドが必要です。"
+  },
+  {
+    "title": "Explore the product. Then inspect the engineering.",
+    "caption": "Try the public demo, follow the code tour, or run the project locally. Links are in the README.",
+    "start": 74.52,
+    "label": "Explore the project",
+    "ja": "公開デモを試し、コードツアーで設計を確認できます。READMEから各ページへ進めます。"
+  }
+]

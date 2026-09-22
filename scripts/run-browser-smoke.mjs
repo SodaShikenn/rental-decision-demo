@@ -2,9 +2,11 @@
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 const session = `rental-smoke-${process.pid}-${Date.now()}`;
-const scenario = process.argv.includes("--ui")
-  ? "browser-ui-smoke.js"
-  : "browser-smoke.js";
+const scenario = process.argv.includes("--demo")
+  ? "browser-demo-smoke.js"
+  : process.argv.includes("--ui")
+    ? "browser-ui-smoke.js"
+    : "browser-smoke.js";
 function run(...args) {
   const result = spawnSync(
     "npx",

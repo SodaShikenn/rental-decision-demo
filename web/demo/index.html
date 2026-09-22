@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="../static/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#183e32" />
+    <meta
+      name="description"
+      content="A chaptered product walkthrough of Rental Helper: compare apartments, inspect evidence, confirm priorities and export a decision brief."
+    />
+    <title>Rental Helper — Product walkthrough</title>
+    <link rel="stylesheet" href="demo.css" />
+    <script type="module" src="demo.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#walkthrough">Skip to video</a>
+    <header>
+      <a class="brand" href="../"
+        >Rental Helper<span>PRODUCT WALKTHROUGH</span></a
+      >
+      <nav aria-label="Project">
+        <a href="../">Try the app ↗</a
+        ><a href="https://github.com/SodaShikenn/rental-helper"
+          >View repository ↗</a
+        >
+      </nav>
+    </header>
+    <main>
+      <div class="intro">
+        <p class="eyebrow">A SHORTLIST IS ONLY THE START.</p>
+        <h1>
+          Find a home.<br class="mobile-break" />
+          Understand your priorities.
+        </h1>
+        <p>
+          A guided look at candidate-first rental decisions. Real interface,
+          recorded listings, scripted AI.
+        </p>
+      </div>
+      <div class="screening" id="walkthrough">
+        <figure>
+          <video
+            id="film"
+            controls
+            playsinline
+            preload="metadata"
+            poster="media/poster.jpg"
+            aria-label="Rental Helper simulated product walkthrough"
+            aria-describedby="simulation-note"
+          >
+            <source src="media/walkthrough.mp4" type="video/mp4" />
+            <track
+              kind="captions"
+              src="media/captions.en.vtt"
+              srclang="en"
+              label="English"
+            />
+            <track
+              kind="captions"
+              src="media/captions.ja.vtt"
+              srclang="ja"
+              label="日本語"
+            />
+            <p>
+              <a href="media/walkthrough.mp4">Download the walkthrough</a> or
+              read the transcript below.
+            </p>
+          </video>
+          <figcaption id="simulation-note">
+            <span>SIMULATED WALKTHROUGH</span> AI replies are scripted for this
+            recording. No live Gemini, review or route results are demonstrated.
+          </figcaption>
+        </figure>
+        <aside aria-label="Video chapters">
+          <div class="chapter-heading">
+            <h2>Watch your way</h2>
+            <span id="duration">8 chapters</span>
+          </div>
+          <ol id="chapters"></ol>
+          <p class="chapter-note">
+            Choose a chapter to jump in.<br />No sound required.
+          </p>
+          <a class="download" href="media/walkthrough.mp4" download
+            >Download video ↓</a
+          >
+        </aside>
+      </div>
+      <div class="afterword">
+        <section>
+          <p class="eyebrow">THE PRODUCT IDEA</p>
+          <h2>Start from the homes.<br />Let the questions follow.</h2>
+          <p>
+            Rental Helper helps tenants compare sourced facts, notice tradeoffs,
+            and confirm what matters. Missing information stays visible. A
+            tentative answer never becomes a requirement on its own.
+          </p>
+          <a class="primary" href="../#compare">Explore the public demo ↗</a>
+        </section>
+        <section class="reading">
+          <h2>Go one level deeper</h2>
+          <a
+            href="https://github.com/SodaShikenn/rental-helper/blob/main/docs/CODE_TOUR.md"
+            ><strong>Read the code tour</strong
+            ><span
+              >Feature boundaries, evidence flow and focused tests ↗</span
+            ></a
+          ><a
+            href="https://github.com/SodaShikenn/rental-helper/blob/main/docs/VALIDATION.md"
+            ><strong>See what has been verified</strong
+            ><span>Separate tests, live checks and open limitations ↗</span></a
+          >
+          <details>
+            <summary>Read the transcript / 字幕を読む</summary>
+            <div id="transcript"></div>
+          </details>
+        </section>
+      </div>
+      <noscript
+        ><p>
+          Use the native video controls to watch. Chapter buttons need
+          JavaScript.
+          <a href="media/transcript.md">Read the full transcript.</a>
+        </p></noscript
+      >
+    </main>
+    <footer>
+      <span>Rental Helper · Development prototype</span
+      ><a
+        href="https://github.com/SodaShikenn/rental-helper/blob/main/README.ja.md"
+        >日本語のプロジェクト紹介 ↗</a
+      >
+    </footer>
+  </body>
+</html>

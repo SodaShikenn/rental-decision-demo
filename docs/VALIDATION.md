@@ -68,6 +68,16 @@ the local validation limits and distinguish daily quota exhaustion from overload
 The public API target/account remains unconfigured. The existing film remains
 explicitly scripted; no live deployment recording has been published.
 
+The same fresh browser displayed real SUUMO research results with selectable
+current-offer facts and disabled historical price fields. Live AI confirmation
+also exposed an empty-state contradiction for narrative preferences: these now
+count as confirmed wishes, and the “no wishes yet” message is removed. Reloading
+the browser preserved the confirmed note and displayed “1件の希望を確認”.
+
+[Release CI 35694199453](https://github.com/SodaShikenn/rental-helper/actions/runs/35694199453)
+passed frontend/backend tests and the API image build; Pages published the static
+frontend. No backend URL was configured by that publication.
+
 ## Morning/evening commute checks
 
 New deterministic checks cover area-based hub suggestions, unknown-area behavior, ambiguous station identities, Japan-time defaults across weekends/OS timezones, return-time validation, exact origin/destination reversal, distinct arrival/departure timestamps, partial return failures, and round-trip totals that remain unknown when either leg is missing. Current browser checks cover immediately available outbound/return links, live preset/custom destination updates, transport mode, explicit time-handoff instructions, new-tab navigation (Google response intercepted), and zero destination/commute API requests. Navigation creates no verified route evidence. An existing share-revocation smoke-test race was corrected by awaiting the revoke response before reloading the reader.

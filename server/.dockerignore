@@ -1,5 +1,6 @@
 # Keep secrets, local environments, and dev-only files out of the image.
 .env
+.env.*
 .venv/
 __pycache__/
 *.pyc

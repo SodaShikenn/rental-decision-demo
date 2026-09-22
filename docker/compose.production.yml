@@ -1,0 +1,41 @@
+# One HTTPS origin; only Caddy is reachable from the host network.
+name: rental-helper
+services:
+  api:
+    build: ../server
+    env_file:
+      - ${RENTAL_ENV_FILE:-.env.production}
+    environment:
+      EXTRACTION_MODE: live
+      EXTRACTION_ENABLED: "true"
+      RESEARCH_ENABLED: "true"
+      SHARING_ENABLED: "true"
+      ALLOWED_ORIGINS: https://${RENTAL_DOMAIN:?Set RENTAL_DOMAIN}
+      SHARE_DB_PATH: /app/data/shares.sqlite3
+      FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - share-data:/app/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+  web:
+    image: caddy:2-alpine
+    environment:
+      RENTAL_DOMAIN: ${RENTAL_DOMAIN:?Set RENTAL_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../web:/srv:ro
+      - ./web/env.js:/srv/env.js:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  share-data:
+  caddy-data:
+  caddy-config:

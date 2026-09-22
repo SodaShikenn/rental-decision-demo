@@ -44,3 +44,9 @@ jobs:
         run: docker build --tag rental-helper-api server
       - name: Validate the compose file
         run: docker compose -f docker/docker-compose.yml config --quiet
+      - name: Validate the production compose file
+        env:
+          RENTAL_ENV_FILE: .env.production.example
+        run: docker compose --env-file docker/.env.production.example -f docker/compose.production.yml config --quiet
+      - name: Validate the HTTPS proxy configuration
+        run: docker run --rm -e RENTAL_DOMAIN=localhost -v "$PWD/docker/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile

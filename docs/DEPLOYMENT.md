@@ -1,85 +1,117 @@
-# Public API release
+# Deploy Rental Helper
 
-GitHub Pages serves the frontend and film. The Python API needs a separate HTTPS
-host. A Pages deployment alone does not enable image extraction, research, advice,
-Maps checks, leisure discovery, web reviews or hosted sharing.
+The public [walkthrough](https://sodashikenn.github.io/rental-helper/demo/) is a video, not a hosted application. Deploy the frontend and Python API together to use image/link analysis, AI, Maps checks, leisure discovery, reviews and expiring shares.
 
-## Backend requirements
+This guide uses one Linux server, Docker Compose and a domain. The supplied [production configuration](../docker/compose.production.yml) serves HTTPS with Caddy, keeps the API port private and stores shares in a persistent Docker volume. It is a single-instance deployment; do not scale replicas while sharing uses SQLite and rate limiting is process-local.
 
-Build [server/Dockerfile](../server/Dockerfile) with `server/` as its context.
-The image prepares OCR models at build time, listens on port **8000**, and runs as
-UID **10001**. Start with one instance and one worker: the current share repository
-is SQLite and the rate limiter is process-local. Size memory against an actual OCR
-request, not just the health endpoint.
+## 1. Prepare the host and providers
 
-Configure these values in the host's secret/environment settings:
+- Install Docker Engine with the Compose plugin using the [official installation guide](https://docs.docker.com/engine/install/). Verify `docker compose version`.
+- Point your domain's A record (and AAAA only if IPv6 works) at the server. Allow inbound TCP ports **80 and 443**; retain your SSH access. Do not expose port 8000.
+- Prepare a Gemini key with model and Google Search quota, and a server-side Google Maps key with Geocoding, Places API (New) and Routes enabled. Set provider billing budgets and quota limits before making the app public.
+- Allocate enough disk and memory for the OCR model image and actual extraction requests. The initial build downloads models and CPU PyTorch; a passing health check alone does not prove sufficient memory.
 
-| Variable | Production value |
-| --- | --- |
-| `GEMINI_API_KEY` | A key with available model and search quota |
-| `GOOGLE_MAPS_API_KEY` | A key for Geocoding, Places (New), and Routes |
-| `EXTRACTION_MODE` | `live` |
-| `EXTRACTION_ENABLED`, `RESEARCH_ENABLED`, `SHARING_ENABLED` | `true` |
-| `ALLOWED_ORIGINS` | `https://sodashikenn.github.io` (origin, without `/rental-helper/`) |
-| `SHARE_DB_PATH` | `/app/data/shares.sqlite3` |
+Caddy obtains and renews HTTPS certificates once DNS and ports are reachable. See its [automatic HTTPS requirements](https://caddyserver.com/docs/automatic-https). The Compose service name `api:8000` is the internal upstream, following the [reverse proxy configuration](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy).
 
-Mount durable storage at `/app/data`, writable by UID 10001. A restart/redeploy must
-preserve active shares. Use the platform's HTTPS proxy, allow request durations of
-at least 200 seconds for bounded review searches, and configure forwarded IP trust
-only for that proxy. Keep port 8000 private to the proxy. Configure provider spend
-limits for the public demonstration. See [storage limitations](DEVELOPMENT.md#share-storage-and-deployment-limits).
-
-## Connect Pages
-
-After the API is deployed, set repository **variable** `RENTAL_API_URL` to its public
-HTTPS base URL. This is an address, not a secret. Never add API keys to repository
-variables or `web/env.js`.
-
-The [Pages workflow](../.github/workflows/pages.yml) runs
-[`configure-pages.mjs`](../scripts/configure-pages.mjs) before publishing. It checks
-live-mode configuration, feature switches, the frontend origin and JSON request
-preflight, then writes only the API address into the built `_site/env.js`.
-Without the variable, Pages remains a frontend-only deployment. These checks do
-not call Google or prove that quota is available.
-
-For example, after substituting the actual deployed hostname:
+## 2. Clone and configure
 
 ```sh
-gh variable set RENTAL_API_URL --body 'https://your-deployed-api.example'
-gh workflow run pages.yml
+git clone https://github.com/SodaShikenn/rental-helper.git
+cd rental-helper
+cp docker/.env.production.example docker/.env.production
+chmod 600 docker/.env.production
 ```
 
-## Acceptance from the published app
+Edit **`docker/.env.production` on the server**:
 
-Use a fresh browser session on the public URL, without API interception. Complete
-the following before describing the release or film as a live end-to-end demo:
+```dotenv
+RENTAL_DOMAIN=rentals.your-domain.com
+GEMINI_API_KEY=your-gemini-key
+GOOGLE_MAPS_API_KEY=your-maps-key
+GEMINI_MODEL=gemini-3.8-flash
+GEMINI_THINKING_LEVEL=low
+RATE_LIMIT_PER_MINUTE=5
+```
 
-- [ ] Upload a public sample image; inspect extracted fields and original evidence.
-- [ ] Import the supplied SUUMO link; inspect source identity and building/unit scope.
-- [ ] Research missing monthly charges; show exact-unit values or explicitly labelled
-  same-building references. Missing evidence must remain missing.
-- [ ] Ask AI a candidate-based question, select an actual returned option, then
-  explicitly accept a proposed priority and observe the comparison update.
-- [ ] Open outbound and return commute links; verify the addresses and mode in Maps.
-  Show the separate 08:00 arrival / 18:00 departure setting inside Maps.
-- [ ] Check station/shopping walking claims and inspect a real result and timestamp.
-- [ ] Discover parks, gyms and cafés; confirm an interest and compare scenarios.
-- [ ] Search apartment reviews and inspect source/scope. A successful empty result
-  is valid; a provider error is not an empty result or a completed acceptance check.
-- [ ] Inspect the generated memo and downloaded HTML.
-- [ ] Create a hosted share, open it in a separate browser context, restart the API
-  and confirm it remains readable, revoke it, then verify the reader loses access.
-- [ ] Check desktop/mobile navigation and browser errors on the deployed build.
+Use a hostname without `https://` or a path. Choose a Gemini model available to your account that supports the application's structured output, search and URL-context requests. Keys never belong in `web/env.js`, GitHub Pages variables or committed files. The secret file is ignored by Git and lies outside the API build context.
 
-## Record the deployed result
+Production Compose sets live mode, enables extraction/research/sharing, uses `https://RENTAL_DOMAIN` as the allowed origin, and stores SQLite at `/app/data/shares.sqlite3`. Its frontend uses the same origin for API calls, so there is no separate frontend URL to configure. Forwarded IPs are trusted only because the API container has no published host port and is behind Caddy.
 
-Record all of those interactions against the published app and API. Include the
-deployment date and real waiting/error/empty states; do not substitute canned AI or
-API replies. Keep keys, personal candidate data and share-management tokens out of
-the film. Revoke any demonstration share afterward.
+## 3. Validate and launch
 
-The existing `npm run record:demo` is explicitly **scripted** and cannot satisfy this
-acceptance. Retain its simulation label until a separately verified live recording
-replaces it. Record chapter timings for all eight feature pages plus image/link
-intake; update captions, transcript and README links together, then check the
-published player. [Existing media workflow](DEMO.md).
+From the repository root:
+
+```sh
+docker compose --env-file docker/.env.production -f docker/compose.production.yml config --quiet
+docker compose --env-file docker/.env.production -f docker/compose.production.yml up -d --build
+docker compose --env-file docker/.env.production -f docker/compose.production.yml ps
+```
+
+Use `config --quiet`: plain `config` prints expanded environment values, including keys. If startup fails, inspect service logs locally without posting secrets:
+
+```sh
+docker compose --env-file docker/.env.production -f docker/compose.production.yml logs --tail=100 api web
+curl --fail https://rentals.your-domain.com/healthz
+```
+
+Expect `mode: "live"`, `enabled: true`, `configured: true`, research enabled/configured, Maps configured and sharing enabled. These indicate configuration; **only real requests verify provider permissions and quota**. Then open `https://rentals.your-domain.com/` in a fresh browser. The API reference is at `/docs`.
+
+## 4. Verify the complete flow
+
+Use public listing material and your deployed URL, without intercepted responses:
+
+- [ ] Upload an image; confirm extracted fields against its source.
+- [ ] Import a listing URL; inspect building/unit identity and source links.
+- [ ] Research missing rent. Another unit's price must remain a labelled reference.
+- [ ] Start AI analysis, choose an actual answer, explicitly confirm a proposal and check the brief.
+- [ ] Select a commute destination; inspect both prefilled Google Maps routes. Set 08:00 arrival / 18:00 departure **inside Maps**. Links do not return transit durations to the app.
+- [ ] Run a station/shopping check; inspect the date and walking estimates.
+- [ ] Search leisure places, confirm an interest, and compare weekly scenarios.
+- [ ] Search reviews. A successful search with no usable reviews is valid; a provider error is not an empty result.
+- [ ] Read the brief and download its HTML.
+- [ ] Create a share; open it in a separate browser, restart the API, and verify it remains readable. Revoke it and verify that the reader loses access.
+- [ ] Check mobile navigation and browser errors.
+
+The walkthrough is a **local live-API recording**, not proof that your deployment passes these checks. Japanese transit times/fares are not supplied in-app; Maps handoff is the current workflow. Availability, rent and user reviews require source/context checks rather than a promise of accuracy.
+
+## 5. Keep data across updates
+
+The named `share-data` volume preserves unexpired shares across container replacement. Caddy's named volumes preserve certificates. **Do not run `down -v`** unless you intend to erase these volumes. Frontend candidates and confirmed preferences remain in each user's browser.
+
+Before updating, create a consistent SQLite backup and copy it to protected storage:
+
+```sh
+mkdir -p backups
+chmod 700 backups
+docker compose --env-file docker/.env.production -f docker/compose.production.yml exec -T api python -c 'import sqlite3; src=sqlite3.connect("/app/data/shares.sqlite3"); dst=sqlite3.connect("/app/data/shares.backup.sqlite3"); src.backup(dst); dst.close(); src.close()'
+docker compose --env-file docker/.env.production -f docker/compose.production.yml cp api:/app/data/shares.backup.sqlite3 ./backups/shares.sqlite3
+chmod 600 backups/shares.sqlite3
+```
+
+Backups contain shared user content; keep them private and expire old copies. `backups/` is ignored by Git. Save the current commit ID, update and rebuild:
+
+```sh
+git rev-parse HEAD
+git pull --ff-only
+docker compose --env-file docker/.env.production -f docker/compose.production.yml up -d --build
+```
+
+Recheck health and the acceptance flow. To roll back, check out the saved commit and rebuild with the same command, retaining the volumes; review any database format change before rolling back. Stop without deleting data using:
+
+```sh
+docker compose --env-file docker/.env.production -f docker/compose.production.yml down
+```
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Certificate cannot be issued | DNS A/AAAA, ports 80/443, domain spelling and Caddy logs. |
+| `configured: false` | The production secret file and key variable names; recreate the containers after editing it. |
+| AI/search returns quota errors | Gemini project billing, model access and request/search quotas. |
+| Maps returns permission errors | APIs enabled on the key's project, billing, and server-side key restrictions. |
+| HTTP 429 from this app | Per-client requests exceeded the process-local limit; wait, then retry. |
+| Slow first build or extraction | Model download, CPU/memory and API logs. Proxy waits up to 200 seconds for response headers. |
+| Shares vanish after redeploy | `/app/data` volume and UID 10001 write permission; do not replace the volume. |
+
+[Development and storage limits](DEVELOPMENT.md) · [Record a new walkthrough](DEMO.md)

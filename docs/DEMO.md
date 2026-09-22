@@ -1,80 +1,69 @@
-# Product film and README presentation
+# Product walkthrough
 
-[Watch the film](https://sodashikenn.github.io/rental-helper/demo/) · [Project overview](../README.md) · [Validation record](VALIDATION.md)
+[Watch the film](https://sodashikenn.github.io/rental-helper/demo/) · [Deploy the app](DEPLOYMENT.md) · [Project overview](../README.md)
 
-## What the recording shows
+## Recording scope
 
-The film operates the real application in a fresh, isolated Playwright browser session. It compares the three recorded listing examples, opens the reference-price evidence, demonstrates a two-turn AI interaction, explicitly confirms a flexible monthly budget, prepares outbound/return Maps links, reads the generated brief and downloads real HTML.
+Recorded on **2026-09-22**, using the local frontend and a configured local Python API. Gemini, Google Search and Google Maps requests are real; the recording scripts contain no provider fixtures or response interception. The three starting candidates are recorded listing inputs, not a fresh availability claim.
 
-The English commentary is visible in the picture. The player also offers English/Japanese WebVTT captions, a bilingual transcript, eight chapter buttons, stable `#chapter=0` through `#chapter=7` links and an MP4 download. Playback starts only after a user action; direct chapter links seek without autoplaying. The README uses a clickable static poster and an optional animated excerpt because ordinary repository Markdown is a limited video presentation surface.
+The film covers image extraction, SUUMO link import, missing-rent research, actual AI questions and explicit confirmation, all eight workspace views, Maps walking checks, leisure discovery, apartment review search, scenarios, the generated brief, HTML download, and share creation/read/revocation. A search may legitimately return no usable reviews. Another room's price remains a reference. Commute buttons prepare Google Maps links; the film does not claim to retrieve Japanese transit times or set departure/arrival times automatically.
 
-## What is simulated
+**This is a local live-API recording, not a publicly hosted app.** GitHub Pages publishes the video only. Follow the [deployment guide](DEPLOYMENT.md) to run the complete app.
 
-- Candidate facts come from the existing recorded listing examples, including the same-building reference rent. They are not a fresh availability check.
-- `/api/advise` returns a recording-only fixture with evidence IDs taken from the actual request. It illustrates the existing interface contract; it does not evaluate Gemini or exercise backend response validation.
-- The fixture is clearly labelled throughout the film. All other `/api/**` requests are blocked by the recording setup, and the health response says disabled. No provider calls or API credentials are needed.
-- Source opening, tentative selection, explicit confirmation, comparison updates, Maps URL construction and local HTML download use the application code. The recording does not open external Maps or claim to retrieve a route.
-- Hosted share creation, live extraction/research, leisure and web-review retrieval are not demonstrated. Their implementation and live-validation status are documented separately.
-
-The fixtures and caption overlays live in `scripts/`, outside the published `web/` application. Watching the video never enables fake data in the public app. The encoded video, poster, chapter data, transcript and captions are published. The optional GIF preview stays in ignored `output/playwright/`.
+The player has English/Japanese captions, a bilingual transcript, 13 chapters, keyboard navigation and MP4 download. Chapter links seek without autoplay. English commentary is also embedded in the picture. Provider waiting states remain in the recording; use chapter buttons to skip ahead. Deliberate reading pauses mean this is not a latency benchmark.
 
 ## Reproduce
 
-Use Node.js 22+, Python and `uv`. Start the frontend on port 4173 in another terminal:
+Use Node.js 22+, Python and `uv`. Configure real provider keys and start the backend as described in [development setup](DEVELOPMENT.md#run-the-backend). Health must report live mode with extraction, research, Maps and sharing configured. Real provider requests use your quota and may incur charges.
 
-```bash
+Start the frontend in another terminal:
+
+```sh
 npm run dev:web
 ```
 
-Install the browser recording binary once (Playwright's cache, not the Python environment):
+Install the recording binary once, then record in a fresh browser session:
 
-```bash
+```sh
 npx --yes playwright install ffmpeg
-```
-
-The project uses Chrome via the existing Playwright CLI workflow. Record in a fresh session:
-
-```bash
 npm run record:demo
 ```
 
-The recording runner pins `@playwright/cli@0.1.21`, closes its isolated session after success/failure, and writes raw video, chapter timings and the downloaded brief to ignored `output/playwright/`. It does not touch an existing app session or `.env`.
+The runner pins `@playwright/cli@0.1.21`, opens an isolated session and closes it on completion or failure. Raw video, timings and the downloaded brief stay in ignored `output/playwright/`. It does not alter `.env` or use a signed-in browser. Caption decoration lives in the recording scripts, outside the app. Do not publish a failed take or substitute fake responses when a provider fails.
 
-Encode H.264 MP4 with streaming metadata, a JPEG poster, chapter data and captions, plus a local GIF excerpt:
+Encode the successful take:
 
-```bash
+```sh
 uv run --with imageio-ffmpeg==0.6.0 python scripts/build-demo-media.py
 ```
 
-`imageio-ffmpeg` is an isolated tool dependency for encoding, not a backend/runtime dependency. The media build replaces generated player assets in `web/demo/media/` and writes the GIF to `output/playwright/preview.gif`. It retains the full recording's pace; deliberate pauses make the silent walkthrough readable. It is not a provider-latency benchmark.
+This replaces the H.264 MP4, poster, chapter data, captions and transcript in `web/demo/media/`. A GIF excerpt is generated only in ignored local output. Chapter timings and translations come from the recorded journey, so they stay aligned with the actual take.
 
-## Preview and check the player
+## Preview and verify
 
-```bash
+```sh
 npm run dev:demo
 # http://127.0.0.1:4174/demo/
 ```
 
-The preview uses pinned `http-server` with byte-range support for seeking. The simple Python server on port 4173 remains the app recording server; it does not provide the byte ranges needed for reliable video seeking. GitHub Pages serves video ranges in production.
+The pinned preview server supports byte-range requests for seeking. The simple Python server on port 4173 remains the app server.
 
-With both the web server and demo preview running:
+With both frontend servers running:
 
-```bash
+```sh
 npm run smoke:demo
 ```
 
-This checks actual MP4 loading/playback, a chapter deep link without autoplay, keyboard chapter selection, both caption tracks, the bilingual transcript, and 320/390 px layouts. It uses no API.
+The check verifies MP4 metadata/playback, chapter seeking without autoplay, keyboard selection, both caption tracks, the bilingual transcript, download and 320/390 px layouts. It makes no provider requests.
 
-## Files to review
+Before publishing, inspect the full recording and chapter frames, verify the exported HTML, ensure demonstration shares have been revoked, and decode the complete MP4 to check corruption. Keep keys, personal candidate data and share-management secrets out of frames and logs. Update README/player copy alongside the media and test the published player after Pages deployment.
+
+## Files
 
 | File | Responsibility |
 | --- | --- |
-| [Recording runner](../scripts/record-demo.mjs) | Isolated CLI session, video lifecycle and failure cleanup. |
-| [Recording setup](../scripts/browser-demo-setup.js) | Provider interception, scripted AI and visible simulation labels. |
-| [Journey](../scripts/browser-demo-journey.js) | Actual UI actions, explanatory holds and chapter timings. |
-| [Media build](../scripts/build-demo-media.py) | Compression, poster/GIF generation, captions and transcript. |
-| [Player](../web/demo/) | Standalone static page; chapter selection and native playback. |
-
-## Before publishing a new cut
-
-Watch the full recording and inspect chapter frames, particularly the price evidence and confirmation. Ensure no source dialog or caption covers the action. Verify that the recorded click really downloads a brief, that the encoded video decodes completely, and that chapter seeking, captions, keyboard controls and mobile layout work. Check the README links and update the demonstration date if the app has changed. Test the published player after Pages deployment.
+| [Runner](../scripts/record-demo.mjs) | Isolated browser and video lifecycle. |
+| [Setup](../scripts/browser-demo-setup.js) | Live health check and recording-only caption decoration. |
+| [Journey](../scripts/browser-demo-journey.js) | Real UI actions, API status checks, reading pauses and bilingual chapters. |
+| [Media build](../scripts/build-demo-media.py) | MP4, poster, captions and transcript generation. |
+| [Player](../web/demo/) | Native playback, chapter links and transcript. |

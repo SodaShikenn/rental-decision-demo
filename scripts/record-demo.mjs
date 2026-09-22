@@ -1,9 +1,10 @@
-/** Captioned recording of the real UI; provider fixtures stay outside web/. */
-import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+/** Captioned recording of the local app with real provider requests. */
+import { readFileSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 const session = `rental-record-${Date.now()}`;
 const dir = "output/playwright";
 mkdirSync(dir, { recursive: true });
+rmSync(`${dir}/walkthrough-timings.json`, { force: true });
 function cli(...args) {
   if (args[0] === "run-code") args[1] = args[1].trim().replace(/;$/, "");
   const result = spawnSync(
@@ -31,7 +32,9 @@ try {
     "--cursor",
   );
   recording = true;
-  console.log("Recording the scripted walkthrough; no live provider calls.");
+  console.log(
+    "Recording with live Gemini and Maps requests; provider charges may apply.",
+  );
   const output = cli(
     "run-code",
     readFileSync(new URL("./browser-demo-journey.js", import.meta.url), "utf8"),

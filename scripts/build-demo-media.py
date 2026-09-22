@@ -10,6 +10,45 @@ SOURCE = ROOT / "output/playwright"
 TARGET = ROOT / "web/demo/media"
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 TARGET.mkdir(parents=True, exist_ok=True)
+recording = json.loads((SOURCE / "walkthrough-timings.json").read_text())
+if recording.get("environment") != "local-live-api" or len(recording["chapters"]) != 13:
+    raise ValueError("A successful live recording with all 13 chapters is required")
+
+
+# The browser CLI starts capture before the journey's clock. Measure that lead-in
+# from the first caption change, so chapter links land on the intended scene.
+preview = subprocess.check_output(
+    [
+        FFMPEG,
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-i",
+        str(SOURCE / "walkthrough.webm"),
+        "-t",
+        "4",
+        "-vf",
+        "fps=25,crop=1360:80:32:910,scale=340:20",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-",
+    ]
+)
+frame_size = 340 * 20
+baseline = preview[:frame_size]
+lead_in = 0.0
+for index in range(1, len(preview) // frame_size):
+    frame = preview[index * frame_size : (index + 1) * frame_size]
+    changed = sum(abs(a - b) > 40 for a, b in zip(baseline, frame))
+    if changed / frame_size > 0.03:
+        lead_in = index / 25
+        break
+for chapter in recording["chapters"][1:]:
+    chapter["start"] += lead_in
+recording["duration"] += lead_in
+print(f"Aligned chapters with {lead_in:.2f}s of recording lead-in")
 
 
 def encode(*args):
@@ -60,30 +99,8 @@ encode(
     SOURCE / "preview.gif",
 )
 
-recording = json.loads((SOURCE / "walkthrough-timings.json").read_text())
-labels = [
-    "Compare candidates",
-    "Inspect the evidence",
-    "Ask from real differences",
-    "Confirm a priority",
-    "Check the commute",
-    "Read the decision brief",
-    "Preview and export",
-    "Explore the project",
-]
-japanese = [
-    "検討中の候補から比較を始めます。画像と記録済みの掲載情報を使い、最初に希望を書く必要はありません。",
-    "別室の参考価格は、候補の確定賃料にしません。根拠と部屋の一致を確認します。",
-    "候補の違いから質問します。この動画のAI応答は録画専用の固定データです。画面と操作は実際のアプリです。",
-    "回答だけでは希望を保存しません。提案された解釈を本人が確認してから比較に反映します。",
-    "通勤先を選ぶと各候補の行き・帰りリンクを用意します。朝8時到着・夕18時出発はGoogle Maps側で設定します。",
-    "確認した希望と次の質問をメモに自動でまとめます。手入力の内見日記ではありません。",
-    "共有する内容を確認してHTML保存。期限付きリンクにはバックエンドが必要です。",
-    "公開デモを試し、コードツアーで設計を確認できます。READMEから各ページへ進めます。",
-]
 chapters = [
-    {**item, "start": round(item["start"], 2), "label": label, "ja": ja}
-    for item, label, ja in zip(recording["chapters"], labels, japanese, strict=True)
+    {**item, "start": round(item["start"], 2)} for item in recording["chapters"]
 ]
 (TARGET / "chapters.json").write_text(
     json.dumps(chapters, ensure_ascii=False, indent=2) + "\n"
@@ -113,7 +130,7 @@ for language in ["en", "ja"]:
         ]
     (TARGET / f"captions.{language}.vtt").write_text("\n".join(lines))
 
-text = "# Rental Helper — walkthrough transcript\n\nSimulated demo. Recorded listing data and scripted AI responses; real application interactions.\n\n"
+text = f"# Rental Helper — walkthrough transcript\n\nRecorded {recording['recordedAt'][:10]} against a local app with live Gemini and Google Maps APIs. Starting candidates are recorded listings. No API responses are scripted. This is not a public hosted-app demonstration.\n\n"
 for chapter in chapters:
     text += f"## {stamp(chapter['start'])[:8]} — {chapter['title']}\n\n{chapter['caption']}\n\n{chapter['ja']}\n\n"
 (TARGET / "transcript.md").write_text(text)

@@ -2,13 +2,13 @@
 async (page) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("http://127.0.0.1:4174/demo/#chapter=4");
+  await page.goto("http://127.0.0.1:4174/demo/#chapter=5");
   await page.locator("#chapters button").first().waitFor();
   await page.waitForFunction(
     () => document.querySelector("#film").readyState >= 1,
   );
-  if ((await page.locator("#chapters button").count()) !== 8)
-    throw Error("Eight chapters required");
+  if ((await page.locator("#chapters button").count()) !== 13)
+    throw Error("Thirteen chapters required");
   await page.waitForFunction(() =>
     document
       .querySelectorAll('#chapters button[aria-current="true"]')[0]
@@ -45,13 +45,13 @@ async (page) => {
   });
   await page.waitForFunction(() =>
     [...document.querySelector("#film").textTracks].every(
-      (track) => track.cues?.length === 8,
+      (track) => track.cues?.length === 13,
     ),
   );
   await page.locator("details summary").click();
   if (
-    (await page.locator("#transcript h3").count()) !== 8 ||
-    (await page.locator('#transcript p[lang="ja"]').count()) !== 8
+    (await page.locator("#transcript h3").count()) !== 13 ||
+    (await page.locator('#transcript p[lang="ja"]').count()) !== 13
   )
     throw Error("Bilingual transcript incomplete");
   await page.locator("details summary").click();

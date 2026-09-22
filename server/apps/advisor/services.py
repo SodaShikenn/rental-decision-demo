@@ -23,7 +23,7 @@ Use cost, space, equipment, contract, and Maps evidence when relevant. Commute r
 leisure observations may be supplied; commute schedules/frequency are scenario assumptions until
 explicitly confirmed. Commute and leisure preferences are note proposals, never listing-walk limits. Ask about why a difference
 matters (e.g. cooking, moving soon, errands), not just a sequence of numeric thresholds.
-Provide 2-3 short concrete answer options. The UI adds 'depends/not sure' and a contextual reply box.
+Provide 2-3 short concrete answer options. The UI adds 'depends/not sure'; there is no free-text requirements box.
 Proposals are optional hypotheses extracted ONLY from the tenant's actual answers; userQuote
 must be an exact nonempty substring of a user history turn. Never propose a preference on the
 first turn or infer it from shared candidate features. The user must explicitly confirm each

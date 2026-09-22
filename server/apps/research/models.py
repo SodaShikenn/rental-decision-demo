@@ -47,3 +47,16 @@ class FoundListing(BaseModel):
 
 class ResearchMapping(BaseModel):
     listings: list[FoundListing] = Field(max_length=6)
+
+    @classmethod
+    def generation_schema(cls):
+        """Avoid nested bounded-array grammar rejected by Gemini; validate locally.
+
+        Keeping both maxItems constraints in the generation schema causes a live
+        HTTP 400 even for a tiny input. The prompt requests these limits and this
+        Pydantic model still enforces them before any result reaches the browser.
+        """
+        schema = cls.model_json_schema()
+        schema["properties"]["listings"].pop("maxItems")
+        schema["$defs"]["FoundListing"]["properties"]["facts"].pop("maxItems")
+        return schema

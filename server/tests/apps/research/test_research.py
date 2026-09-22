@@ -81,7 +81,22 @@ def test_full_grounded_lookup_with_stubbed_provider(settings_for):
     assert fact["value"] == 110000 and fact["eligible"]
     assert fact["source"]["url"] == URL
     assert len(calls) == 2
+    schema = calls[1]["config"].response_json_schema
+    assert "maxItems" not in schema["properties"]["listings"]
+    assert "maxItems" not in schema["$defs"]["FoundListing"]["properties"]["facts"]
     assert response.headers["cache-control"] == "no-store"
+
+
+def test_generation_schema_relaxation_preserves_server_output_limits():
+    original = ResearchMapping.model_json_schema()
+    ResearchMapping.generation_schema()
+    assert ResearchMapping.model_json_schema() == original
+    data = mapping().model_dump()
+    with pytest.raises(ValidationError):
+        ResearchMapping.model_validate({"listings": data["listings"] * 7})
+    data["listings"][0]["facts"] *= 5
+    with pytest.raises(ValidationError):
+        ResearchMapping.model_validate(data)
 
 
 def test_identity_keeps_room_numbers_and_address_boundaries():

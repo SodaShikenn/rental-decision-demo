@@ -21,7 +21,12 @@ def init_app(app: FastAPI, client: Any = None) -> None:
                 api_key=app.state.settings.gemini_api_key,
                 http_options=types.HttpOptions(
                     timeout=GEMINI_TIMEOUT_MS,
-                    retry_options=types.HttpRetryOptions(attempts=GEMINI_RETRY_ATTEMPTS),
+                    # Daily quotas also return 429. Only retry transient server errors;
+                    # never repeat a quota-exhausted request inside the SDK.
+                    retry_options=types.HttpRetryOptions(
+                        attempts=GEMINI_RETRY_ATTEMPTS,
+                        http_status_codes=[500, 502, 503, 504],
+                    ),
                 ),
             )
         return holder["client"]

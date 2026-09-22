@@ -16,9 +16,11 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [x] Preserve comparison/discovery together, mobile pair selection, evidence details and explicit confirmation.
 - [x] Add a repeatable browser smoke workflow with provider stubs and a real local sharing lifecycle.
 - [x] Separate implementation, stub validation and live results in documentation.
-- [ ] Re-run real image extraction, URL import, price research and full candidate advice when Gemini is available; record latency, request cost and source-match correctness.
+- [x] Re-run real image extraction, SUUMO URL import, reference-price research and two-turn candidate advice after quota recovery; record observed latency and matching behavior.
+- [ ] Measure provider cost and broader retrieval/conversation quality across representative cases.
 - [ ] Run a small tenant usability study and validate claims against measured results.
 - [ ] Deploy the backend; verify live API behavior from the public frontend.
+- [ ] Record all eight feature pages and image/link intake against the public API, including real results, sharing and revocation; replace the explicitly scripted film.
 
 ## R1 — commutes to a work destination
 
@@ -60,7 +62,8 @@ Updated **2026-09-22**. Checked items describe implemented, tested behavior. Ope
 - [x] Preserve opposing reports and offer evidence-linked choices. No personal diary, free-text requirement entry or manually editable memo.
 - [x] Enforce room → building → nearby fallback; use Maps to locate up to three residential references within 300 m, label distance and identity, leave absent review evidence blank.
 - [x] Retain the optional Google Places review endpoints with building/proximity checks and explicit confirmation; the default UI now uses public-web research.
-- [ ] Validate successful live web-review retrieval and source coverage. GRAN PASEO明大前Ⅳ returned Gemini `upstream_busy` on 2026-09-22; deterministic tests do not establish coverage.
+- [x] Validate a real empty-result fallback: GRAN PASEO明大前Ⅳ completed building and nearby searches on 2026-09-22 with no usable review body.
+- [ ] Validate real matched-review display and broader source coverage; an empty search does not establish those.
 - [ ] Evaluate permitted resident-specific sources if stronger author/residency verification is needed; public review authors remain unverified.
 
 ## R5 — shareable comparisons and decision brief

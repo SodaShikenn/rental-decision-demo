@@ -140,7 +140,7 @@ npm run test:server
 git diff --check
 ```
 
-The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 111 frontend + 130 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
+The default test suite uses provider stubs and does not require live API keys. Snapshot on **2026-09-22:** 114 frontend + 135 backend passed, 2 real-OCR tests skipped. Enable optional real OCR with `RUN_OCR_TESTS=1 npm run test:server`; it requires OCR dependencies/models. Provider reliability must be tested separately.
 
 With both development servers running, `npm run smoke:browser` uses a separate Playwright CLI session. Provider calls are stubbed; sharing uses the real local backend and cleans up its link. It downloads a test HTML brief under ignored `output/playwright/`. The first run downloads the CLI/browser if needed.
 
@@ -164,7 +164,7 @@ README screenshots were captured from the actual local UI. The comparison screen
 
 GitHub Actions [CI](../.github/workflows/ci.yml) defines frontend/backend tests, API-image build and Compose validation. [Pages](../.github/workflows/pages.yml) publishes `web/` without tests after frontend tests, on matching `main` changes or manual dispatch. Documentation-only changes do not automatically trigger the Pages workflow.
 
-Pushing frontend changes to `main` triggers the Pages workflow. The repository contains the full app; the Pages environment serves static files. GitHub Pages cannot host the Python API: live features require an API deployment, a public base URL in `web/env.js`, server-side secrets, and allowed origins matching the frontend. Compose uses [same-origin configuration](../docker/web/env.js).
+Pushing frontend changes to `main` triggers the Pages workflow. The repository contains the full app; the Pages environment serves static files. GitHub Pages cannot host the Python API. After deploying a backend, set repository variable `RENTAL_API_URL`; Pages validates live configuration and CORS before injecting that public address into its built `env.js`. Keys remain server-side. With no variable, the deployment remains frontend-only. Compose uses [same-origin configuration](../docker/web/env.js). See the [public deployment and live-film checklist](DEPLOYMENT.md).
 
 ## Share storage and deployment limits
 

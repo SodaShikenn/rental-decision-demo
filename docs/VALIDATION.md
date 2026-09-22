@@ -4,7 +4,7 @@ This log distinguishes implemented behavior, deterministic checks, and actual pr
 
 | Check | Evidence/result | Interpretation |
 | --- | --- | --- |
-| `npm test` | 111 frontend + 130 backend passed; 2 optional real-OCR tests skipped | Logic and provider contracts pass with stubs; not a model accuracy benchmark. |
+| `npm test` | 114 frontend + 135 backend passed; 2 optional real-OCR tests skipped | Logic and provider contracts pass with stubs; not a model accuracy benchmark. Real image extraction is separately checked below. |
 | Browser workflow | Desktop/mobile, keyless commute links, reversed endpoints, preset/custom destination changes, external-tab opening, leisure confirmation, scenario frequency, review-to-question, nearby/empty review states, generated memo, share defaults and HTML download | Google/Gemini responses stubbed; no synthetic results are shipped as live observations. |
 | UI polish checks | `npm run smoke:ui` passed: keyboard/focus, Escape/outside dismissal, interrupted native dialogs, reduced motion, open/closed sheet resizing, 320/390/760 px touch layouts, 16 px form inputs, dark mode. `npm run smoke:browser` and 111 frontend tests passed again after UI changes. | Chromium and touch emulation; real phone keyboard/safe-area/gesture checks remain open. [Design decisions](UI_DESIGN.md). |
 | Type/layout refinement | `npm run smoke:ui` checks the 16 px body baseline, 761/800/1024 px desktop navigation and folded help, in addition to all eight mobile pages. Screenshots refreshed after simplifying headings, candidate scope and export placement. | Local Chromium; providers are stubbed for layout/workflow checks. |
@@ -16,10 +16,10 @@ This log distinguishes implemented behavior, deterministic checks, and actual pr
 | Live Tokyo round trip | 2026-09-22 14:15 JST: all three sample buildings → first exact Tokyo 渋谷駅 match; 2026-09-23 08:00 arrival / 18:00 return departure: all six directions **no_route**. WALK for ルーブル渋谷松濤 succeeded in both directions. | Places, precise geocoding and WALK work. [Google excludes Japan transit](https://developers.google.com/maps/faq#transit_directions_countries); a different provider is required for those durations. The UI keeps missing values and Maps links. |
 | Live leisure | Same public origin, park category: 2 places, 2 walking routes returned | This Places/WALK slice succeeded. It does not establish exhaustive coverage or suitability for running. |
 | Live building review matching | ルーブル渋谷松濤 408号室 / 東京都渋谷区富ヶ谷2丁目20-18: **no confirmed matching place** | Correctly refused to attach another entity's reviews. Live review display for a matched building remains to be validated. |
-| Automatic web reviews | `POST /api/reviews/web` for GRAN PASEO明大前Ⅳ / 東京都世田谷区羽根木2-28-19 returned HTTP 503 `upstream_busy` in 2.8 s | Search failed; no review or empty-success result was fabricated. Successful live retrieval is still unverified. |
+| Automatic web reviews | After quota recovery: GRAN PASEO明大前Ⅳ returned HTTP 200 in 41.0 s, `no_reviews`, with building → nearby discovery → nearby web search completed | No usable review body was found; the review list stayed empty. Successful matched-review display remains unverified. |
 | Live nearby-reference discovery | GRAN PASEO明大前Ⅳ: Maps returned グランデュール羽根木 (15 m), ライフステージ羽根木 (21 m), アンプリール (21 m) | Straight-line residential reference discovery succeeded; this does not validate their web-review content. |
 | Earlier live Maps | Geocoding, nearby essentials, WALK Routes succeeded | Dated local observations, not a continuous health guarantee. |
-| Earlier live Gemini | Small request succeeded; full research/advice calls encountered provider-busy responses | Full conversational/retrieval quality and availability remain open release checks. |
+| Earlier live Gemini | Daily free-tier quota exhaustion was identified in provider error metadata. After the owner enabled billing, actual extraction, advice and research succeeded | Daily exhaustion now has a distinct message and is not retried by the SDK. Broad quality/availability remain separate evaluation tasks. |
 
 No claim of tenant-study results, resident identity verification, guaranteed route coverage or production readiness is made.
 
@@ -39,7 +39,34 @@ The review update adds deterministic tests for source-bound identity, Roman-nume
 
 ## Recheck before a public API launch
 
-Test representative Japan transit journeys with a provider that actually returns them, validate public-web review retrieval, source identity and room scope against real buildings, rerun Gemini extraction/research/advice, then verify public HTTPS, origin configuration, rate limits, persistence and share revocation. Measure provider latency/cost and tenant usability rather than deriving them from passing unit tests.
+Verify the supported Google Maps handoff, public-web review retrieval, source identity and room scope against real buildings, then verify public HTTPS, origin configuration, rate limits, persistence and share revocation. In-app Japan transit remains a future extension. Measure provider latency/cost and tenant usability rather than deriving them from passing unit tests.
+
+## Live release checks after quota recovery — 2026-09-22 JST
+
+These requests used the **local API with real Google providers**, not the published
+Pages frontend and not intercepted responses. They do not establish public backend
+availability. [Deployment and filming acceptance](DEPLOYMENT.md).
+
+| Flow | Observed result |
+| --- | --- |
+| Image extraction | `python -m commands.smoke`: live Docling + Gemini, 6.0 s; all eight ground-truth fields and the conflicting-area warning passed for the fictional fixture image. |
+| Advice | HTTP 200 in 2.5 s on two cost evidence items. A fresh browser then completed real two-turn advice using the three sample candidates, selected a returned option, explicitly accepted the proposal and opened the generated memo. No provider routes were intercepted. |
+| SUUMO link | Supplied `/library/tf_13/sc_13113/to_1001333982/` URL returned HTTP 200 in 17.1 s after the schema fix. Building archive and separate unit offers retained scope and eligibility. Sources still require tenant review; this is not an availability guarantee. |
+| Missing monthly charges | GRAN PASEO明大前Ⅳ returned HTTP 200 in 30.5 s with same-building reference offers and unmatched name variants. Other-unit rent/fees remained ineligible to fill the candidate's missing rent. |
+| Essentials | Tomigaya 2-20-18 returned precise geocoding, 3 stations, 3 supermarkets and 3 convenience stores. A diagnostic 10-minute Shinsen claim was flagged against a returned 14-minute walk; the diagnostic claim is not asserted to come from a listing. |
+| Leisure | The same address returned 2 parks, 2 gyms and 2 cafés with walking routes, HTTP 200 in 1.7 s. |
+| Share lifecycle | A temporary brief was created (201), read (200), revoked (200), and then unavailable (404). Verification data was cleaned up. Public access and persistence through a deployed restart remain open. |
+
+Live research exposed a provider rejection that stub tests could not detect:
+Gemini returned HTTP 400 for the mapping schema with nested bounded arrays.
+Removing only the two generation-time `maxItems` constraints made the same schema
+work. The application still validates the original Pydantic limits (six listings,
+eight facts each), citations, identities and eligibility before returning results.
+Research now also respects the configured thinking level. Regression tests preserve
+the local validation limits and distinguish daily quota exhaustion from overload.
+
+The public API target/account remains unconfigured. The existing film remains
+explicitly scripted; no live deployment recording has been published.
 
 ## Morning/evening commute checks
 

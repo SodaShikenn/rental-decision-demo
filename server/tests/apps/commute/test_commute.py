@@ -154,3 +154,89 @@ def test_no_route_and_provider_failure_are_distinct():
             compare_commutes(body(), "key", transport=httpx.MockTransport(handler))
         )
         assert result["candidates"][0]["status"] == expected
+
+
+@pytest.mark.parametrize("return_outcome", ["ok", "empty", "failure"])
+def test_return_is_reversed_separately_timed_and_can_fail_independently(return_outcome):
+    calls = []
+    morning = datetime.now(timezone.utc) + timedelta(days=1)
+    request_body = body(at=morning, returnAt=morning + timedelta(hours=10))
+
+    def handler(request):
+        if "geocode" in str(request.url):
+            return httpx.Response(
+                200,
+                json={
+                    "status": "OK",
+                    "results": [
+                        {
+                            "formatted_address": "東京都渋谷区一丁目",
+                            "geometry": {
+                                "location_type": "ROOFTOP",
+                                "location": {"lat": 35.6, "lng": 139.7},
+                            },
+                        }
+                    ],
+                },
+            )
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "id": "place_test",
+                    "displayName": {"text": "渋谷駅"},
+                    "formattedAddress": "東京都渋谷区駅前",
+                },
+            )
+        payload = json.loads(request.content)
+        calls.append(payload)
+        returning = "departureTime" in payload
+        if returning and return_outcome == "failure":
+            return httpx.Response(403, json={})
+        if returning and return_outcome == "empty":
+            return httpx.Response(200, json={"routes": []})
+        return httpx.Response(
+            200, json={"routes": [{"duration": "2100s" if returning else "1500s"}]}
+        )
+
+    result = asyncio.run(
+        compare_commutes(request_body, "key", transport=httpx.MockTransport(handler))
+    )
+    outward = next(c for c in calls if "arrivalTime" in c)
+    returning = next(c for c in calls if "departureTime" in c)
+    assert returning["origin"] == outward["destination"]
+    assert returning["destination"] == outward["origin"]
+    assert "arrivalTime" not in returning and "departureTime" not in outward
+    assert returning["departureTime"] == request_body.returnAt.isoformat().replace(
+        "+00:00", "Z"
+    )
+    first, missing = result["candidates"]
+    assert first["routes"][0]["minutes"] == 25
+    assert (
+        first["returnTrip"]["status"]
+        == {"ok": "checked", "empty": "no_route", "failure": "unavailable"}[
+            return_outcome
+        ]
+    )
+    if return_outcome == "ok":
+        assert first["returnTrip"]["routes"][0]["minutes"] == 35
+    else:
+        assert first["returnTrip"]["routes"] == []
+    from urllib.parse import urlparse, parse_qs
+
+    backward = parse_qs(urlparse(first["returnTrip"]["url"]).query)
+    assert backward["origin"] == ["東京都渋谷区駅前"]
+    assert backward["destination"] == ["東京都渋谷区一丁目"]
+    assert missing["returnTrip"]["status"] == "address_unverified"
+
+
+def test_return_schedule_must_follow_outbound_within_provider_window():
+    at = datetime.now(timezone.utc) + timedelta(days=1)
+    for back in [
+        at,
+        at - timedelta(hours=1),
+        at + timedelta(days=101),
+        at.replace(tzinfo=None),
+    ]:
+        with pytest.raises(ValidationError):
+            body(at=at, returnAt=back)

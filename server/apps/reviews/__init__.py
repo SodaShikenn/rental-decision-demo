@@ -5,7 +5,7 @@ from providers.dependencies import maps_key
 from .models import ReviewSearch, ReviewRequest
 from .services import search_reviews, read_reviews
 from .web_models import WebReviewRequest
-from .web_research import research_web_reviews
+from .fallback import research_web_reviews
 
 router = APIRouter(
     prefix="/api/reviews", tags=["reviews"], dependencies=[Depends(apply_rate_limit)]

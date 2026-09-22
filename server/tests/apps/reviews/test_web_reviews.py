@@ -193,19 +193,25 @@ def test_endpoint_searches_public_web_then_maps_cited_evidence(settings_for):
     assert reply.status_code == 200, reply.text
     assert reply.headers["cache-control"] == "no-store"
     assert reply.json()["reviews"][0]["scope"] == "same_unit"
-    assert reply.json()["searchSuggestions"] == "<div>Google suggestions</div>"
+    assert reply.json()["searchSuggestions"] == ["<div>Google suggestions</div>"]
     assert len(calls) == 2
     assert calls[0]["config"].tools[0].google_search is not None
     assert "exact" in calls[0]["contents"].lower()
     assert URL in calls[1]["contents"]
 
 
-def test_empty_search_is_not_provider_failure(settings_for):
-    client, calls = client_for(settings_for, [response(metadata=False)])
+def test_empty_search_is_not_provider_failure(settings_for, monkeypatch):
+    async def none(*args):
+        return []
+
+    monkeypatch.setattr("apps.reviews.fallback.nearby_buildings", none)
+    client, calls = client_for(
+        settings_for, [response(metadata=False), response(metadata=False)]
+    )
     reply = client.post("/api/reviews/web", json=BODY)
-    assert reply.json()["status"] == "no_sources"
+    assert reply.json()["status"] == "no_reviews"
     assert reply.json()["reviews"] == []
-    assert len(calls) == 1
+    assert len(calls) == 2
 
 
 @pytest.mark.parametrize(
@@ -224,7 +230,11 @@ def test_failed_mapping_or_provider_cannot_be_presented_as_no_reviews(
     assert result.json()["error"]["code"] == code
 
 
-def test_missing_key_disabled_private_url_and_rate_limit(settings_for):
+def test_missing_key_disabled_private_url_and_rate_limit(settings_for, monkeypatch):
+    async def none(*args):
+        return []
+
+    monkeypatch.setattr("apps.reviews.fallback.nearby_buildings", none)
     client = TestClient(create_app(settings_for(), ocr_reader=stub_ocr()))
     assert (
         client.post("/api/reviews/web", json=BODY).json()["error"]["code"]
@@ -243,7 +253,9 @@ def test_missing_key_disabled_private_url_and_rate_limit(settings_for):
     )
     assert calls == []
     limited, _ = client_for(
-        settings_for, [response(metadata=False)], RATE_LIMIT_PER_MINUTE="1"
+        settings_for,
+        [response(metadata=False), response(metadata=False)],
+        RATE_LIMIT_PER_MINUTE="1",
     )
     assert limited.post("/api/reviews/web", json=BODY).status_code == 200
     assert limited.post("/api/reviews/web", json=BODY).status_code == 429

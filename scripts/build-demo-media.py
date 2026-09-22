@@ -57,7 +57,7 @@ encode(
     "fps=6,scale=720:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse=dither=bayer:bayer_scale=4",
     "-loop",
     "0",
-    TARGET / "preview.gif",
+    SOURCE / "preview.gif",
 )
 
 recording = json.loads((SOURCE / "walkthrough-timings.json").read_text())

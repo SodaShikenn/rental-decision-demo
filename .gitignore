@@ -1,5 +1,11 @@
 .env
+.env.*
+!.env.example
+!.env.*.example
 .venv/
+.agents/
+.claude/
+.ruff_cache/
 .DS_Store
 output/
 .playwright-cli/
@@ -14,3 +20,12 @@ assets/Apt*.jpg
 server/data/
 
 node_modules/
+
+# Retired presentation files remain available locally; public docs use the video poster.
+/README.en.md
+/assets/demo.png
+/docs/images/commute.png
+/docs/images/discovery.png
+/docs/images/memo.png
+/docs/images/sharing.png
+/web/demo/media/preview.gif

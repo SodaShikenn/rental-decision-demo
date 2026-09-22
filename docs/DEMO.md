@@ -16,7 +16,7 @@ The English commentary is visible in the picture. The player also offers English
 - Source opening, tentative selection, explicit confirmation, comparison updates, Maps URL construction and local HTML download use the application code. The recording does not open external Maps or claim to retrieve a route.
 - Hosted share creation, live extraction/research, leisure and web-review retrieval are not demonstrated. Their implementation and live-validation status are documented separately.
 
-The fixtures and caption overlays live in `scripts/`, outside the published `web/` application. Watching the video never enables fake data in the public app. Only the encoded video, poster, preview and captions are published.
+The fixtures and caption overlays live in `scripts/`, outside the published `web/` application. Watching the video never enables fake data in the public app. The encoded video, poster, chapter data, transcript and captions are published. The optional GIF preview stays in ignored `output/playwright/`.
 
 ## Reproduce
 
@@ -40,13 +40,13 @@ npm run record:demo
 
 The recording runner pins `@playwright/cli@0.1.21`, closes its isolated session after success/failure, and writes raw video, chapter timings and the downloaded brief to ignored `output/playwright/`. It does not touch an existing app session or `.env`.
 
-Encode H.264 MP4 with streaming metadata, a JPEG poster, a small GIF excerpt, chapter data and captions:
+Encode H.264 MP4 with streaming metadata, a JPEG poster, chapter data and captions, plus a local GIF excerpt:
 
 ```bash
 uv run --with imageio-ffmpeg==0.6.0 python scripts/build-demo-media.py
 ```
 
-`imageio-ffmpeg` is an isolated tool dependency for encoding, not a backend/runtime dependency. The media build replaces only generated files in `web/demo/media/`. It retains the full recording's pace; deliberate pauses make the silent walkthrough readable. It is not a provider-latency benchmark.
+`imageio-ffmpeg` is an isolated tool dependency for encoding, not a backend/runtime dependency. The media build replaces generated player assets in `web/demo/media/` and writes the GIF to `output/playwright/preview.gif`. It retains the full recording's pace; deliberate pauses make the silent walkthrough readable. It is not a provider-latency benchmark.
 
 ## Preview and check the player
 

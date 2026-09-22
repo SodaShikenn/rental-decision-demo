@@ -158,7 +158,11 @@ npm run record:sheets -- --gemini
 
 `smoke` exercises a running API with a fixture. `record:sheets` regenerates recorded demo data using real OCR and checked ground-truth mappings. `--gemini` invokes the live model and evaluates mappings against fixtures; it can incur charges and rewrites generated data. Original `assets/Apt*.jpg` files are ignored; published derivatives in `web/static/sheets/` mask contact details.
 
-README screenshots were captured from the actual local UI. The comparison screenshot shows the latest interface before answering; the discovery/memo walkthrough shows a confirmed flexible ¥110,000 monthly limit. They use contextual numeric questions, not a synthetic Gemini response. See [product validation](../PRODUCT.md#validation-and-release-state) for live-provider limitations.
+The README links to the captioned film; [UI design screenshots](UI_DESIGN.md) show the actual local interface. Recording and browser-check outputs stay local unless deliberately selected for the published docs. See [product validation](../PRODUCT.md#validation-and-release-state) for live-provider limitations.
+
+### Repository contents
+
+Track source, tests and fixtures, reproducible tooling, design/setup guides, and assets referenced by the app or documentation. Keep keys, environment files, databases, virtual environments, local agent skills, browser traces, raw recordings and unused screenshots outside version control. `.env.example` files remain tracked as setup templates. `.gitignore` includes explicit rules for retired presentation files retained locally; `output/` is the place for future working artifacts. Removing a file from tracking does not remove it from earlier Git history.
 
 ## Deployment state
 

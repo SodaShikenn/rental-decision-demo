@@ -5,8 +5,7 @@ export const VIEWS = [
     key: "commute",
     label: "通勤",
     group: "比べる",
-    eyebrow: "YOUR COMMUTE",
-    title: "同じ勤務先へ、どこから通う？",
+    title: "通勤を比較",
     description: "候補から目的地までを、同じ日時・移動方法で比べます。",
     steps: [
       "勤務先や駅を探して、地点を確認",
@@ -20,8 +19,7 @@ export const VIEWS = [
     key: "surroundings",
     label: "駅・買い物",
     group: "比べる",
-    eyebrow: "DAILY ESSENTIALS",
-    title: "駅や買い物への近さを、確かめる。",
+    title: "駅・買い物への徒歩経路",
     description: "図面の徒歩時間を残して、地図で取得した経路と照合します。",
     steps: [
       "調べたい候補を選ぶ",
@@ -35,8 +33,7 @@ export const VIEWS = [
     key: "leisure",
     label: "余暇",
     group: "比べる",
-    eyebrow: "AROUND YOUR HOME",
-    title: "この街なら、休日はどう過ごす？",
+    title: "周辺の余暇施設",
     description:
       "公園・ジム・カフェを調べてから、使いたい場所を一緒に考えます。",
     steps: [
@@ -51,8 +48,7 @@ export const VIEWS = [
     key: "reviews",
     label: "口コミ分析",
     group: "確かめる",
-    eyebrow: "BEFORE YOU DECIDE",
-    title: "ネットの声から、暮らしの手がかりを。",
+    title: "口コミ分析",
     description:
       "部屋から建物、近隣へ。公開の口コミを自動で調べ、候補を理解する手がかりにします。",
     steps: [
@@ -67,8 +63,7 @@ export const VIEWS = [
     key: "scenarios",
     label: "暮らしの試算",
     group: "確かめる",
-    eyebrow: "YOUR TRADEOFFS",
-    title: "通う日が変わると、選び方も変わる。",
+    title: "暮らしの試算",
     description:
       "月額・取得した通勤経路・確認した余暇の希望を、同じ条件で並べます。",
     steps: [
@@ -84,8 +79,7 @@ export const VIEWS = [
     key: "sharing",
     label: "共有・出力",
     group: "持ち出す",
-    eyebrow: "TAKE IT WITH YOU",
-    title: "必要な情報だけ、持ち出す。",
+    title: "共有・出力",
     description:
       "共有する内容を確認して、ファイル保存や期限付きリンクを作成します。",
     steps: [
@@ -94,7 +88,7 @@ export const VIEWS = [
       "HTML保存、または共有リンクを作成",
     ],
     next: "needs",
-    nextLabel: "編集したメモをコピーする",
+    nextLabel: "条件メモをコピーする",
   },
 ];
 

@@ -53,6 +53,36 @@ async (page) => {
       "Mobile navigation mirrors desktop state",
     );
   }
+  // Larger type must also fit the narrowest desktop navigation breakpoint.
+  for (const width of [761, 800, 1024]) {
+    await page.setViewportSize({ width, height: 1000 });
+    check(
+      await page.evaluate(
+        (w) => document.documentElement.scrollWidth <= w,
+        width,
+      ),
+      `Desktop tabs fit ${width}px`,
+    );
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  check(
+    await page.evaluate(
+      () => parseFloat(getComputedStyle(document.body).fontSize) >= 16,
+    ),
+    "Base reading size is at least 16px",
+  );
+  await page.locator("#tab-commute").click();
+  const help = page.locator("#panel-commute .feature-help details");
+  check(
+    !(await help.evaluate((el) => el.open)),
+    "Help starts folded away from the form",
+  );
+  await help.locator("summary").click();
+  check(
+    await help.locator("ol").isVisible(),
+    "Usage steps remain available on demand",
+  );
+  await help.locator("summary").click();
   // Navigation changes visibility only: form drafts must not be recreated or reset.
   await page.locator("#tab-commute").click();
   await page.locator("#destinationQuery").fill("未検索の勤務先");

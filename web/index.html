@@ -48,7 +48,7 @@
     <main class="page">
       <div id="panel-compare" class="workspace-panel" role="tabpanel" aria-labelledby="tab-compare" tabindex="-1" data-workspace-panel="compare">
         <div class="workspace-heading">
-          <div><p class="eyebrow">YOUR SHORTLIST</p><h2 id="compareTitle"><span>候補を見ながら、</span><span>ひとつずつ。</span></h2><p id="compareCaption" class="section-meta"></p></div>
+          <div><h2 id="compareTitle">候補を比較</h2><p id="compareCaption" class="section-meta"></p></div>
           <div class="section-actions">
             <button class="button button--primary" id="addSheet" type="button"><span aria-hidden="true">＋</span> 画像を追加</button>
             <button class="button" id="addLink" type="button">リンクを追加</button>
@@ -91,8 +91,8 @@
           </div>
           <aside class="guide-panel" id="guidePanel" aria-labelledby="guideTitle">
             <div id="guideContent">
-              <div class="guide-heading"><div><p class="eyebrow">YOUR PRIORITIES</p><h2 id="guideTitle">この違いから考える</h2></div><button type="button" id="guideClose" class="button button--text" aria-label="質問パネルを閉じる">閉じる</button></div>
-              <div class="guide-mode" role="tablist" aria-label="希望の整理方法"><button id="guide-numeric" role="tab" aria-controls="numericGuide" aria-selected="true" data-guide-mode="numeric">ひとつずつ確認</button><button id="guide-ai" role="tab" aria-controls="aiGuide" aria-selected="false" tabindex="-1" data-guide-mode="ai">AIと深める</button></div>
+              <div class="guide-heading"><div><h2 id="guideTitle">希望を整理</h2></div><button type="button" id="guideClose" class="button button--text" aria-label="質問パネルを閉じる">閉じる</button></div>
+              <div class="guide-mode" role="tablist" aria-label="希望の整理方法"><button id="guide-numeric" role="tab" aria-controls="numericGuide" aria-selected="true" data-guide-mode="numeric">比較から選ぶ</button><button id="guide-ai" role="tab" aria-controls="aiGuide" aria-selected="false" tabindex="-1" data-guide-mode="ai">AI 分析</button></div>
               <section id="numericGuide" role="tabpanel" aria-labelledby="guide-numeric">
                 <div class="priorities" id="discovery"><p id="discoveryEmpty" hidden>候補を追加すると、具体的な違いから質問できます。</p><div id="discoveryContent"><p id="analysisSummary"></p><div class="discovery-question" id="discoveryQuestion"></div><details class="analysis-details"><summary>候補の分析を見る</summary><div class="candidate-insights" id="candidateInsights"></div></details><details class="tradeoff-details"><summary>費用と駅への近さの違い</summary><div class="tradeoff" id="tradeoff"></div></details></div><p id="priorityStatus" role="status"></p></div>
               </section>
@@ -106,7 +106,7 @@
         <button type="button" class="mobile-guide-trigger" id="guideOpen" aria-haspopup="dialog" aria-controls="guideDialog">この違いから希望を整理 <span id="mobilePriorityCount"></span><span aria-hidden="true">↑</span></button>
       </div>
       <div id="panel-needs" class="workspace-panel" role="tabpanel" aria-labelledby="tab-needs" tabindex="-1" data-workspace-panel="needs" hidden>
-        <section class="needs" id="needs" aria-labelledby="needsTitle"><div class="section-head"><div class="section-title"><p class="eyebrow">YOUR DECISION BRIEF</p><h2 id="needsTitle">希望と、次に確かめること。</h2></div><p class="section-meta" id="needsLead"></p></div><p class="memo-intro">候補の分析と選択した回答から自動でまとまるメモです。希望を変えたいときは、候補比較の質問から確認し直せます。</p><div class="memo" id="memo" role="region" aria-label="自動生成された条件メモ" tabindex="0"></div><div class="memo-actions"><button class="button button--primary" id="copyMemo" type="button">条件メモをコピー</button><p class="memo-status" id="memoStatus" role="status"></p></div></section><div class="memo-next"><p>誰かと相談したいときは</p><a class="button" href="#sharing">共有内容を確認・ファイルに保存 →</a></div><a class="back-to-discovery" href="#compare">← 候補を見ながら考える</a>
+        <section class="needs" id="needs" aria-labelledby="needsTitle"><div class="section-head"><div class="section-title"><h2 id="needsTitle">条件メモ</h2></div><p class="section-meta" id="needsLead"></p></div><div class="memo" id="memo" role="region" aria-label="自動生成された条件メモ" tabindex="0"></div><div class="memo-actions"><button class="button button--primary" id="copyMemo" type="button">条件メモをコピー</button><p class="memo-status" id="memoStatus" role="status"></p></div></section><div class="memo-next"><p>誰かと相談したいときは</p><a class="button" href="#sharing">共有内容を確認・ファイルに保存 →</a></div><a class="back-to-discovery" href="#compare">← 候補を見ながら考える</a>
       </div>
       <div id="panel-commute" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-commute" tabindex="-1" data-workspace-panel="commute" hidden>
         <header class="feature-workspace-heading" data-view-heading="commute"></header>
@@ -116,7 +116,7 @@
       <div id="panel-surroundings" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-surroundings" tabindex="-1" data-workspace-panel="surroundings" hidden>
         <header class="feature-workspace-heading" data-view-heading="surroundings"></header>
         <div class="candidate-scope" data-candidate-scope></div>
-        <div class="feature-workspace-layout"><div class="feature-workspace-main"><section class="feature-section" id="surroundings" aria-labelledby="mapsSectionTitle"><h3 id="mapsSectionTitle">候補ごとに徒歩経路を確認</h3><p>掲載値を残して、取得した時間・距離と比較します。<span translate="no">Google Maps</span></p><div id="mapsCandidates" class="maps-cards"></div></section></div><aside class="feature-help" data-view-help="surroundings" aria-label="使い方"></aside></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><section class="feature-section" id="surroundings" aria-labelledby="mapsSectionTitle"><h3 id="mapsSectionTitle" class="visually-hidden">候補ごとの徒歩経路</h3><div id="mapsCandidates" class="maps-cards"></div></section></div><aside class="feature-help" data-view-help="surroundings" aria-label="使い方"></aside></div>
       </div>
       <div id="panel-leisure" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-leisure" tabindex="-1" data-workspace-panel="leisure" hidden>
         <header class="feature-workspace-heading" data-view-heading="leisure"></header>

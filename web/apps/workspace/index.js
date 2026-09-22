@@ -216,6 +216,10 @@ export function initApp(app) {
       ({ key }) =>
         priorities[key].level !== "later" && priorities[key].value > 0,
     );
+    $(".priority-strip").hidden =
+      !confirmed.length &&
+      !priorities.notes?.length &&
+      !priorities.pending?.length;
     $("#priorityChips").innerHTML =
       confirmed
         .map(

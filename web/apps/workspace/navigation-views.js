@@ -1,4 +1,3 @@
-import { escapeHTML as e } from "../../helper.js";
 import { VIEWS } from "./navigation.js";
 
 export function navigationMarkup() {
@@ -18,17 +17,13 @@ export function switcherMarkup() {
     .join("");
 }
 export function headingMarkup(view) {
-  const title = view.title
-    .split(/(?<=、)/u)
-    .map((part) => `<span>${part}</span>`)
-    .join("");
-  return `<p class="eyebrow">${view.eyebrow}</p><h2 id="heading-${view.key}">${title}</h2><p>${view.description}</p>`;
+  return `<h2 id="heading-${view.key}">${view.title}</h2><p>${view.description}</p>`;
 }
 export function helpMarkup(view) {
-  return `<h3>このページの使い方</h3><ol>${view.steps.map((step) => `<li>${step}</li>`).join("")}</ol><a href="#${view.next}" class="feature-next">${view.nextLabel} <span aria-hidden="true">→</span></a>`;
+  return `<details><summary>使い方を見る</summary><ol>${view.steps.map((step) => `<li>${step}</li>`).join("")}</ol></details><a href="#${view.next}" class="feature-next">${view.nextLabel} <span aria-hidden="true">→</span></a>`;
 }
 export function candidatesMarkup(properties) {
   if (!properties.length)
     return '<p>候補がありません。<a href="#compare">画像かリンクを追加して始める →</a></p>';
-  return `<span class="candidate-scope-label">対象の候補 ${properties.length}件</span><span>${properties.map((p) => e(p.name)).join(" · ")}</span><a href="#compare">候補を管理 ↗</a>`;
+  return `<span class="candidate-scope-label">対象の候補 ${properties.length}件</span><a href="#compare">候補を管理 ↗</a>`;
 }

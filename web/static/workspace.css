@@ -15,7 +15,7 @@
   --accent-ink: #fff;
   --radius: 8px;
   --radius-lg: 14px;
-  --row-head: 112px;
+  --row-head: 128px;
   --shadow: 0 12px 48px rgb(20 43 31 / 12%);
 }
 @media (prefers-color-scheme: dark) {
@@ -73,7 +73,7 @@
   height: 30px;
 }
 .brand-purpose {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-3);
   font-weight: 400;
   border-left: 1px solid var(--line-strong);
@@ -81,7 +81,7 @@
 }
 .session-note {
   margin-left: auto;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--ink-3);
 }
 .workspace-nav {
@@ -105,7 +105,7 @@
   border: 0;
   border-bottom: 2px solid transparent;
   color: var(--ink-3);
-  font-size: 13px;
+  font-size: 15px;
   transition:
     color 0.18s,
     border-color 0.18s;
@@ -116,7 +116,7 @@
   font-weight: 600;
 }
 .nav-count {
-  font-size: 11px;
+  font-size: 13px;
   padding: 1px 7px;
   background: var(--surface-2);
   border-radius: 4px;
@@ -137,7 +137,7 @@
 }
 .workspace-heading h2 {
   margin: 7px 0;
-  font-size: clamp(22px, 2.2vw, 28px);
+  font-size: clamp(26px, 2.2vw, 32px);
   font-weight: 600;
   letter-spacing: -0.035em;
 }
@@ -150,14 +150,14 @@
   color: var(--accent);
 }
 .section-meta {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-3);
 }
 .section-actions {
   gap: 8px;
 }
 .button {
-  min-height: 42px;
+  min-height: 44px;
   padding-inline: 16px;
   transition:
     background-color 0.14s,
@@ -170,10 +170,10 @@
   position: relative;
 }
 .more-inputs summary {
-  min-height: 42px;
+  min-height: 44px;
   padding: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-2);
 }
 .more-inputs > div {
@@ -196,7 +196,7 @@
   margin: 24px 0;
   padding: 14px 0;
   border-block: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 14px;
 }
 .priority-strip-label {
   font-weight: 600;
@@ -218,11 +218,11 @@
   color: var(--ink);
   border-radius: 5px;
   padding: 7px 10px;
-  font-size: 12px;
+  font-size: 14px;
 }
 .priority-pill > span:first-child {
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   margin-right: 4px;
 }
 .priority-memo {
@@ -231,8 +231,9 @@
   text-decoration: none;
 }
 .guided-layout {
+  margin-top: 28px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 28px;
   align-items: start;
 }
@@ -243,19 +244,21 @@
   display: flex;
   width: fit-content;
   max-width: 100%;
+  overflow-x: auto;
   gap: 4px;
   padding: 4px;
   background: var(--surface-2);
   border-radius: 9px;
 }
 .perspective-tabs button {
+  flex-shrink: 0;
   border: 0;
   border-radius: 6px;
-  min-height: 36px;
+  min-height: 44px;
   padding: 8px 16px;
   background: transparent;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 15px;
   white-space: nowrap;
 }
 .perspective-tabs button[aria-selected="true"] {
@@ -276,7 +279,7 @@
 .context-heading p {
   margin-top: 7px;
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: 14px;
 }
 .compare .table-wrap {
   border-radius: 12px;
@@ -320,20 +323,20 @@
   }
 }
 .sheet-name {
-  font-size: 14px;
+  font-size: 16px;
   min-height: 40px;
   line-height: 1.65;
 }
 .sheet-meta {
   margin-top: 6px;
-  font-size: 11px;
+  font-size: 13px;
 }
 .candidate-actions {
   margin-top: 8px;
 }
 .candidate-actions summary {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   min-height: 30px;
   padding-block: 5px;
@@ -347,7 +350,7 @@
 .sheet-remove {
   margin: 0;
   padding-inline: 4px;
-  font-size: 11px;
+  font-size: 13px;
 }
 .compare-table th[scope="row"] {
   padding: 18px 12px;
@@ -372,19 +375,19 @@
   letter-spacing: -0.04em;
 }
 .row-label {
-  font-size: 12px;
+  font-size: 14px;
 }
 .row-sub,
 .spread {
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 4px;
 }
 .cell-provenance {
   color: var(--ink-3);
-  font-size: 10px;
+  font-size: 12px;
 }
 .cell-fit {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--ink-2);
 }
@@ -401,7 +404,7 @@
 .comparison-footnote {
   margin-top: 16px;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: 13px;
 }
 .source-label {
   padding: 1px 5px;
@@ -455,7 +458,7 @@
   border-radius: 4px;
   background: transparent;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 14px;
 }
 .guide-mode button[aria-selected="true"] {
   background: var(--surface);
@@ -471,7 +474,7 @@
 }
 #analysisSummary {
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: 14px;
 }
 .discovery-question {
   display: grid;
@@ -487,7 +490,7 @@
   line-height: 1.65;
 }
 .discovery-question > p {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-2);
 }
 .discovery-options {
@@ -502,13 +505,13 @@
   padding: 12px;
 }
 .discovery-options .button--text {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-3);
   padding-inline: 0;
   margin-top: 2px;
 }
 .question-evidence {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-3);
 }
 .analysis-details > summary,
@@ -516,7 +519,7 @@
   cursor: pointer;
   padding-block: 12px;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 14px;
   border-bottom: 1px solid var(--line);
 }
 .candidate-insights {
@@ -530,14 +533,14 @@
 }
 .insight p,
 .tradeoff p {
-  font-size: 12px;
+  font-size: 14px;
   margin-top: 6px;
 }
 .tradeoff {
   margin-top: 14px;
 }
 #priorityStatus {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-2);
   margin-top: 12px;
 }
@@ -553,7 +556,7 @@
   justify-content: space-between;
 }
 .confirmed-panel .section-meta {
-  font-size: 10px;
+  font-size: 12px;
 }
 .discovered {
   padding: 10px 0;
@@ -563,14 +566,14 @@
 .discovered ul {
   list-style: none;
   padding: 0;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-2);
 }
 .discovered li {
   padding-block: 8px;
 }
 .guide-memo-link {
-  font-size: 12px;
+  font-size: 14px;
   text-decoration: none;
   display: flex;
   justify-content: space-between;
@@ -588,12 +591,12 @@
 }
 .advisor h4 {
   margin: 0;
-  font-size: 13px;
+  font-size: 15px;
 }
 #advisorBody {
   display: grid;
   gap: 18px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .advisor-insight p {
   line-height: 1.85;
@@ -602,11 +605,11 @@
 .advisor > details > summary {
   cursor: pointer;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 14px;
   padding-block: 10px;
 }
 .advisor-sources p {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ink-2);
   padding: 10px;
   border-left: 2px solid var(--line);
@@ -625,7 +628,7 @@
 
 #advisorStatus {
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 14px;
 }
 #advisorStatus:empty,
 #advisorNotes:empty {
@@ -636,11 +639,11 @@
   gap: 12px;
   max-height: 280px;
   overflow: auto;
-  font-size: 12px;
+  font-size: 14px;
 }
 #advisorNotes {
   padding-left: 18px;
-  font-size: 12px;
+  font-size: 14px;
 }
 #advisorNotes li {
   margin-bottom: 8px;
@@ -666,20 +669,20 @@
   align-items: center;
 }
 .maps-card h3 {
-  font-size: 13px;
+  font-size: 15px;
 }
 .maps-card > p {
   grid-column: 1;
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: 14px;
 }
 .maps-card > .button {
   grid-column: 2;
   grid-row: 1 / 3;
-  font-size: 12px;
+  font-size: 14px;
 }
 .context-limitation {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--ink-3);
   margin-top: 14px;
 }
@@ -694,10 +697,10 @@
   border-radius: 0;
 }
 .fit-card h3 {
-  font-size: 13px;
+  font-size: 15px;
 }
 .fit-card li {
-  font-size: 12px;
+  font-size: 14px;
 }
 .preferences-section {
   display: grid;
@@ -733,13 +736,9 @@
   margin-top: 10px;
   font-size: 27px;
 }
-.memo-intro {
-  font-size: 13px;
-  color: var(--ink-2);
-}
 .memo {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.9;
   padding: clamp(18px, 4vw, 40px);
   border-color: var(--line);
@@ -757,14 +756,14 @@
 .back-to-discovery {
   display: inline-block;
   margin-bottom: 24px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .app-footer {
   margin-top: 20px;
 }
 .app-footer .page-inner {
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: 13px;
 }
 .dialog-head {
   position: sticky;
@@ -794,7 +793,7 @@
 #researchStatus:not(:empty) {
   padding: 12px 0;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 15px;
 }
 @media (min-width: 761px) and (max-width: 1120px) {
   .guided-layout {
@@ -828,7 +827,7 @@
     display: none;
   }
   .session-note {
-    font-size: 10px;
+    font-size: 12px;
     max-width: 112px;
     text-align: right;
   }
@@ -836,7 +835,7 @@
     gap: 24px;
   }
   .workspace-nav button {
-    font-size: 12px;
+    font-size: 14px;
     gap: 6px;
   }
   .page {
@@ -849,7 +848,7 @@
     gap: 18px;
   }
   .workspace-heading h2 {
-    font-size: 22px;
+    font-size: 26px;
   }
   .section-actions {
     width: 100%;
@@ -867,12 +866,12 @@
     gap: 10px;
   }
   .priority-strip-label {
-    font-size: 11px;
+    font-size: 13px;
   }
   #priorityChips {
     order: 2;
     width: 100%;
-    font-size: 11px;
+    font-size: 13px;
   }
   .priority-pill {
     min-height: 44px;
@@ -890,7 +889,7 @@
     padding: 3px;
   }
   .perspective-tabs button {
-    font-size: 12px;
+    font-size: 14px;
     min-height: 44px;
     padding: 8px 6px;
   }
@@ -910,11 +909,11 @@
   .pair-picker label {
     min-width: 0;
     color: var(--ink-3);
-    font-size: 11px;
+    font-size: 13px;
   }
   .pair-picker > span {
     padding-bottom: 12px;
-    font-size: 11px;
+    font-size: 13px;
   }
   .pair-picker select {
     width: 100%;
@@ -940,11 +939,11 @@
     height: 90px;
   }
   .sheet-name {
-    font-size: 12px;
+    font-size: 14px;
     min-height: 50px;
   }
   .sheet-meta {
-    font-size: 10px;
+    font-size: 12px;
   }
   .candidate-actions summary {
     min-height: 44px;
@@ -957,11 +956,11 @@
     padding: 16px 8px;
   }
   .row-label {
-    font-size: 11px;
+    font-size: 13px;
   }
   .row-sub,
   .spread {
-    font-size: 10px;
+    font-size: 12px;
     overflow-wrap: anywhere;
   }
   .cell {
@@ -973,13 +972,13 @@
     right: 5px;
   }
   .cell-value {
-    font-size: 14px;
+    font-size: 16px;
   }
   #compareRows > tr[data-row="monthly"] .cell-value {
     font-size: 19px;
   }
   .cell-sub {
-    font-size: 11px;
+    font-size: 13px;
   }
   .scroll-hint {
     display: none;
@@ -1021,10 +1020,10 @@
     background: var(--accent);
     color: var(--accent-ink);
     box-shadow: var(--shadow);
-    font-size: 13px;
+    font-size: 15px;
   }
   #mobilePriorityCount {
-    font-size: 10px;
+    font-size: 12px;
     margin-left: auto;
   }
   .guide-dialog {

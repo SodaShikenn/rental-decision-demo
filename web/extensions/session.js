@@ -72,7 +72,7 @@ export function attachSession(store, initialError = false) {
       await images;
       if (stopped) return;
       await transaction('readwrite', (s) => s.put(snapshot, 'current'));
-      if (current === revision) status.textContent = 'このブラウザに保存済み';
+      if (current === revision) status.textContent = '保存済み';
     }).catch(() => { if (current === revision) status.textContent = '保存できませんでした。このタブを閉じる前にメモをコピーしてください。'; });
   };
   store.on('change', save); store.on('advisor', save);

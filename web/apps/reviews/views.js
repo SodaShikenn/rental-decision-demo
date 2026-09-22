@@ -7,11 +7,9 @@ import {
 } from "../../shared/maps.js";
 import { reviewTopics } from "./services.js";
 export const markup = `<section class="feature-section" id="reviewsSection" aria-labelledby="reviewsSectionTitle">
-  <h3 id="reviewsSectionTitle">この住まいの、気になる声。</h3>
-  <p>まず部屋の口コミを探し、なければ同じ建物、さらに近隣のアパート・マンションへ。見つかった声だけを、出典とともに整理します。</p>
+  <h3 id="reviewsSectionTitle" class="visually-hidden">口コミの検索</h3>
   <ol class="review-search-order" aria-label="口コミを探す順番"><li>この部屋</li><li>同じ建物</li><li>近隣300m以内</li></ol>
   <div class="review-toolbar"><label>調べる候補<select id="reviewCandidate"></select></label><button class="button" id="reviewSearch">再検索</button></div>
-  <p class="section-hint">候補の掲載情報を使って自動分析します。希望の入力は不要です。</p>
   <p id="reviewStatus" role="status" aria-live="polite"></p><div id="reviewResults" aria-busy="false"></div><div id="reviewSuggestions"></div><p id="reviewExternal" class="section-hint"></p>
 </section>`;
 const SCOPES = {

@@ -1,46 +1,54 @@
 /* Feature navigation and page composition. Feature forms retain their own modules. */
 .workspace-nav .workspace-tabs {
-  gap: 24px;
+  gap: 8px;
 }
 .workspace-tabs button {
   white-space: nowrap;
   transition: none;
+  border: 0;
+  border-radius: 6px;
+  padding-inline: 16px;
+  min-height: 44px;
+}
+.workspace-nav .workspace-tabs {
+  padding-block: 8px;
+}
+.workspace-tabs button[aria-selected="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .workspace-nav .mobile-workspace-nav {
   display: none;
 }
 .feature-workspace {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1040px;
   margin-inline: auto;
-  padding-top: 12px;
+  padding-top: 0;
 }
 .feature-workspace-heading {
-  max-width: 760px;
+  max-width: 840px;
 }
 .feature-workspace-heading h2 {
-  margin-block: 12px;
-  font-size: clamp(24px, 2.3vw, 32px);
+  margin-block: 7px 10px;
+  font-size: clamp(26px, 2.3vw, 32px);
   font-weight: 600;
   letter-spacing: -0.03em;
 }
 .feature-workspace-heading > p:last-child {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-2);
   line-height: 1.8;
-}
-.feature-workspace-heading h2 span {
-  display: inline-block;
 }
 .candidate-scope {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: 8px 16px;
-  padding-block: 16px;
-  margin-block: 24px 30px;
-  border-block: 1px solid var(--line);
-  font-size: 12px;
+  padding-block: 12px;
+  margin-block: 20px 28px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
   color: var(--ink-2);
 }
 .candidate-scope-label {
@@ -48,19 +56,15 @@
   font-weight: 600;
   color: var(--ink);
 }
-.candidate-scope > span:nth-child(2) {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
 .candidate-scope a {
   flex-shrink: 0;
+  margin-left: auto;
   text-decoration: none;
 }
 .feature-workspace-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
-  gap: 48px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
   align-items: start;
 }
 .feature-workspace-main {
@@ -72,11 +76,11 @@
   border-top: 0;
 }
 .feature-workspace .feature-section > h3 {
-  font-size: 18px;
-  margin-block: 4px 14px;
+  font-size: 20px;
+  margin-block: 4px 12px;
 }
 .feature-workspace .feature-section > p {
-  font-size: 13px;
+  font-size: 16px;
   max-width: 68ch;
 }
 .feature-workspace .feature-form {
@@ -90,35 +94,39 @@
   margin-block: 22px;
 }
 .feature-help {
-  padding-left: 24px;
-  border-left: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 20px 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
   color: var(--ink-2);
+  font-size: 14px;
 }
-.feature-help h3 {
-  font-size: 12px;
-  color: var(--ink-3);
-  font-weight: 500;
+.feature-help details {
+  flex: 1;
+  min-width: 160px;
+}
+.feature-help summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-block: 10px;
 }
 .feature-help ol {
-  padding-left: 20px;
-  margin-block: 20px 24px;
-  font-size: 13px;
+  padding-left: 24px;
+  margin-block: 12px;
 }
 .feature-help li {
-  padding-left: 3px;
-  margin-bottom: 18px;
-  line-height: 1.85;
+  padding-left: 4px;
+  margin-bottom: 12px;
+  line-height: 1.8;
 }
 .feature-help li::marker {
   color: var(--accent);
-  font: 500 12px var(--mono);
 }
 .feature-next {
-  display: block;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
-  line-height: 1.8;
+  padding-block: 10px;
+  min-height: 44px;
   text-decoration: none;
 }
 .context-tools,
@@ -129,7 +137,7 @@
   margin-block: 20px;
   padding-block: 16px;
   border-block: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 14px;
 }
 .context-tools > span,
 .scenario-prerequisites > span {
@@ -140,7 +148,7 @@
 .scenario-prerequisites a,
 .context-tools-link {
   text-decoration: none;
-  font-size: 13px;
+  font-size: 15px;
 }
 .scenario-prerequisites {
   margin-top: 0;
@@ -154,7 +162,7 @@
   gap: 12px 24px;
   margin-block: 8px 28px;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 15px;
 }
 #panel-sharing .share-preview {
   max-height: 540px;
@@ -162,24 +170,14 @@
 #panel-sharing .share-options {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-#observationForm {
-  grid-template-columns: 160px minmax(0, 1fr);
-}
-#observationForm > button {
-  grid-column: 2;
-  justify-self: start;
-}
 @media (min-width: 761px) and (max-width: 1050px) {
   .workspace-nav .workspace-tabs {
-    gap: 16px;
+    gap: 2px;
   }
   .workspace-tabs button {
-    font-size: 12px;
+    font-size: 14px;
+    padding-inline: 9px;
     gap: 5px;
-  }
-  .feature-workspace-layout {
-    grid-template-columns: minmax(0, 1fr) 200px;
-    gap: 28px;
   }
 }
 @media (max-width: 760px) {
@@ -193,7 +191,7 @@
     min-height: 64px;
   }
   .mobile-workspace-nav label {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-3);
     flex-shrink: 0;
   }
@@ -212,18 +210,14 @@
     padding-top: 0;
   }
   .feature-workspace-heading h2 {
-    font-size: 24px;
-    line-height: 1.6;
+    font-size: 26px;
+    line-height: 1.4;
   }
   .feature-workspace-heading > p:last-child {
-    font-size: 13px;
+    font-size: 16px;
   }
   .candidate-scope {
     margin-block: 20px 24px;
-  }
-  .candidate-scope > span:nth-child(2) {
-    flex-basis: 100%;
-    order: 2;
   }
   .candidate-scope > a {
     margin-left: auto;
@@ -237,12 +231,8 @@
     border-left: 0;
     border-top: 1px solid var(--line);
   }
-  .feature-workspace .feature-form,
-  #observationForm {
+  .feature-workspace .feature-form {
     grid-template-columns: minmax(0, 1fr);
-  }
-  #observationForm > button {
-    grid-column: auto;
   }
   #panel-sharing .share-options {
     grid-template-columns: minmax(0, 1fr);

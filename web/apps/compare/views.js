@@ -76,7 +76,7 @@ function headMarkup(property) {
     <th scope="col" class="sheet-head" data-property="${id}" tabindex="-1">
       ${thumb}
       <span class="sheet-name">${name}</span>
-      <span class="sheet-meta"><span>${escapeHTML(property.district ?? "所在地未取得")}</span>${mock}</span><details class="candidate-actions"><summary>候補の管理</summary><div><button class="sheet-remove" type="button" data-research="${id}" aria-label="${name} の不足情報を探す">不足情報を探す</button><button class="sheet-remove" type="button" data-edit-candidate="${id}" aria-label="${name} の情報を編集">編集</button><button class="sheet-remove" type="button" data-remove="${id}" aria-label="${name} を比較から外す">外す</button></div></details>
+      ${mock ? `<span class="sheet-meta">${mock}</span>` : ""}<details class="candidate-actions"><summary>候補の管理</summary><div><button class="sheet-remove" type="button" data-research="${id}" aria-label="${name} の不足情報を探す">不足情報を探す</button><button class="sheet-remove" type="button" data-edit-candidate="${id}" aria-label="${name} の情報を編集">編集</button><button class="sheet-remove" type="button" data-remove="${id}" aria-label="${name} を比較から外す">外す</button></div></details>
     </th>`;
 }
 
@@ -85,7 +85,6 @@ function rowHeadMarkup(row) {
     <th scope="row">
       <span class="row-label">${escapeHTML(row.label)}</span>
       ${row.sub ? `<span class="row-sub">${escapeHTML(row.sub)}</span>` : ""}
-      ${row.spread ? `<span class="spread" title="図面の値の幅">${escapeHTML(row.spread)}</span>` : ""}
     </th>`;
 }
 

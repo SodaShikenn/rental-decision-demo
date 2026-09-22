@@ -1,170 +1,137 @@
+<div align="center">
+
 # Rental Helper
 
-**Compare homes. Discover what matters. Make a decision you can explain.**
+### Compare homes. Discover what matters.
 
-Rental Helper helps tenants in Japan turn apartment images and listing links into a comparison, an interactive conversation about their priorities, and a brief they can take to a viewing or agent. The experience starts with the homes they are considering—not a blank requirements form.
+A candidate-first rental assistant for Japan.<br>
+From listing images and links to sourced comparisons, focused questions, and a decision brief.
 
-[日本語](README.ja.md) · [Public demo — static experience](https://sodashikenn.github.io/rental-helper/) · [Current walkthrough](#try-the-three-step-journey) · [Roadmap](ROADMAP.md) · [Run locally](docs/DEVELOPMENT.md#run-locally)
+[**Watch the walkthrough**](https://sodashikenn.github.io/rental-helper/demo/) · [**Try the app**](https://sodashikenn.github.io/rental-helper/) · [**Read the code**](docs/CODE_TOUR.md)
 
-[![Current local workspace: three rental candidates, costs, a sourced reference price and contextual questions](docs/images/compare.png)](#try-the-three-step-journey)
+[日本語](README.ja.md) · [Product design](PRODUCT.md) · [Roadmap](ROADMAP.md)
 
-> **Development prototype · September 22, 2026.** Screenshots show the current local build. The public demo hosts the static frontend; API-backed features need a separately configured server. Live AI, listing research and Maps require a configured backend; the recorded comparison and numeric preference flow work without those services.
+[![Tests](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml)
+[![Pages](https://github.com/SodaShikenn/rental-helper/actions/workflows/pages.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/pages.yml)
 
-## The project in 60 seconds
+[![Play the Rental Helper product walkthrough: real comparison interface, candidate-led questions and a generated brief](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
 
-A tenant can find attractive apartments but still struggle to answer: “Which differences matter to my daily life?” Listings omit details, monthly charges can be unclear, and “close to a station” says little about a real commute.
+**[▶ Play the chaptered video](https://sodashikenn.github.io/rental-helper/demo/)** · [Download MP4](https://sodashikenn.github.io/rental-helper/demo/media/walkthrough.mp4) · [Read transcript](web/demo/media/transcript.md)
 
-Rental Helper brings candidate facts and sources together, asks focused questions about concrete differences, and waits for the tenant to confirm a preference before using it. Unknowns remain visible. The tenant keeps control of the decision.
+</div>
 
-| If you are… | Start here |
+> **About the film:** a simulated journey recorded in the real interface. Listing examples are previously recorded; AI replies are scripted and labelled throughout. Confirmation, comparison, Maps link generation and HTML export use the actual application. No live model quality or current rental availability is implied. [How it was recorded](docs/DEMO.md).
+
+## Why this exists
+
+“I like these three apartments, but I don't know which differences matter.”
+
+Rental Helper starts with the tenant's shortlist. It compares sourced facts, investigates gaps, and uses concrete differences to help the tenant refine vague priorities. The tenant confirms each interpretation before it changes the comparison or the brief.
+
+**The product loop:** candidates → evidence → a focused question → explicit confirmation → a clearer decision.
+
+## Choose your tour
+
+| Your time | Your path |
 | --- | --- |
-| A recruiter | [Three-step walkthrough](#try-the-three-step-journey), then [skills demonstrated](#what-this-project-demonstrates). |
-| A product or design reviewer | [Product principles](PRODUCT.md), [interface decisions and interaction checks](docs/UI_DESIGN.md), then [upcoming user journeys](ROADMAP.md). |
-| An engineering reviewer | [8-step code tour](docs/CODE_TOUR.md), [architecture and setup](docs/DEVELOPMENT.md), and [validation](docs/VALIDATION.md). |
+| **90 seconds · hiring / product** | [Watch the film](https://sodashikenn.github.io/rental-helper/demo/) and see the complete decision flow. |
+| **3 minutes · hands-on** | [Open the demo](https://sodashikenn.github.io/rental-helper/#compare), inspect a price, answer a numeric question and export a brief. No account or API key needed. |
+| **10 minutes · engineering** | Follow the [code tour](docs/CODE_TOUR.md), inspect [evidence boundaries](PRODUCT.md), then review [tests and live checks](docs/VALIDATION.md). |
 
-## Find a feature
+### Jump to a moment
 
-Desktop: choose a top tab. Mobile: use **機能を選ぶ**. Each page puts its controls first, with usage tips under **使い方を見る**; switching pages preserves current drafts and retrieved results until reload.
-
-| Open the demo at… | What to do there |
+| In the film | What it demonstrates |
 | --- | --- |
-| [候補比較 — compare](https://sodashikenn.github.io/rental-helper/#compare) | Add images/links, compare facts, and confirm candidate-based priorities with AI or numeric questions. |
-| [通勤 — commute](https://sodashikenn.github.io/rental-helper/#commute) | Choose a Tokyo hub and open each candidate’s outbound/return route in Google Maps. Works without API keys. |
-| [駅・買い物 — essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check each candidate's listed walking claims against Maps. |
-| [余暇 — leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Find nearby parks, gyms and cafés before discussing preferences. |
-| [口コミ分析 — review analysis](https://sodashikenn.github.io/rental-helper/#reviews) | Automatically search public web reviews for a candidate, inspect sources/unit scope, and use the resulting analysis without writing requirements. |
-| [暮らしの試算 — scenarios](https://sodashikenn.github.io/rental-helper/#scenarios) | Change weekly commuting frequency and compare the tradeoffs. |
-| [条件メモ — brief](https://sodashikenn.github.io/rental-helper/#needs) | Read and copy the generated decision brief. |
-| [共有・出力 — share/export](https://sodashikenn.github.io/rental-helper/#sharing) | Preview included information, download HTML or manage expiring links. |
+| [01 · Compare the shortlist](https://sodashikenn.github.io/rental-helper/demo/#chapter=0) | Images, known values and missing information in one workspace. |
+| [02 · Inspect a reference price](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) | A different unit's rent never becomes this candidate's confirmed budget. |
+| [03 · Ask from evidence](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) | A scripted AI exchange illustrates candidate-based questions, without a requirements essay. |
+| [04 · Confirm the interpretation](https://sodashikenn.github.io/rental-helper/demo/#chapter=3) | A tentative answer only changes priorities after acceptance. |
+| [05 · Check a commute](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) | Tokyo destinations and prefilled outbound / return Google Maps links. |
+| [06–07 · Take the decision with you](https://sodashikenn.github.io/rental-helper/demo/#chapter=5) | Generated brief, explicit sharing options and a real HTML download. |
 
-Live research, Maps, AI and hosted sharing require a configured API; the public demo exposes the same interface.
+<details>
+<summary><strong>See a short animated preview</strong></summary>
+
+[![Animated excerpt of the real comparison and evidence interface; the full video labels scripted AI responses](web/demo/media/preview.gif)](https://sodashikenn.github.io/rental-helper/demo/)
+
+[Watch with playback controls and English / Japanese captions →](https://sodashikenn.github.io/rental-helper/demo/)
+
+</details>
 
 ## Try the three-step journey
 
-The app has eight directly accessible feature tabs. On phones, the **機能を選ぶ** dropdown exposes the same pages. Comparison and discovery stay together in **候補比較**, with separate pages for routes, surroundings, reviews, scenarios, the memo and sharing. Use cost, space, access, equipment/contracts or full-list views; questions stay beside the evidence. On mobile, select two candidates and open the questions in a bottom panel. Each screenshot below opens at full size; expand the steps for a guided tour. [Run this version locally](docs/DEVELOPMENT.md#run-locally) to interact with it.
+1. **Compare.** In [候補比較](https://sodashikenn.github.io/rental-helper/#compare), click a monthly amount to inspect the evidence. GRAN PASEO明大前Ⅳ shows a same-building reference for another unit, excluded from its confirmed budget.
+2. **Discover.** Use **費用 → 比較から選ぶ** to choose a candidate-derived budget and confirm its importance. With a backend, **AI 分析** offers evidence-linked questions and proposals. The public app does not use the film's scripted AI responses.
+3. **Take away.** Open [条件メモ](https://sodashikenn.github.io/rental-helper/#needs), then [共有・出力](https://sodashikenn.github.io/rental-helper/#sharing). Review the generated brief and download HTML. Preferences are refined through choices; the memo is read-only.
 
-| 01 · Compare / 比較する | 02 · Discover / 希望を整理する | 03 · Takeaway / メモを持ち出す |
+Desktop uses top tabs; phones use **機能を選ぶ**. Navigation preserves in-progress work.
+
+## Find a feature
+
+| Feature | Tenant outcome | Public demo |
 | --- | --- | --- |
-| [![Compare candidates](docs/images/compare.png)](docs/images/compare.png) | [![Discover priorities](docs/images/discovery.png)](docs/images/discovery.png) | [![Take away a decision brief](docs/images/memo.png)](docs/images/memo.png) |
-| Understand differences and inspect sources. | Confirm a priority through a question. | Copy and revisit the automatically generated brief. |
+| [候補比較 · Compare](https://sodashikenn.github.io/rental-helper/#compare) | Compare costs, area, station claims and source evidence. | Recorded candidates, numeric questions and local saving work. Image/URL extraction and automatic missing-price research need the backend. |
+| [通勤 · Commute](https://sodashikenn.github.io/rental-helper/#commute) | Choose a hub or work address; open each home's outbound/return route. | Works without an API. Endpoints and mode are prefilled; set date/time in Maps. Results are not imported. |
+| [駅・買い物 · Essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check listed walking claims against sourced Maps observations. | API required. Listing times stay distinct from provider estimates. |
+| [余暇 · Leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Discover parks, gyms and cafés before discussing preferences. | API required. Confirm interest, frequency and importance after seeing places. |
+| [口コミ分析 · Reviews](https://sodashikenn.github.io/rental-helper/#reviews) | Search room → building → nearby references; inspect identity and scope. | API required. Missing evidence stays blank; nearby reports are not attributed to the candidate. |
+| [暮らしの試算 · Scenarios](https://sodashikenn.github.io/rental-helper/#scenarios) | Compare known costs, accepted leisure interests and weekly assumptions. | Known values work. No invented commute totals or overall score. |
+| [条件メモ · Brief](https://sodashikenn.github.io/rental-helper/#needs) | Carry confirmed priorities and unanswered questions into a viewing. | Generated memo and copy work. No manual diary or requirements form. |
+| [共有・出力 · Export](https://sodashikenn.github.io/rental-helper/#sharing) | Preview exactly what is shared, then save or send it. | Local HTML works. Expiring, revocable links require the backend. |
 
-<details>
-<summary><strong>01 — Compare: what is known, and where did it come from?</strong></summary>
+## Engineering you can inspect
 
-Open the comparison and click a monthly cost or initial-cost estimate. See the amount, breakdown and evidence; extraction details are available when needed. Add an image or listing link without having to complete every missing field first.
-
-**Try GRAN PASEO明大前Ⅳ:** its brochure omits rent and does not identify a room. The app shows **参考 12.3万円/月** from a sourced offer for 102号室. It explains that this is a same-building reference, so it is excluded from the candidate's confirmed budget and initial-cost calculation.
-
-With the backend configured, missing monthly charges trigger research automatically. Exact-unit, current, non-conflicting offers can fill gaps; other-room prices remain references. Maps can separately compare listed station/amenity walking claims with provider estimates.
-
-</details>
-
-<details>
-<summary><strong>02 — Discover: turn a vague preference into a confirmed choice</strong></summary>
-
-In **候補比較**, select **AI 分析** in the side panel (on mobile, open **この違いから希望を整理** first). With Gemini available, start candidate analysis: the conversation asks one evidence-linked question, offers choices and deferral, and proposes priorities for explicit acceptance.
-
-For a no-key walkthrough, use **費用 → 比較から選ぶ**. Pick a candidate-derived monthly budget, then choose whether it is a must-have or flexible preference. A tentative choice alone does not update requirements. After confirmation, inspect each candidate's fit, conflict or unknown state.
-
-The screenshots use this real numeric fallback; they do not depict a fabricated live AI conversation.
-
-</details>
-
-<details>
-<summary><strong>03 — Takeaway: leave with a useful next action</strong></summary>
-
-Open **条件メモ**. The memo combines confirmed priorities, selected equipment and questions to check with an agent. Copy it; revise preferences through candidate-based questions. Reload to confirm that local candidates, preferences and confirmed answers survive.
-
-Saving is specific to this browser. Maps observations and conversations containing them are temporary; accepted preferences persist. Open the **共有・出力** tab to preview the brief, download HTML, or create a 1–7 day link with a connected backend. The creator can revoke the link; downloaded copies remain with recipients.
-
-</details>
-
-<details>
-<summary><strong>Explore the new modules: commute, leisure, reviews and sharing</strong></summary>
-
-- **通勤:** choose from eight Tokyo hubs or specify a work address. The sample areas suggest Shibuya; this is a starting point, not a preference or time ranking. Each candidate has immediate outbound/return buttons, prefilled with endpoints and transport mode. The 08:00 arrival / 18:00 departure reminders must be set inside Maps; official Maps URLs cannot carry date/time.
-- **余暇:** retrieve actual options first, choose an activity/frequency, then explicitly accept its importance. “None” and “not sure” are valid.
-- **暮らしの試算:** vary days per week and see which explanations change. Missing rent/routes stay unknown.
-- **口コミ分析:** select a candidate; the app searches the room, then its building, then up to three Maps-verified neighboring residences within 300 m. Read source-linked summaries with the actual building and distance, then choose which concerns matter. If none are found, the review area stays blank.
-- **共有・出力:** review exactly which fields are included. Images/chat are optional local HTML attachments; hosted links use a smaller allowlisted document.
-
-[![Commute destination and schedule form](docs/images/commute.png)](docs/images/commute.png)
-
-[![Share preview and privacy options](docs/images/sharing.png)](docs/images/sharing.png)
-
-These screenshots show the actual forms and preview, without fabricated provider results. Google officially [excludes Japan from Routes API transit coverage](https://developers.google.com/maps/faq#transit_directions_countries). Live checks on September 22 confirmed destination search, precise geocoding and walking routes; all six transit directions across the three sample buildings were empty. The commute page now opens Google Maps directly, without waiting for API results. [Official Maps URLs](https://developers.google.com/maps/documentation/urls/get-started) require no key and carry endpoints/mode, but not date/time. Results are not imported into the app.
-
-[Follow the implementation through the repository →](docs/CODE_TOUR.md)
-
-</details>
-
-## What is working today
-
-| Capability | Current state |
-| --- | --- |
-| Image / listing URL / manual candidate input | Implemented; extraction and online retrieval require the backend. |
-| Comparison, cost breakdowns, evidence and glossary | Implemented; recorded examples work without provider keys. |
-| Automatic missing-price research | Implemented with source, unit-match and conflict checks; recorded GRAN PASEO reference included. |
-| Station and grocery walking checks | Geocoding + Places (New) + WALK Routes integrated; previous local live checks succeeded. |
-| Candidate-based AI conversation | Implemented with cited context and explicit preference confirmation; live-provider reliability remains under evaluation. |
-| Preference fit, generated memo and local saving | Implemented; IndexedDB includes uploaded images and eligible conversation history. |
-| Commute and scenario comparison | Direct Google Maps handoff: eight hubs/custom destination, outbound/return links, transport mode and 08:00/18:00 reminders. Works on Pages without an API. In-app Japan transit times and automatic weekly totals await a suitable provider. |
-| Leisure discovery | Implemented; real parks/gyms/cafés, optional regular destination, frequency/importance confirmation. Live park/WALK slice succeeded. |
-| Automatic review analysis | Implemented: room → building → nearby residential references within 300 m. Empty evidence stays blank; no manual diary or requirement entry. Live GRAN PASEO search returned Gemini busy; successful retrieval and source coverage still need validation. |
-| Brief export and sharing | HTML preview/download; backend links expire in 1–7 days and support revocation. Public sharing requires API hosting. |
-
-**Validation:** 241 tests passed on September 22, 2026: 111 frontend and 130 backend; 2 real-OCR tests skipped. Browser checks cover desktop/mobile, pair selection, keyboard navigation, confirmation, persistence, source details, and stale AI response rejection with a stubbed provider. Earlier checks also covered automatic research. Recent full-candidate Gemini calls returned service-busy responses, so full live conversational/research quality is not claimed. [Detailed validation record](docs/VALIDATION.md).
-
-## What this project demonstrates
-
-| Skill | Concrete evidence in the project |
-| --- | --- |
-| Product judgment | Reframed an OCR examination tool around the tenant's decision; removed upfront requirements writing and kept uncertainty visible. |
-| Full-stack implementation | Modular JavaScript UI, FastAPI services, structured data contracts, external APIs and browser persistence. |
-| Responsible AI integration | Evidence IDs, source/room matching, explicit confirmation, stale-response rejection and honest failure states. |
-| UX design | Comparison and contextual questions together, visible priorities, mobile pair selection, keyboard navigation and evidence details. |
-| Testing and delivery | Pure-function/API tests, provider stubs, browser checks, Docker setup and GitHub Actions workflows. |
-
-The project demonstrates implemented engineering decisions. It does not yet claim production adoption, measured tenant outcomes or comprehensive AI accuracy.
-
-## Explore the implementation
+| Decision | Why it matters | Start reading |
+| --- | --- | --- |
+| **Evidence before preference** | An inference is a proposal until the tenant confirms it. | [Advisor](web/apps/advisor/) · [tests](web/tests/apps/advisor/) |
+| **Keep uncertainty meaningful** | Other-unit rent, missing fees and nearby reviews cannot silently become candidate facts. | [Price research](server/apps/research/) · [review fallback](server/apps/reviews/fallback.py) |
+| **Adapt to provider limits** | Japan transit is unavailable through Google Routes. Keyless Maps handoff keeps commute lookup usable. | [URL builder](web/apps/commute/links.js) · [tests](web/tests/apps/commute/links.test.js) |
+| **Independent feature modules** | Controllers, pure transformations and provider adapters can be reviewed separately. | [Code tour](docs/CODE_TOUR.md) · [app factories](docs/DEVELOPMENT.md#architecture) |
+| **Explicit sharing boundaries** | Temporary observations stay outside persistent shares; hosted briefs use an allowlist and revocation secret. | [Sharing service](server/apps/sharing/) · [client export](web/apps/sharing/) |
+| **Repeatable verification** | Provider contracts, browser workflows and live checks answer different questions. | [Validation record](docs/VALIDATION.md) · [recording source](scripts/record-demo.mjs) |
 
 ```mermaid
 flowchart LR
-    A[Images and listing links] --> B[Candidate facts and sources]
-    B --> C[Comparison]
-    M[Maps walking observations] --> C
-    C --> D[Questions grounded in candidates]
+    A[Listing images / URLs] --> B[Candidate facts + sources]
+    B --> C[Comparison workspace]
+    C --> D[Evidence-linked question]
     D --> E[Tenant confirms a priority]
     E --> C
-    E --> F[Editable decision brief]
+    E --> F[Generated brief / export]
+    C --> G[Prefilled Google Maps links]
+    H[Optional API: research / reviews / walking] --> B
 ```
 
+**Stack:** JavaScript ES modules · HTML / CSS · FastAPI / Pydantic · Gemini · Docling / RapidOCR · Google Maps · IndexedDB · SQLite · Docker · GitHub Actions. The frontend has no build step or runtime framework dependency.
+
 <details>
-<summary><strong>Open the technical path: UI → services → evidence → tests</strong></summary>
+<summary><strong>Run locally and validate</strong></summary>
 
-| Layer | Stack / entry point |
-| --- | --- |
-| Frontend | HTML, CSS, JavaScript ES modules; no frontend build step. [App factory](web/app.js), [workspace](web/apps/workspace/index.js). |
-| Backend | Python/FastAPI, Pydantic, Gemini SDK. [App factory](server/app.py). |
-| Extraction | Docling + RapidOCR → Gemini field mapping → evidence validation. [Listing service](server/apps/listing/services.py). |
-| Research | Grounded search/URL context, unit identity and guarded updates. [Backend](server/apps/research/services.py), [automatic monthly flow](web/apps/research/automatic.js). |
-| Maps | Geocoding, Places (New), WALK Routes. [Maps service](server/apps/maps/services.py). |
-| Advice | Structured, cited questions and preference proposals. [Advisor service](server/apps/advisor/services.py). |
-| Storage | Local IndexedDB, including image blobs. [Session implementation](web/extensions/session.js). |
-| Quality | [Frontend tests](web/tests), [backend tests](server/tests), [CI workflow](.github/workflows/ci.yml). |
+For the recorded comparison, numeric discovery, Maps handoff and local export:
 
-[Setup, environment variables, API endpoints and deployment](docs/DEVELOPMENT.md).
+```bash
+npm run dev:web
+# Open http://127.0.0.1:4173/
+```
+
+Node.js 22+ and Python 3 are used by the development commands. Follow the [backend setup](docs/DEVELOPMENT.md#run-the-backend) for live extraction/research/advice, walking checks and hosted shares. Keys remain server-side.
+
+```bash
+npm ci
+npm run test:web
+npm test                # after backend test dependencies are installed
+npm run smoke:ui        # web server running
+npm run smoke:browser   # web + backend running
+```
+
+[Record the film again](docs/DEMO.md) · [Full setup and deployment](docs/DEVELOPMENT.md)
 
 </details>
 
-## What comes next
+## Delivery status
 
-The feature modules are implemented; the remaining work is provider coverage and release validation:
+**Development prototype · September 22, 2026.** 241 tests passed: 111 frontend + 130 backend; 2 optional real-OCR tests skipped. Desktop/mobile browser checks and CI pass. These establish implementation behavior, not model accuracy or tenant outcomes.
 
-1. Evaluate the direct Maps commute workflow with tenants; consider an additional transit provider only for future in-app numeric comparison.
-2. Validate automatic web-review retrieval against real apartment buildings and evaluate source coverage.
-3. Deploy the API with durable share storage; verify public access, expiry and revocation.
-4. Evaluate live Gemini quality, provider latency/cost and tenant usability.
+The public site hosts the frontend and this film. Live extraction, research, Gemini advice, walking checks, review retrieval and hosted sharing need a separately deployed API. Recent Gemini research/advice returned busy responses; successful live review coverage remains unverified. Commute handoff works on the public site, but automatic Japanese transit-time comparison needs another provider.
 
-[Implementation vs. remaining acceptance criteria →](ROADMAP.md)
+**Next:** tenant usability evaluation, live AI/review validation, and a public backend with durable share storage. [Acceptance criteria and roadmap →](ROADMAP.md)

@@ -197,3 +197,7 @@ It searches Shibuya station, uses the first exact Tokyo match as a diagnostic ta
 `web/apps/commute/links.js` constructs official Google Maps direction URLs. It sets only `api=1`, `origin`, `destination`, and `travelmode`; return links reverse the endpoints. The controller does not call Places or Routes, so this flow works on GitHub Pages. Date/time controls are reminders only: [official universal URLs](https://developers.google.com/maps/documentation/urls/get-started) do not support arrival/departure dates or times. Do not add undocumented encoded `data` blobs or imply that a click returns a route to the app.
 
 An address is preferred; a building name with a known district is a visibly tentative fallback. Missing locations never use the device location. Candidate changes rebuild links. Destination/schedule are transient; the opt-in share field includes only an explicitly selected destination, never an inferred workplace. `commuteObservation()` returns `null`; scenarios/advice receive no fabricated durations or evidence.
+
+## README video
+
+The static chaptered player lives at `web/demo/`; recording-only fixtures remain in `scripts/`. Use `npm run dev:demo` for byte-range video playback on port 4174 and `npm run smoke:demo` to check it. [Recording, encoding and simulation boundaries](DEMO.md).

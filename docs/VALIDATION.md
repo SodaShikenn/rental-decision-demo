@@ -48,3 +48,9 @@ New deterministic checks cover area-based hub suggestions, unknown-area behavior
 The direct-link unit tests also cover Japanese/ampersand encoding, qualified-building fallback, missing endpoints (no device-location fallback), unsupported modes, overlong URLs, escaped imported text and empty candidate lists. Browser handoff checks validate the outgoing URL contract, not Google timetable accuracy or native mobile app behavior.
 
 Live browser handoff on 2026-09-22 JST: clicking the Louvre Shibuya outbound link opened Google Maps with the extracted Tomigaya address, Shibuya station and public transport, and Maps displayed actual route alternatives. Its schedule remained “すぐに出発”, confirming why date/time must be set there. This verifies one desktop handoff, not every candidate, timetable accuracy, or native phone app behavior. Provider results were not imported or committed.
+
+## README film and static player
+
+The captioned recording operates the real frontend with recorded listing data and explicitly scripted AI replies. It reaches explicit preference confirmation and a real local HTML download. Recording setup blocks all other provider requests. It is a product demonstration, not additional live-model validation.
+
+`npm run smoke:demo` checks the MP4, chapter deep links, keyboard playback, English/Japanese WebVTT cues, the transcript, and 320/390 px overflow. The encoded MP4 is also decoded in full to detect corrupt frames. [Reproduction and simulation boundary](DEMO.md).

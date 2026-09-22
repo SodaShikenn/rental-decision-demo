@@ -2,136 +2,104 @@
 
 # Rental Helper
 
-### Compare homes. Discover what matters.
+### Start with homes. Discover what matters.
 
-A candidate-first rental assistant for Japan.<br>
-From listing images and links to sourced comparisons, focused questions, and a decision brief.
+A rental decision assistant for Japan that turns a shortlist into<br>
+sourced comparisons, candidate-based questions, and confirmed priorities.
 
-[**Watch the walkthrough**](https://sodashikenn.github.io/rental-helper/demo/) · [**Try the app**](https://sodashikenn.github.io/rental-helper/) · [**Read the code**](docs/CODE_TOUR.md)
-
-[日本語](README.ja.md) · [Product design](PRODUCT.md) · [Roadmap](ROADMAP.md)
+[**Try the app ↗**](https://sodashikenn.github.io/rental-helper/) · [**Watch the demo ↗**](https://sodashikenn.github.io/rental-helper/demo/) · [**日本語**](README.ja.md)
 
 [![Tests](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/ci.yml)
-[![Pages](https://github.com/SodaShikenn/rental-helper/actions/workflows/pages.yml/badge.svg)](https://github.com/SodaShikenn/rental-helper/actions/workflows/pages.yml)
 
-[![Play the Rental Helper product walkthrough: real comparison interface, candidate-led questions and a generated brief](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
+[![Play the Rental Helper walkthrough: compare candidates, inspect evidence and confirm priorities](web/demo/media/poster.jpg)](https://sodashikenn.github.io/rental-helper/demo/)
 
-**[▶ Play the chaptered video](https://sodashikenn.github.io/rental-helper/demo/)** · [Download MP4](https://sodashikenn.github.io/rental-helper/demo/media/walkthrough.mp4) · [Read transcript](web/demo/media/transcript.md)
+**84-second walkthrough** · [English / Japanese captions](https://sodashikenn.github.io/rental-helper/demo/) · [Transcript](web/demo/media/transcript.md)
 
 </div>
 
-> **About the film:** a simulated journey recorded in the real interface. Listing examples are previously recorded; AI replies are scripted and labelled throughout. Confirmation, comparison, Maps link generation and HTML export use the actual application. No live model quality or current rental availability is implied. [How it was recorded](docs/DEMO.md).
+> The video uses recorded listings and explicitly scripted AI replies in the real interface. The public app supports sample comparison, guided choices, Maps links and HTML export; live research and AI features need a connected backend. [Setup](docs/DEVELOPMENT.md)
 
-## Why this exists
+## The problem
 
-“I like these three apartments, but I don't know which differences matter.”
+“I like these three apartments. How do I decide what matters?”
 
-Rental Helper starts with the tenant's shortlist. It compares sourced facts, investigates gaps, and uses concrete differences to help the tenant refine vague priorities. The tenant confirms each interpretation before it changes the comparison or the brief.
+Listings scatter prices, floor plans and location claims across images and websites. A tenant may care about cost, commuting and daily routines without knowing how to prioritize them. Rental Helper starts with the homes they already found, investigates the differences, and asks concrete questions. **Only priorities the tenant confirms become part of the decision brief.**
 
-**The product loop:** candidates → evidence → a focused question → explicit confirmation → a clearer decision.
+No upfront requirements essay. No unexplained overall score.
 
-## Choose your tour
+## Explore in three steps
 
-| Your time | Your path |
-| --- | --- |
-| **90 seconds · hiring / product** | [Watch the film](https://sodashikenn.github.io/rental-helper/demo/) and see the complete decision flow. |
-| **3 minutes · hands-on** | [Open the demo](https://sodashikenn.github.io/rental-helper/#compare), inspect a price, answer a numeric question and export a brief. No account or API key needed. |
-| **10 minutes · engineering** | Follow the [code tour](docs/CODE_TOUR.md), inspect [evidence boundaries](PRODUCT.md), then review [tests and live checks](docs/VALIDATION.md). |
+1. **Compare the evidence.** [Open the shortlist](https://sodashikenn.github.io/rental-helper/#compare) and click a monthly price. Another unit's rent appears as a reference, not as this home's confirmed cost.
+2. **Discover a priority.** Choose **費用 → 比較から選ぶ**, select a budget suggested by the candidates, then confirm its importance. With the API connected, **AI 分析** asks follow-up questions grounded in candidate evidence.
+3. **Take a useful next step.** [Check commute links](https://sodashikenn.github.io/rental-helper/#commute), read the [generated brief](https://sodashikenn.github.io/rental-helper/#needs), and [download HTML](https://sodashikenn.github.io/rental-helper/#sharing).
 
-### Jump to a moment
-
-| In the film | What it demonstrates |
-| --- | --- |
-| [01 · Compare the shortlist](https://sodashikenn.github.io/rental-helper/demo/#chapter=0) | Images, known values and missing information in one workspace. |
-| [02 · Inspect a reference price](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) | A different unit's rent never becomes this candidate's confirmed budget. |
-| [03 · Ask from evidence](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) | A scripted AI exchange illustrates candidate-based questions, without a requirements essay. |
-| [04 · Confirm the interpretation](https://sodashikenn.github.io/rental-helper/demo/#chapter=3) | A tentative answer only changes priorities after acceptance. |
-| [05 · Check a commute](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) | Tokyo destinations and prefilled outbound / return Google Maps links. |
-| [06–07 · Take the decision with you](https://sodashikenn.github.io/rental-helper/demo/#chapter=5) | Generated brief, explicit sharing options and a real HTML download. |
+**Skip to a video chapter:** [Price evidence](https://sodashikenn.github.io/rental-helper/demo/#chapter=1) · [AI dialogue](https://sodashikenn.github.io/rental-helper/demo/#chapter=2) · [Explicit confirmation](https://sodashikenn.github.io/rental-helper/demo/#chapter=3) · [Commute](https://sodashikenn.github.io/rental-helper/demo/#chapter=4) · [Brief & export](https://sodashikenn.github.io/rental-helper/demo/#chapter=5)
 
 <details>
-<summary><strong>See a short animated preview</strong></summary>
+<summary><strong>All eight workspace views</strong></summary>
 
-[![Animated excerpt of the real comparison and evidence interface; the full video labels scripted AI responses](web/demo/media/preview.gif)](https://sodashikenn.github.io/rental-helper/demo/)
+| View | What it helps the tenant do |
+| --- | --- |
+| **候補比較 · Compare** | Add listing images or links; compare costs, space and sources; research missing monthly charges. |
+| **通勤 · Commute** | Choose a Tokyo hub or destination and open prefilled outbound/return Maps routes. Set the 08:00 arrival / 18:00 departure schedule in Maps. |
+| **駅・買い物 · Essentials** | Check listed walking claims against dated Maps route estimates and nearby shops. |
+| **余暇 · Leisure** | See parks, gyms and cafés before confirming interests and frequency. |
+| **口コミ分析 · Reviews** | Search the room, building, then nearby apartments. Keep source identity visible and leave missing reviews blank. |
+| **暮らしの試算 · Scenarios** | Compare known costs and confirmed interests under weekly assumptions; missing route times remain unknown. |
+| **条件メモ · Brief** | Generate confirmed priorities and questions for an agent. No manual diary. |
+| **共有・出力 · Export** | Preview and download a brief, or create an expiring, revocable link through the API. |
 
-[Watch with playback controls and English / Japanese captions →](https://sodashikenn.github.io/rental-helper/demo/)
+Desktop tabs and a grouped mobile menu expose the same views. Image/link research, AI, Maps observations, reviews and hosted shares require the backend; navigation alone does not save a preference.
 
 </details>
 
-## Try the three-step journey
+## For reviewers
 
-1. **Compare.** In [候補比較](https://sodashikenn.github.io/rental-helper/#compare), click a monthly amount to inspect the evidence. GRAN PASEO明大前Ⅳ shows a same-building reference for another unit, excluded from its confirmed budget.
-2. **Discover.** Use **費用 → 比較から選ぶ** to choose a candidate-derived budget and confirm its importance. With a backend, **AI 分析** offers evidence-linked questions and proposals. The public app does not use the film's scripted AI responses.
-3. **Take away.** Open [条件メモ](https://sodashikenn.github.io/rental-helper/#needs), then [共有・出力](https://sodashikenn.github.io/rental-helper/#sharing). Review the generated brief and download HTML. Preferences are refined through choices; the memo is read-only.
+**Product / hiring:** the video and three-step demo show the interaction model. **Engineering:** start with the [code tour](docs/CODE_TOUR.md), then follow one of these decisions into its implementation.
 
-Desktop uses top tabs; phones use **機能を選ぶ**. Navigation preserves in-progress work.
+| Design decision | Implementation to inspect |
+| --- | --- |
+| AI interpretations require evidence and explicit acceptance | [Advisor validation](server/apps/advisor/services.py) · [tests](server/tests/apps/advisor/test_advisor.py) |
+| Another unit's price cannot silently fill this candidate's rent | [Research matching](server/apps/research/services.py) · [automatic supplement rules](web/apps/research/monthly.js) |
+| Nearby reviews identify the apartment they actually describe | [Review fallback](server/apps/reviews/fallback.py) · [source checks](server/tests/apps/reviews/test_web_reviews.py) |
+| Provider limits inform the user flow | [Keyless Maps handoff](web/apps/commute/links.js) · [tests](web/tests/apps/commute/links.test.js) |
+| Share only selected data, with expiry and owner revocation | [Share repository](server/apps/sharing/store.py) · [export allowlist](web/apps/sharing/services.js) |
 
-## Find a feature
+**Stack:** JavaScript ES modules · FastAPI / Pydantic · Gemini · Docling / RapidOCR · Google Maps · IndexedDB / SQLite · Docker / GitHub Actions. Feature controllers, business logic and provider adapters are separate; the frontend needs no build step.
 
-| Feature | Tenant outcome | Public demo |
-| --- | --- | --- |
-| [候補比較 · Compare](https://sodashikenn.github.io/rental-helper/#compare) | Compare costs, area, station claims and source evidence. | Recorded candidates, numeric questions and local saving work. Image/URL extraction and automatic missing-price research need the backend. |
-| [通勤 · Commute](https://sodashikenn.github.io/rental-helper/#commute) | Choose a hub or work address; open each home's outbound/return route. | Works without an API. Endpoints and mode are prefilled; set date/time in Maps. Results are not imported. |
-| [駅・買い物 · Essentials](https://sodashikenn.github.io/rental-helper/#surroundings) | Check listed walking claims against sourced Maps observations. | API required. Listing times stay distinct from provider estimates. |
-| [余暇 · Leisure](https://sodashikenn.github.io/rental-helper/#leisure) | Discover parks, gyms and cafés before discussing preferences. | API required. Confirm interest, frequency and importance after seeing places. |
-| [口コミ分析 · Reviews](https://sodashikenn.github.io/rental-helper/#reviews) | Search room → building → nearby references; inspect identity and scope. | API required. Missing evidence stays blank; nearby reports are not attributed to the candidate. |
-| [暮らしの試算 · Scenarios](https://sodashikenn.github.io/rental-helper/#scenarios) | Compare known costs, accepted leisure interests and weekly assumptions. | Known values work. No invented commute totals or overall score. |
-| [条件メモ · Brief](https://sodashikenn.github.io/rental-helper/#needs) | Carry confirmed priorities and unanswered questions into a viewing. | Generated memo and copy work. No manual diary or requirements form. |
-| [共有・出力 · Export](https://sodashikenn.github.io/rental-helper/#sharing) | Preview exactly what is shared, then save or send it. | Local HTML works. Expiring, revocable links require the backend. |
+[Product design](PRODUCT.md) · [Architecture](docs/CODE_TOUR.md) · [Verification](docs/VALIDATION.md) · [Interface decisions](docs/UI_DESIGN.md)
 
-## Engineering you can inspect
+## Run locally
 
-| Decision | Why it matters | Start reading |
-| --- | --- | --- |
-| **Evidence before preference** | An inference is a proposal until the tenant confirms it. | [Advisor](web/apps/advisor/) · [tests](web/tests/apps/advisor/) |
-| **Keep uncertainty meaningful** | Other-unit rent, missing fees and nearby reviews cannot silently become candidate facts. | [Price research](server/apps/research/) · [review fallback](server/apps/reviews/fallback.py) |
-| **Adapt to provider limits** | Japan transit is unavailable through Google Routes. Keyless Maps handoff keeps commute lookup usable. | [URL builder](web/apps/commute/links.js) · [tests](web/tests/apps/commute/links.test.js) |
-| **Independent feature modules** | Controllers, pure transformations and provider adapters can be reviewed separately. | [Code tour](docs/CODE_TOUR.md) · [app factories](docs/DEVELOPMENT.md#architecture) |
-| **Explicit sharing boundaries** | Temporary observations stay outside persistent shares; hosted briefs use an allowlist and revocation secret. | [Sharing service](server/apps/sharing/) · [client export](web/apps/sharing/) |
-| **Repeatable verification** | Provider contracts, browser workflows and live checks answer different questions. | [Validation record](docs/VALIDATION.md) · [recording source](scripts/record-demo.mjs) |
-
-```mermaid
-flowchart LR
-    A[Listing images / URLs] --> B[Candidate facts + sources]
-    B --> C[Comparison workspace]
-    C --> D[Evidence-linked question]
-    D --> E[Tenant confirms a priority]
-    E --> C
-    E --> F[Generated brief / export]
-    C --> G[Prefilled Google Maps links]
-    H[Optional API: research / reviews / walking] --> B
-```
-
-**Stack:** JavaScript ES modules · HTML / CSS · FastAPI / Pydantic · Gemini · Docling / RapidOCR · Google Maps · IndexedDB · SQLite · Docker · GitHub Actions. The frontend has no build step or runtime framework dependency.
-
-<details>
-<summary><strong>Run locally and validate</strong></summary>
-
-For the recorded comparison, numeric discovery, Maps handoff and local export:
+With Node.js 22+ and Python 3, from the repository root:
 
 ```bash
 npm run dev:web
 # Open http://127.0.0.1:4173/
 ```
 
-Node.js 22+ and Python 3 are used by the development commands. Follow the [backend setup](docs/DEVELOPMENT.md#run-the-backend) for live extraction/research/advice, walking checks and hosted shares. Keys remain server-side.
+The recorded comparison, guided choices, Maps links and HTML export need no keys. For live features, follow the [Python backend setup](docs/DEVELOPMENT.md#run-the-backend). API keys stay on the server.
+
+<details>
+<summary><strong>Tests, deployment and recording</strong></summary>
 
 ```bash
 npm ci
 npm run test:web
-npm test                # after backend test dependencies are installed
-npm run smoke:ui        # web server running
-npm run smoke:browser   # web + backend running
+npm test                # requires backend test dependencies
+npm run smoke:browser   # start the web and API servers first
 ```
 
-[Record the film again](docs/DEMO.md) · [Full setup and deployment](docs/DEVELOPMENT.md)
+[Full development guide](docs/DEVELOPMENT.md) · [Public deployment](docs/DEPLOYMENT.md) · [Reproduce the video](docs/DEMO.md)
 
 </details>
 
 ## What's next
 
-- [ ] Compare Japanese train and bus commutes directly in the app, including travel time, transfers and fares.
-- [ ] Recommend candidates based on the combined picture of work destinations, leisure interests and daily costs.
-- [ ] Broaden apartment-review coverage and make recurring themes easier to compare.
-- [ ] Refine AI follow-up questions to uncover priorities when preferences are vague or competing.
-- [ ] Make comparison briefs easier to share and revisit across devices.
+- [ ] Compare Japanese transit times, transfers and fares inside the app.
+- [ ] Explain candidate tradeoffs across work destinations, leisure and daily costs.
+- [ ] Broaden apartment-review coverage and comparison of recurring themes.
+- [ ] Improve AI follow-up questions for vague or competing priorities.
+- [ ] Make briefs easier to share and revisit across devices.
+
+[Detailed roadmap →](ROADMAP.md)

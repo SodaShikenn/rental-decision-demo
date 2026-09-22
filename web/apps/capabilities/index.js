@@ -4,8 +4,8 @@ import { fetchServerState, setExtractionState } from "./services.js";
 import { bindCapabilities, renderCapabilities } from "./views.js";
 
 async function refreshServerState(app) {
-  const { state, model, maps } = await fetchServerState(EXTRACTION_API_URL);
-  setExtractionState(state, model, maps);
+  const { state, model, maps, research } = await fetchServerState(EXTRACTION_API_URL);
+  setExtractionState(state, model, maps, research);
   renderCapabilities();
   app.extensions.store.emit("server-status", state);
 }

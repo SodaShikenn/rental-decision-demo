@@ -13,11 +13,10 @@ DETAIL_FIELDS = (
 
 
 def building_name(name):
-    return re.sub(
-        r"[0-9a-z]+号室",
-        "",
-        "".join(unicodedata.normalize("NFKC", name).split()).lower(),
-    ).strip()
+    # Remove the room before collapsing spaces: “Ⅰ 408号室” must keep the building's I.
+    normalized = unicodedata.normalize("NFKC", name).lower()
+    normalized = re.sub(r"[0-9]+[a-z]?\s*号室", "", normalized)
+    return "".join(normalized.split()).strip()
 
 
 def matches_building(place, name, origin):

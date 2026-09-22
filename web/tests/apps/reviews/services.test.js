@@ -12,7 +12,10 @@ test("opposing reports stay together rather than producing a factual verdict", (
 });
 test("review markup escapes source content and rejects executable links", () => {
   const html = resultsMarkup({
-    place: { name: "A", url: "javascript:alert(1)" },
+    sourceCount: 1,
+    otherPages: [
+      { title: "<img>", reason: "advertisement", url: "javascript:alert(1)" },
+    ],
     checkedAt: "2026-09-22",
     reviews: [
       {

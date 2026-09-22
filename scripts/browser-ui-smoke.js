@@ -1,5 +1,17 @@
 // Native interaction checks. No provider calls, credentials, or fixture preferences needed.
 async (page) => {
+  const reviewStub = (route) =>
+    route.fulfill({
+      json: {
+        status: "no_sources",
+        reviews: [],
+        otherPages: [],
+        sourceCount: 0,
+        checkedAt: "2026-09-22T10:00:00Z",
+        searchSuggestions: "",
+      },
+    });
+  await page.route("**/api/reviews/web", reviewStub);
   const errors = [];
   const check = (ok, message) => {
     if (!ok) throw new Error(message);
@@ -185,6 +197,7 @@ async (page) => {
       colorScheme: "light",
     });
   try {
+    await touch.route("**/api/reviews/web", reviewStub);
     const phone = await touch.newPage();
     phone.on("pageerror", (error) => errors.push(error.message));
     await phone.goto("http://127.0.0.1:4173");

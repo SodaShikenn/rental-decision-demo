@@ -92,6 +92,7 @@ export function initApp(app) {
       memo.style.height = `${memo.scrollHeight + 2}px`;
     }
     if (focus) $(`#panel-${view}`).focus({ preventScroll: true });
+    store.emit("view", view);
   }
   function keyboardTabs(elements, activate) {
     elements.forEach((tab, index) => {

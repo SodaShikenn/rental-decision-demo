@@ -1,7 +1,7 @@
 /** Optional CLI-driven browser check. Start the web and API servers first. */
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-const session = `rental-smoke-${Date.now()}`;
+const session = `rental-smoke-${process.pid}-${Date.now()}`;
 const scenario = process.argv.includes("--ui")
   ? "browser-ui-smoke.js"
   : "browser-smoke.js";

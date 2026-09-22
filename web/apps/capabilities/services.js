@@ -11,8 +11,8 @@ export const capability = (key) => capabilities.find((item) => item.key === key)
 export const extractionState = () => status.extraction;
 
 /** Record what the extraction server reported, so chips and the list stay truthful. */
-export function setExtractionState(extraction, model, maps = false) {
-  Object.assign(status, { extraction, model, maps });
+export function setExtractionState(extraction, model, maps = false, research = false) {
+  Object.assign(status, { extraction, model, maps, research });
   capabilities = capabilityList(status);
 }
 
@@ -25,7 +25,7 @@ export async function fetchServerState(baseUrl, { fetchImpl = fetch, timeoutMs =
     const response = await fetchImpl(`${baseUrl}/healthz`, { signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok) return { state: "unreachable" };
     const health = await response.json();
-    const maps = health.maps ? { maps: health.maps.configured === true } : {};
+    const maps = { ...(health.maps ? { maps: health.maps.configured === true } : {}), ...(health.research ? { research: health.research.enabled === true && health.research.configured === true } : {}) };
     if (health.enabled === false) return { state: "disabled", ...maps };
     if (health.mode === "mock") return { state: "mock", ...maps };
     if (health.configured === false) return { state: "unconfigured", ...maps };

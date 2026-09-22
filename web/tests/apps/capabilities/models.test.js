@@ -62,3 +62,10 @@ test("chips carry the status label and a tooltip describing the current behavior
   assert.equal(statusChip("planned"), '<span class="chip chip--planned">未接続</span>');
   assert.match(capabilityChip("routes"), /chip--planned.*title="駅・周辺施設への徒歩経路：地図の確認サーバーに接続すると利用できます。"/);
 });
+
+test("web reviews depend on enabled Gemini research, independently of Maps and OCR", async () => {
+  const status = await fetchServerState("http://api", { fetchImpl: health({ mode: "mock", research: { configured: true, enabled: true }, maps: { configured: false } }) });
+  assert.equal(status.research, true);
+  assert.equal(byKey(capabilityList({ extraction: status.state, ...status })).reviews.kind, "live");
+  assert.equal(byKey(capabilityList({ extraction: "live", maps: true, research: false })).reviews.kind, "planned");
+});

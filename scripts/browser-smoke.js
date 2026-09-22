@@ -81,50 +81,33 @@ async (page) => {
       },
     });
   });
-  await page.route("**/api/reviews/search", (route) => {
-    const b = route.request().postDataJSON();
+  let reviewRequests = 0;
+  await page.route("**/api/reviews/web", (route) => {
+    reviewRequests++;
     return route.fulfill({
       json: {
-        status: "choose_place",
-        places: [
+        checkedAt: new Date().toISOString(),
+        status: "found",
+        sourceCount: 1,
+        otherPages: [
           {
-            id: "building_test",
-            name: b.name,
-            address: b.address,
-            url: "https://www.google.com/maps",
+            title: "検証用募集ページ",
+            url: "https://example.com/listing",
+            reason: "募集ページです",
+          },
+        ],
+        reviews: [
+          {
+            text: "検証用：昼は静かでした。",
+            scope: "same_building",
+            publishedDate: null,
+            sourceTitle: "検証用口コミサイト",
+            url: "https://example.com/review",
           },
         ],
       },
     });
   });
-  await page.route("**/api/reviews", (route) =>
-    route.fulfill({
-      json: {
-        place: {
-          id: "building_test",
-          name: "検証用建物",
-          url: "https://www.google.com/maps",
-          attributions: [],
-        },
-        checkedAt: new Date().toISOString(),
-        rating: 3,
-        count: 2,
-        reviews: [
-          {
-            text: "検証用：昼は静かでした。",
-            originalText: "検証用：昼は静かでした。",
-            author: {
-              name: "テスト投稿者",
-              url: "https://www.google.com/maps",
-            },
-            url: "https://www.google.com/maps",
-            relativeTime: "検証データ",
-            rating: 3,
-          },
-        ],
-      },
-    }),
-  );
   await page.locator("#tab-commute").click();
   await page.locator("#destinationQuery").fill("新宿駅");
   await page.locator("#destinationForm button").click();
@@ -153,8 +136,13 @@ async (page) => {
     throw Error("remote scenario");
   await page.locator("#scenarioForm button").click();
   await page.locator("#tab-reviews").click();
-  await page.locator("#reviewSearch").click();
-  await page.locator("[data-review-place]").click();
+  await page.locator("#reviewResults .review-entry").waitFor();
+  if (reviewRequests !== 1)
+    throw new Error("Review page must automatically search once");
+  await page.locator("#tab-compare").click();
+  await page.locator("#tab-reviews").click();
+  if (reviewRequests !== 1)
+    throw new Error("Review navigation must reuse session results");
   await page.locator("[data-review-topic=sound]").click();
   await page
     .locator("#observationForm textarea")
@@ -183,6 +171,12 @@ async (page) => {
     )
   )
     throw Error("observation opt-in failed");
+  if (
+    (await page.locator("#sharePreview").textContent()).includes(
+      "検証用：昼は静かでした。",
+    )
+  )
+    throw Error("Provider review leaked into share preview");
   const download = page.waitForEvent("download");
   await page.locator("#exportBrief").click();
   await (await download).saveAs("output/playwright/brief-export.html");
@@ -213,6 +207,16 @@ async (page) => {
     await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
   )
     throw Error("share mobile overflow");
+  await page.locator("#workspaceSelect").selectOption("reviews");
+  await page.locator("#reviewResults .review-entry").waitFor();
+  if (
+    await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
+  )
+    throw Error("Review results mobile overflow");
+  await page.screenshot({
+    path: "output/playwright/reviews-mobile-fixture.png",
+    fullPage: true,
+  });
   await page.locator("#workspaceSelect").selectOption("surroundings");
   if (
     await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)

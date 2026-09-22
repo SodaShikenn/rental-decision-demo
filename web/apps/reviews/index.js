@@ -1,27 +1,59 @@
 import { $, escapeHTML as e } from "../../helper.js";
 import { post } from "../../shared/api.js";
-import { sourceLink, mapsCredit, saveNote } from "../../shared/maps.js";
+import { sourceLink, saveNote } from "../../shared/maps.js";
 import { observation, reviewTopics } from "./services.js";
 import { markup, resultsMarkup } from "./views.js";
+import { createReviewResearch } from "./research.js";
 export function initApp(app) {
   const { store } = app.extensions;
   $("#reviewsMount").innerHTML = markup;
   let result = null,
-    choices = [],
-    generation = 0,
-    controller,
-    fingerprint = "";
+    active = false,
+    lastEntry;
   const property = () =>
     store.state.properties.find((p) => p.id === $("#reviewCandidate").value);
-  function invalidate() {
-    ++generation;
-    controller?.abort();
-    result = null;
-    choices = [];
-    $("#reviewChoices").innerHTML = "";
-    $("#reviewResults").innerHTML = "";
-    $("#reviewSearch").disabled = false;
-  }
+  const research = createReviewResearch({
+    request: (input, options) => post("reviews/web", input, options),
+    onChange(entry) {
+      if (entry === lastEntry) return;
+      lastEntry = entry;
+      result = entry.data || null;
+      $("#reviewSearch").disabled =
+        entry.status === "loading" || entry.status === "empty";
+      $("#reviewResults").setAttribute(
+        "aria-busy",
+        String(entry.status === "loading"),
+      );
+      $("#reviewStatus").textContent = {
+        empty: "まず、比較したい候補を追加してください。",
+        loading:
+          "公開の口コミを検索しています。建物名・住所と出典を照合するため、少し時間がかかります…",
+        ready:
+          "検索が完了しました。投稿の内容と、自分で確かめたことを分けて考えましょう。",
+        error: entry.message,
+      }[entry.status];
+      $("#reviewResults").innerHTML = result ? resultsMarkup(result) : "";
+      $("#reviewSuggestions").replaceChildren();
+      if (result?.searchSuggestions) {
+        const frame = document.createElement("iframe");
+        frame.title = "Google 検索の関連候補";
+        frame.setAttribute(
+          "sandbox",
+          "allow-popups allow-popups-to-escape-sandbox",
+        );
+        frame.referrerPolicy = "no-referrer";
+        frame.srcdoc = result.searchSuggestions;
+        $("#reviewSuggestions").append(frame);
+      }
+      const p = property();
+      $("#reviewExternal").innerHTML = p
+        ? sourceLink(
+            `https://www.google.com/search?q=${encodeURIComponent(`${p.name} ${p.address || ""} 口コミ`)}`,
+            "自分でもネットの口コミを探す",
+          )
+        : "";
+    },
+  });
   function renderOwn() {
     const p = property();
     $("#ownObservations").innerHTML = (store.state.observations || [])
@@ -39,74 +71,16 @@ export function initApp(app) {
       .map((p) => `<option value="${e(p.id)}">${e(p.name)}</option>`)
       .join("");
     if (store.state.properties.some((p) => p.id === old)) select.value = old;
-    const p = property(),
-      next = JSON.stringify(
-        p ? { id: p.id, name: p.name, address: p.address } : null,
-      );
-    if (next !== fingerprint) {
-      fingerprint = next;
-      invalidate();
-    }
     renderOwn();
+    if (active) research.select(property());
   }
-  async function run(path, input) {
-    invalidate();
-    const id = generation;
-    controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 60000);
-    $("#reviewSearch").disabled = true;
-    $("#reviewStatus").textContent = "建物の一致と情報を確認しています…";
-    try {
-      const data = await post(path, input, { signal: controller.signal });
-      if (id !== generation) return;
-      if (path === "reviews/search") {
-        choices = data.places;
-        $("#reviewChoices").innerHTML =
-          `<p>${mapsCredit}</p>${choices.map((p, i) => `<div class="place-choice"><button class="button" data-review-place="${i}">${e(p.name)} · ${e(p.address)}<br>この建物であることを確認して口コミを見る</button>${sourceLink(p.url)}</div>`).join("")}`;
-        $("#reviewStatus").textContent = choices.length
-          ? "名前と住所を見て、対象の建物を確認してください。"
-          : "建物を一致させられません。住所・建物名を確認してください。";
-      } else {
-        result = data;
-        $("#reviewResults").innerHTML = resultsMarkup(data);
-        $("#reviewStatus").textContent =
-          "投稿者の報告と、自分の確認を分けて記録できます。";
-      }
-    } catch (error) {
-      if (id === generation)
-        $("#reviewStatus").textContent =
-          error.name === "AbortError"
-            ? "確認がタイムアウトしました。"
-            : error.message;
-    } finally {
-      clearTimeout(timer);
-      if (id === generation) $("#reviewSearch").disabled = false;
-    }
-  }
-  $("#reviewCandidate").addEventListener("change", () => {
-    fingerprint = "";
-    render();
-  });
-  $("#reviewSearch").addEventListener("click", () => {
-    const p = property();
-    if (!p?.address) {
-      $("#reviewStatus").textContent = "候補の住所を番地まで補ってください。";
-      return;
-    }
-    run("reviews/search", { name: p.name, address: p.address });
-  });
-  $("#reviewChoices").addEventListener("click", (event) => {
-    const b = event.target.closest("[data-review-place]");
-    if (!b) return;
-    const place = choices[Number(b.dataset.reviewPlace)],
-      p = property();
-    if (place && p)
-      run("reviews", {
-        name: p.name,
-        address: p.address,
-        placeId: place.id,
-        confirmed: true,
-      });
+  $("#reviewCandidate").addEventListener("change", render);
+  $("#reviewSearch").addEventListener("click", () =>
+    research.select(property(), { force: true }),
+  );
+  store.on("view", (view) => {
+    active = view === "reviews";
+    if (active) research.select(property());
   });
   $("#reviewResults").addEventListener("click", (event) => {
     const b = event.target.closest("[data-review-topic]");

@@ -53,9 +53,9 @@ Desktop tabs and a grouped mobile menu expose the same views. Image/link researc
 
 </details>
 
-## For reviewers
+## Design and implementation
 
-**Product / hiring:** the video and three-step demo show the interaction model. **Engineering:** start with the [code tour](docs/CODE_TOUR.md), then follow one of these decisions into its implementation.
+The [code tour](docs/CODE_TOUR.md) follows features from interface actions through business logic and provider calls. These design decisions connect directly to their implementation and tests.
 
 | Design decision | Implementation to inspect |
 | --- | --- |

@@ -1,4 +1,4 @@
-# A short code tour for reviewers
+# Code tour
 
 [Project walkthrough](../README.md) · [Architecture and setup](DEVELOPMENT.md) · [Validation log](VALIDATION.md)
 

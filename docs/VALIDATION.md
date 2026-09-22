@@ -3,7 +3,7 @@
 [Project overview](../README.md) · [Code tour](CODE_TOUR.md) · [Deployment acceptance](DEPLOYMENT.md)
 
 Tests, live provider checks and the demonstration video serve different purposes.
-This page records their scope so reviewers can reproduce the relevant check.
+This page records their scope and the commands needed to reproduce each check.
 
 ## Automated checks
 

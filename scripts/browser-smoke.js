@@ -18,6 +18,14 @@ async (page) => {
   );
   await page.route("**/api/commutes", (route) => {
     const b = route.request().postDataJSON();
+    if (
+      b.timeKind !== "arrival" ||
+      !b.at.endsWith("T23:00:00.000Z") ||
+      !b.returnAt.endsWith("T09:00:00.000Z")
+    )
+      throw Error(
+        "Separate JST morning arrival and evening departure required",
+      );
     return route.fulfill({
       json: {
         checkedAt: new Date().toISOString(),
@@ -32,6 +40,24 @@ async (page) => {
           status: i === 2 ? "no_route" : "checked",
           url: "https://www.google.com/maps",
           recommended: i === 2 ? null : 0,
+          returnTrip: {
+            status: i === 1 ? "unavailable" : "checked",
+            recommended: i === 1 ? null : 0,
+            url: "https://www.google.com/maps",
+            routes:
+              i === 1
+                ? []
+                : [
+                    {
+                      minutes: 33 + i,
+                      walkingMinutes: 7,
+                      transfers: 1,
+                      lines: [],
+                      fare: null,
+                      warnings: [],
+                    },
+                  ],
+          },
           routes:
             i === 2
               ? []
@@ -148,11 +174,28 @@ async (page) => {
     });
   });
   await page.locator("#tab-commute").click();
+  if ((await page.locator("#destinationPreset").inputValue()) !== "shibuya")
+    throw Error("Shibuya should be suggested for these candidates");
+  if (
+    (await page.locator("[name=morning]").inputValue()) !== "08:00" ||
+    (await page.locator("[name=evening]").inputValue()) !== "18:00"
+  )
+    throw Error("Morning/evening defaults missing");
+  await page.locator("#commuteForm button").click();
+  await page.locator("[data-destination]").waitFor();
+  await page.locator("[data-destination]").click();
+  await page.locator("#commuteResults .journey-candidate").first().waitFor();
+  await page.locator("#destinationPreset").selectOption("shinjuku");
+  if (await page.locator("#commuteResults .journey-candidate").count())
+    throw Error("Changed destination must clear old commute results");
+  await page.locator("#destinationPreset").selectOption("custom");
   await page.locator("#destinationQuery").fill("新宿駅");
   await page.locator("#destinationForm button").click();
   await page.locator("[data-destination]").click();
   await page.locator("#commuteForm button").click();
   await page.locator("[data-commute-choice=fastest]").waitFor();
+  if (!(await page.locator("#commuteResults").textContent()).includes("33分"))
+    throw Error("Return journey missing");
   if (
     !(await page.locator("#commuteResults").textContent()).includes(
       "対応する経路が返りませんでした",
@@ -227,7 +270,14 @@ async (page) => {
     )
   )
     throw Error("provider review leaked into shared brief");
-  await page.locator("[data-revoke-share]").first().click();
+  const [revoked] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.url().endsWith("/api/shares/revoke"),
+    ),
+    page.locator("[data-revoke-share]").first().click(),
+  ]);
+  if (!revoked.ok())
+    throw Error(`Share revocation failed: ${revoked.status()}`);
   await reader.reload();
   await reader
     .getByText("共有が見つからないか、期限切れ・削除済みです。", {

@@ -7,14 +7,22 @@ export const OBJECTIVES = {
 export function commuteInput(state, destinationId, form) {
   if (!destinationId)
     throw new Error("候補から目的地を選んで確認してください。");
-  const at = new Date(`${form.at}:00+09:00`);
+  const at = new Date(
+    `${form.date ? `${form.date}T${form.morning}` : form.at}:00+09:00`,
+  );
   if (!Number.isFinite(+at)) throw new Error("日時を入力してください。");
+  const back = form.date
+    ? new Date(`${form.date}T${form.evening}:00+09:00`)
+    : null;
+  if (back && (!Number.isFinite(+back) || +back <= +at))
+    throw new Error("帰りの出発は、行きの到着より後にしてください。");
   return {
+    ...(back ? { returnAt: back.toISOString() } : {}),
     candidates: candidateInputs(state),
     destinationId,
     at: at.toISOString(),
     timezone: "Asia/Tokyo",
-    timeKind: form.timeKind,
+    timeKind: form.date ? "arrival" : form.timeKind,
     mode: form.mode,
     daysPerWeek: Number(form.daysPerWeek),
     objective: form.objective,

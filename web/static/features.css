@@ -307,3 +307,70 @@
 .review-reference span {
   color: var(--ink-3);
 }
+
+/* Commute starts with a destination, then a shared morning/evening schedule. */
+.destination-preset {
+  display: grid;
+  gap: 8px;
+  max-width: 480px;
+  margin-block: 20px 12px;
+}
+.destination-preset select {
+  min-height: 48px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+.commute-options {
+  grid-column: 1 / -1;
+}
+.commute-options summary {
+  cursor: pointer;
+  padding-block: 10px;
+  min-height: 44px;
+}
+.commute-option-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 14px;
+  padding-block: 14px;
+}
+.journey-legs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-block: 16px;
+}
+.journey-leg {
+  min-width: 0;
+}
+.journey-leg h5 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.commute-availability {
+  padding: 16px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  margin-block: 16px;
+}
+@media (max-width: 760px) {
+  .commute-option-fields,
+  .journey-legs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .feature-workspace .feature-form.commute-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .commute-form > label:first-child,
+  .commute-form > button {
+    grid-column: 1 / -1;
+  }
+}

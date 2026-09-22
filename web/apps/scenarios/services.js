@@ -21,12 +21,23 @@ export function scenarioRows(state, commute, leisure, daysPerWeek) {
     const route =
       [...known].sort((a, b) => a[key] - b[key] || a.minutes - b.minutes)[0] ||
       null;
+    const returning =
+      [...(observed?.returnTrip?.routes || [])]
+        .filter((r) => r[key] != null)
+        .sort((a, b) => a[key] - b[key] || a.minutes - b.minutes)[0] || null;
     const monthly = observedValue(p, "budget");
     return {
       id: p.id,
       name: p.name,
       monthly,
       route,
+      returning,
+      weeklyRoundTripMinutes:
+        daysPerWeek === 0
+          ? 0
+          : route && returning
+            ? (route.minutes + returning.minutes) * daysPerWeek
+            : null,
       objective,
       objectiveConfirmed: !!preference,
       weeklyOutboundMinutes: route
@@ -41,6 +52,9 @@ export function scenarioRows(state, commute, leisure, daysPerWeek) {
       gaps: [
         ...(monthly == null ? ["月額の確定"] : []),
         ...(daysPerWeek > 0 && !route ? ["勤務先への経路確認"] : []),
+        ...(daysPerWeek > 0 && commute?.schedule.returnAt && !returning
+          ? ["帰りの経路確認"]
+          : []),
       ],
       advantages: [],
     };
@@ -85,7 +99,7 @@ export function journeyEvidence(properties, commute, leisure) {
     if (journey)
       add(
         "commute",
-        `Google Maps 取得 ${commute.checkedAt}。同一目的地への通勤、${commute.schedule.mode}、${commute.schedule.at} ${commute.schedule.timeKind}、週${commute.schedule.daysPerWeek}日という試算（希望として未確認の場合あり）。状態 ${journey.status}。${journey.routes.map((r) => `片道 ${r.minutes}分、徒歩 ${r.walkingMinutes ?? "未取得"}分、乗換 ${r.transfers ?? "未取得"}回`).join("／")}。掲載の駅徒歩と別の指標。`,
+        `Google Maps 取得 ${commute.checkedAt}。同一目的地への通勤、${commute.schedule.mode}、${commute.schedule.at} ${commute.schedule.timeKind}、週${commute.schedule.daysPerWeek}日という試算（希望として未確認の場合あり）。状態 ${journey.status}。${journey.routes.map((r) => `片道 ${r.minutes}分、徒歩 ${r.walkingMinutes ?? "未取得"}分、乗換 ${r.transfers ?? "未取得"}回`).join("／")}。${commute.schedule.returnAt ? `帰りは ${commute.schedule.returnAt} 出発、状態 ${journey.returnTrip?.status || "未取得"}。${(journey.returnTrip?.routes || []).map((r) => `${r.minutes}分`).join("／")}` : "帰りは未取得"}。掲載の駅徒歩と別の指標。`,
       );
     const nearby = leisure?.candidates.find((c) => c.id === p.id);
     if (nearby)

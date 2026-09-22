@@ -40,3 +40,23 @@ test("questions exclude failures and confirmation stores intent rather than prov
   assert.match(note.text, /徒歩を少なく/);
   assert.ok(!note.text.includes("25分"));
 });
+
+test("round-trip form uses separate JST arrival and return departure times", () => {
+  const state = { properties: [{ id: "a", name: "A" }] };
+  const form = {
+    date: "2026-09-24",
+    morning: "08:00",
+    evening: "18:00",
+    mode: "TRANSIT",
+    daysPerWeek: "3",
+    objective: "fastest",
+  };
+  const body = commuteInput(state, "place", form);
+  assert.equal(body.at, "2026-09-23T23:00:00.000Z");
+  assert.equal(body.returnAt, "2026-09-24T09:00:00.000Z");
+  assert.equal(body.timeKind, "arrival");
+  assert.throws(
+    () => commuteInput(state, "place", { ...form, evening: "07:00" }),
+    /帰り/,
+  );
+});

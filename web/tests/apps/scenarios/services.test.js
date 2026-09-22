@@ -53,3 +53,21 @@ test("AI observations are scoped and marked ephemeral Maps evidence", () => {
   assert.equal(evidence[0].kind, "maps");
   assert.match(evidence[0].text, /未確認の場合/);
 });
+
+test("weekly round trip needs independently retrieved return routes", () => {
+  const state = { properties, priorities: { notes: [] } };
+  const both = structuredClone(commute);
+  both.schedule.returnAt = "2026-09-23T09:00:00Z";
+  both.candidates[0].returnTrip = {
+    routes: [{ minutes: 35, walkingMinutes: 10, transfers: 1 }],
+  };
+  const rows = scenarioRows(state, both, null, 3);
+  assert.equal(rows[0].weeklyRoundTripMinutes, 165);
+  assert.equal(rows[1].weeklyRoundTripMinutes, null);
+  assert.equal(
+    scenarioRows(state, commute, null, 3)[0].weeklyRoundTripMinutes,
+    null,
+  );
+  assert.equal(scenarioRows(state, both, null, 0)[1].weeklyRoundTripMinutes, 0);
+  assert.match(journeyEvidence([properties[0]], both, null)[0].text, /帰りは/);
+});

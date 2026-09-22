@@ -85,6 +85,7 @@ async (page) => {
   await help.locator("summary").click();
   // Navigation changes visibility only: form drafts must not be recreated or reset.
   await page.locator("#tab-commute").click();
+  await page.locator("#destinationPreset").selectOption("custom");
   await page.locator("#destinationQuery").fill("未検索の勤務先");
   await page.locator("#tab-leisure").click();
   await page.goBack();
@@ -104,7 +105,7 @@ async (page) => {
   await page.reload();
   await page.locator("#panel-scenarios").waitFor();
   await page.goto("http://127.0.0.1:4173/#commuteSection");
-  await page.locator("#destinationQuery").waitFor();
+  await page.locator("#destinationPreset").waitFor();
   await page.locator("#tab-compare").click();
   // A new link has no candidate or research fingerprint yet.
   await page.locator("#addLink").click();

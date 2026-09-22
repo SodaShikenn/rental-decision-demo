@@ -15,6 +15,55 @@ async (page) => {
     });
 
   await page.locator("#compareRows .cell").first().waitFor();
+  const views = [
+    "compare",
+    "commute",
+    "surroundings",
+    "leisure",
+    "reviews",
+    "scenarios",
+    "needs",
+    "sharing",
+  ];
+  for (const view of views) {
+    await page.locator(`#tab-${view}`).click();
+    check(
+      await page.locator(`#panel-${view}`).isVisible(),
+      `${view} has a directly accessible page`,
+    );
+    check(
+      (await page.locator('#workspaceTabs [aria-selected="true"]').count()) ===
+        1,
+      "Exactly one feature tab is selected",
+    );
+    check(
+      (await page.locator("#workspaceSelect").inputValue()) === view,
+      "Mobile navigation mirrors desktop state",
+    );
+  }
+  // Navigation changes visibility only: form drafts must not be recreated or reset.
+  await page.locator("#tab-commute").click();
+  await page.locator("#destinationQuery").fill("未検索の勤務先");
+  await page.locator("#tab-leisure").click();
+  await page.goBack();
+  await page.locator("#panel-commute").waitFor();
+  check(
+    (await page.locator("#destinationQuery").inputValue()) === "未検索の勤務先",
+    "Back restores the view and preserves its draft",
+  );
+  await page.goForward();
+  await page.locator("#panel-leisure").waitFor();
+  await page.locator("#tab-reviews").focus();
+  await page.keyboard.press("ArrowRight");
+  check(
+    (await activeId()) === "tab-scenarios",
+    "Feature tabs support arrow-key navigation",
+  );
+  await page.reload();
+  await page.locator("#panel-scenarios").waitFor();
+  await page.goto("http://127.0.0.1:4173/#commuteSection");
+  await page.locator("#destinationQuery").waitFor();
+  await page.locator("#tab-compare").click();
   // A new link has no candidate or research fingerprint yet.
   await page.locator("#addLink").click();
   check(
@@ -152,6 +201,25 @@ async (page) => {
       );
     }
     await phone.setViewportSize({ width: 390, height: 844 });
+    for (const width of [320, 390, 760]) {
+      await phone.setViewportSize({ width, height: 844 });
+      for (const view of views) {
+        await phone.locator("#workspaceSelect").selectOption(view);
+        check(
+          await phone.locator(`#panel-${view}`).isVisible(),
+          `Mobile dropdown reaches ${view}`,
+        );
+        check(
+          await phone.evaluate(
+            (w) => document.documentElement.scrollWidth <= w,
+            width,
+          ),
+          `${view} fits ${width}px`,
+        );
+      }
+    }
+    await phone.setViewportSize({ width: 390, height: 844 });
+    await phone.locator("#workspaceSelect").selectOption("compare");
     check(
       await phone
         .locator("#pairFirst")
@@ -173,6 +241,7 @@ async (page) => {
       await phone.evaluate(() => document.documentElement.scrollWidth <= 390),
       "Expanded commute form fits phone width",
     );
+    await phone.locator("#workspaceSelect").selectOption("compare");
     await phone.locator("#guideOpen").tap();
     await phone.locator("#guideClose").tap();
     await settled(phone.locator("#guideDialog"));

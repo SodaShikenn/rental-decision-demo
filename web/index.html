@@ -20,6 +20,7 @@
     <script src="env.js"></script>
     <script type="module" src="app.js"></script>
     <link rel="stylesheet" href="static/features.css" />
+    <link rel="stylesheet" href="static/navigation.css" />
     <link rel="stylesheet" href="static/interactions.css" />
   </head>
   <body>
@@ -41,10 +42,8 @@
     </header>
 
     <nav class="workspace-nav" aria-label="作業ビュー">
-      <div class="page-inner" role="tablist" aria-label="作業ビュー">
-        <button id="tab-compare" role="tab" aria-controls="panel-compare" aria-selected="true" data-workspace-tab="compare">比較ワークスペース <span id="candidateCount" class="nav-count"></span></button>
-        <button id="tab-needs" role="tab" aria-controls="panel-needs" aria-selected="false" tabindex="-1" data-workspace-tab="needs">条件メモ <span aria-hidden="true">↗</span></button>
-      </div>
+      <div class="page-inner workspace-tabs" id="workspaceTabs" role="tablist" aria-label="機能を選ぶ"></div>
+      <div class="page-inner mobile-workspace-nav"><label for="workspaceSelect">機能を選ぶ</label><select id="workspaceSelect" aria-label="機能を選ぶ"></select><span id="mobileCandidateCount" class="nav-count"></span></div>
     </nav>
     <main class="page">
       <div id="panel-compare" class="workspace-panel" role="tabpanel" aria-labelledby="tab-compare" tabindex="-1" data-workspace-panel="compare">
@@ -78,13 +77,9 @@
                 </div>
                 <div class="empty-note" id="compareEmpty" hidden><h3>気になる物件から、始めましょう。</h3><p>画像か掲載リンクを追加すると、分かる情報から比較できます。希望はあとから一緒に整理します。</p></div>
               </section>
-              <section class="maps-section" id="surroundings" aria-labelledby="mapsSectionTitle" hidden>
-                <div class="section-head"><h3 id="mapsSectionTitle">実際の徒歩経路で確かめる</h3><span class="section-meta" translate="no">Google Maps</span></div>
-                <p class="section-hint">掲載値を残して、取得した時間・距離と比較します。</p><div class="choice-row" aria-label="アクセスの比較ツール"><button class="button" data-open-feature="commuteSection">通勤を比べる</button><button class="button" data-open-feature="leisureSection">余暇の場所を見る</button><button class="button" data-open-feature="scenarioSection">生活の組み合わせを考える</button></div><div id="mapsCandidates" class="maps-cards"></div>
-                <div id="commuteMount"></div><div id="leisureMount"></div><div id="scenarioMount"></div>
-              </section>
+              <div class="context-tools" id="accessTools" hidden><span>掲載の徒歩時間から、もう一歩。</span><a href="#surroundings">駅・買い物を地図で確認 →</a><a href="#commute" data-open-feature="commuteSection">勤務先への通勤を比較 →</a></div>
               <section class="preferences-section" id="preferences" aria-labelledby="preferencesTitle" hidden>
-                <h3 id="preferencesTitle">気になる条件を選ぶ</h3><div id="reviewsMount"></div>
+                <h3 id="preferencesTitle">気になる条件を選ぶ</h3><a class="context-tools-link" href="#reviews">建物の口コミ・内見記録を見る →</a>
                 <fieldset class="needs-block" id="aspectBlock"><legend>全候補の図面に記載のある設備・条件</legend><div class="aspect-chips" id="aspectChips"></div></fieldset>
                 <div class="needs-block" id="questionBlock" role="group" aria-labelledby="questionsTitle"><h3 class="needs-legend" id="questionsTitle">契約前に考えたいこと</h3><div class="questions" id="needsQuestions"></div></div>
               </section>
@@ -111,7 +106,37 @@
         <button type="button" class="mobile-guide-trigger" id="guideOpen" aria-haspopup="dialog" aria-controls="guideDialog">この違いから希望を整理 <span id="mobilePriorityCount"></span><span aria-hidden="true">↑</span></button>
       </div>
       <div id="panel-needs" class="workspace-panel" role="tabpanel" aria-labelledby="tab-needs" tabindex="-1" data-workspace-panel="needs" hidden>
-        <section class="needs" id="needs" aria-labelledby="needsTitle"><div class="section-head"><div class="section-title"><p class="eyebrow">YOUR DECISION BRIEF</p><h2 id="needsTitle">希望と、次に確かめること。</h2></div><p class="section-meta" id="needsLead"></p></div><p class="memo-notice" id="memoNotice" hidden><span id="memoNoticeText"></span> · <button class="link-button" id="memoRebuild" type="button">今の条件から作り直す</button></p><p class="memo-intro">内見や相談に使えるメモです。必要に応じて編集して、持ち出せます。</p><textarea class="memo" id="memo" aria-label="条件メモ" spellcheck="false" autocomplete="off"></textarea><div class="memo-actions"><button class="button button--primary" id="copyMemo" type="button">条件メモをコピー</button><button class="button" id="memoReset" type="button" hidden>元に戻す</button><p class="memo-status" id="memoStatus" role="status"></p></div></section><div id="sharingMount"></div><a class="back-to-discovery" href="#compare">← 候補を見ながら考える</a>
+        <section class="needs" id="needs" aria-labelledby="needsTitle"><div class="section-head"><div class="section-title"><p class="eyebrow">YOUR DECISION BRIEF</p><h2 id="needsTitle">希望と、次に確かめること。</h2></div><p class="section-meta" id="needsLead"></p></div><p class="memo-notice" id="memoNotice" hidden><span id="memoNoticeText"></span> · <button class="link-button" id="memoRebuild" type="button">今の条件から作り直す</button></p><p class="memo-intro">内見や相談に使えるメモです。必要に応じて編集して、持ち出せます。</p><textarea class="memo" id="memo" aria-label="条件メモ" spellcheck="false" autocomplete="off"></textarea><div class="memo-actions"><button class="button button--primary" id="copyMemo" type="button">条件メモをコピー</button><button class="button" id="memoReset" type="button" hidden>元に戻す</button><p class="memo-status" id="memoStatus" role="status"></p></div></section><div class="memo-next"><p>誰かと相談したいときは</p><a class="button" href="#sharing">共有内容を確認・ファイルに保存 →</a></div><a class="back-to-discovery" href="#compare">← 候補を見ながら考える</a>
+      </div>
+      <div id="panel-commute" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-commute" tabindex="-1" data-workspace-panel="commute" hidden>
+        <header class="feature-workspace-heading" data-view-heading="commute"></header>
+        <div class="candidate-scope" data-candidate-scope></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><div id="commuteMount"></div></div><aside class="feature-help" data-view-help="commute" aria-label="使い方"></aside></div>
+      </div>
+      <div id="panel-surroundings" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-surroundings" tabindex="-1" data-workspace-panel="surroundings" hidden>
+        <header class="feature-workspace-heading" data-view-heading="surroundings"></header>
+        <div class="candidate-scope" data-candidate-scope></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><section class="feature-section" id="surroundings" aria-labelledby="mapsSectionTitle"><h3 id="mapsSectionTitle">候補ごとに徒歩経路を確認</h3><p>掲載値を残して、取得した時間・距離と比較します。<span translate="no">Google Maps</span></p><div id="mapsCandidates" class="maps-cards"></div></section></div><aside class="feature-help" data-view-help="surroundings" aria-label="使い方"></aside></div>
+      </div>
+      <div id="panel-leisure" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-leisure" tabindex="-1" data-workspace-panel="leisure" hidden>
+        <header class="feature-workspace-heading" data-view-heading="leisure"></header>
+        <div class="candidate-scope" data-candidate-scope></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><div id="leisureMount"></div></div><aside class="feature-help" data-view-help="leisure" aria-label="使い方"></aside></div>
+      </div>
+      <div id="panel-reviews" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-reviews" tabindex="-1" data-workspace-panel="reviews" hidden>
+        <header class="feature-workspace-heading" data-view-heading="reviews"></header>
+        <div class="candidate-scope" data-candidate-scope></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><div id="reviewsMount"></div></div><aside class="feature-help" data-view-help="reviews" aria-label="使い方"></aside></div>
+      </div>
+      <div id="panel-scenarios" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-scenarios" tabindex="-1" data-workspace-panel="scenarios" hidden>
+        <header class="feature-workspace-heading" data-view-heading="scenarios"></header>
+        <div class="candidate-scope" data-candidate-scope></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><div class="scenario-prerequisites"><span>比較の材料をそろえる</span><a href="#commute">通勤経路を調べる →</a><a href="#leisure">余暇の希望を見つける →</a></div><div id="scenarioMount"></div></div><aside class="feature-help" data-view-help="scenarios" aria-label="使い方"></aside></div>
+      </div>
+      <div id="panel-sharing" class="workspace-panel feature-workspace" role="tabpanel" aria-labelledby="tab-sharing" tabindex="-1" data-workspace-panel="sharing" hidden>
+        <header class="feature-workspace-heading" data-view-heading="sharing"></header>
+        <div class="candidate-scope" data-candidate-scope></div>
+        <div class="feature-workspace-layout"><div class="feature-workspace-main"><div id="sharingMount"></div></div><aside class="feature-help" data-view-help="sharing" aria-label="使い方"></aside></div>
       </div>
     </main>
     <dialog id="guideDialog" class="guide-dialog" aria-labelledby="guideTitle"></dialog>

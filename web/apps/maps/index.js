@@ -2,7 +2,6 @@ import { $, escapeHTML as e } from '../../helper.js';
 import { EXTRACTION_API_URL } from '../../config.js';
 import { safeSourceUrl } from '../research/services.js';
 import { mapsFingerprint, mapsInput, requestMaps } from './services.js';
-import { visibleCandidates } from '../workspace/services.js';
 
 const kinds = { station: '駅', supermarket: 'スーパー', convenience_store: 'コンビニ' };
 const statuses = { difference: '掲載値との差を確認', close: '掲載値に近い目安', reference: '参考情報', unverified: '未確認' };
@@ -46,7 +45,7 @@ export function initApp(app) {
       const p = store.state.properties.find((p) => p.id === id);
       if (!p || entry.fingerprint !== mapsFingerprint(p)) results.delete(id);
     }
-    $('#mapsCandidates').innerHTML = visibleCandidates(store.state.properties, store.state.workspace).map((p) => {
+    $('#mapsCandidates').innerHTML = store.state.properties.map((p) => {
       const entry = results.get(p.id);
       const summary = entry?.result.status === 'checked' ? `${entry.result.claims.filter((c) => c.status === 'difference').length}件の差・${entry.result.claims.filter((c) => c.status === 'unverified').length}件未確認（${new Date(entry.result.checkedAt).toLocaleTimeString('ja-JP')}取得）` : '地図は未確認';
       return `<article class="maps-card"><h3>${e(p.name)}</h3><p>${e(summary)}</p><button class="button" data-check-maps="${e(p.id)}">${entry ? '確認結果を見る' : '駅・買い物を地図で確認'}</button></article>`;

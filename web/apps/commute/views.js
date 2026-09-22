@@ -35,7 +35,7 @@ export function resultsMarkup(result) {
         : ""
     }`;
 }
-export const markup = `<details class="feature-section" id="commuteSection"><summary>勤務先への通勤を比べる</summary><p>候補から同じ目的地までの経路を比較します。目的地と取得結果はこのタブだけで使用します。</p>
+export const markup = `<section class="feature-section" id="commuteSection" aria-labelledby="commuteSectionTitle"><h3 id="commuteSectionTitle">目的地と通勤の条件</h3><p>候補から同じ目的地までの経路を比較します。目的地と取得結果は再読み込みすると消えます。確認した希望は保存します。</p>
 <form id="destinationForm" class="inline-form"><label>勤務先・駅・住所<input id="destinationQuery" enterkeyhint="search" maxlength="300" required minlength="2" placeholder="例：渋谷駅" /></label><button class="button" type="submit">目的地を探す</button></form><div id="destinationChoices"></div><p id="destinationConfirmed"></p>
 <form id="commuteForm" class="feature-form"><label>日時（日本時間）<input name="at" type="datetime-local" required /></label><label>基準<select name="timeKind"><option value="arrival">この時刻に到着</option><option value="departure">この時刻に出発</option></select></label><label>移動方法<select name="mode"><option value="TRANSIT">公共交通＋徒歩</option><option value="WALK">徒歩</option></select></label><label>通う頻度<select name="daysPerWeek">${[0, 1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}" ${n === 3 ? "selected" : ""}>週${n}日</option>`).join("")}</select></label><label>今回の経路比較<select name="objective">${Object.entries(
   OBJECTIVES,
@@ -43,4 +43,4 @@ export const markup = `<details class="feature-section" id="commuteSection"><sum
   .map(([key, label]) => `<option value="${key}">${label}</option>`)
   .join(
     "",
-  )}</select></label><button class="button" type="submit">全候補の通勤を比較</button></form><p id="commuteStatus" role="status"></p><div id="commuteResults"></div></details>`;
+  )}</select></label><button class="button" type="submit">全候補の通勤を比較</button></form><p id="commuteStatus" role="status"></p><div id="commuteResults"></div></section>`;

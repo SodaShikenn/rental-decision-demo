@@ -1,10 +1,26 @@
 import { $, escapeHTML as e } from "../../helper.js";
 import { perspectiveOf, normalizePair, replacePair } from "./services.js";
 import { PRIORITIES, LEVELS, formatPriority } from "../priorities/services.js";
+import { VIEWS, resolveView, isWorkspaceTarget } from "./navigation.js";
+import {
+  navigationMarkup,
+  switcherMarkup,
+  headingMarkup,
+  helpMarkup,
+  candidatesMarkup,
+} from "./navigation-views.js";
 
 export function initApp(app) {
   const { store } = app.extensions;
   const mobile = matchMedia("(max-width: 760px)");
+  $("#workspaceTabs").innerHTML = navigationMarkup();
+  $("#workspaceSelect").innerHTML = switcherMarkup();
+  VIEWS.filter((entry) => entry.title).forEach((entry) => {
+    document.querySelector(`[data-view-heading="${entry.key}"]`).innerHTML =
+      headingMarkup(entry);
+    document.querySelector(`[data-view-help="${entry.key}"]`).innerHTML =
+      helpMarkup(entry);
+  });
   const tabs = [...document.querySelectorAll("[data-workspace-tab]")];
   const panels = [...document.querySelectorAll("[data-workspace-panel]")];
   const perspectiveTabs = [...document.querySelectorAll("[data-perspective]")];
@@ -56,7 +72,7 @@ export function initApp(app) {
   $("#guideOpen").addEventListener("click", openGuide);
   $("#guideClose").addEventListener("click", closeGuide);
   function show(name, { focus = false, updateUrl = true } = {}) {
-    view = name === "needs" ? "needs" : "compare";
+    view = resolveView(name);
     closeGuide();
     tabs.forEach((tab) => {
       const selected = tab.dataset.workspaceTab === view;
@@ -66,7 +82,10 @@ export function initApp(app) {
     panels.forEach((panel) => {
       panel.hidden = panel.dataset.workspacePanel !== view;
     });
-    if (updateUrl) history.replaceState(null, "", `#${view}`);
+    $("#workspaceSelect").value = view;
+    document.title = `${VIEWS.find((entry) => entry.key === view).label} | Rental Helper`;
+    if (updateUrl && location.hash !== `#${view}`)
+      history.pushState(null, "", `#${view}`);
     if (view === "needs") {
       const memo = $("#memo");
       memo.style.height = "auto";
@@ -101,18 +120,26 @@ export function initApp(app) {
       window.scrollTo({ top: 0, behavior: "instant" }),
     );
   });
+  $("#workspaceSelect").addEventListener("change", (event) => {
+    show(event.target.value);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  });
   keyboardTabs(perspectiveTabs, (tab) =>
     store.setWorkspace({ dimension: tab.dataset.perspective }),
   );
   keyboardTabs(guideTabs, (tab) => guideMode(tab.dataset.guideMode));
-  function navigate(target) {
-    if (target === "needs") {
-      show("needs", { focus: true });
+  function navigate(target, { updateUrl = true, focus = true } = {}) {
+    if (
+      isWorkspaceTarget(target) &&
+      !["compareTable", "discovery", "fitSummary", "preferences"].includes(
+        target,
+      )
+    ) {
+      show(target, { focus, updateUrl });
       window.scrollTo({ top: 0, behavior: "instant" });
       return;
     }
-    show("compare");
-    if (target === "surroundings") store.setWorkspace({ dimension: "access" });
+    show("compare", { updateUrl });
     if (target === "preferences") store.setWorkspace({ dimension: "living" });
     if (target === "discovery") {
       openGuide();
@@ -124,32 +151,28 @@ export function initApp(app) {
   document.addEventListener("click", (event) => {
     const shortcut = event.target.closest("[data-open-feature]");
     if (shortcut) {
-      const section = document.getElementById(shortcut.dataset.openFeature);
-      if (section) {
-        section.open = true;
-        section.scrollIntoView({ block: "start" });
-        section.querySelector("summary")?.focus({ preventScroll: true });
-      }
+      event.preventDefault();
+      navigate(shortcut.dataset.openFeature);
       return;
     }
     const anchor = event.target.closest('a[href^="#"]');
     const target = anchor?.getAttribute("href").slice(1);
-    if (
-      ![
-        "compare",
-        "compareTable",
-        "surroundings",
-        "discovery",
-        "fitSummary",
-        "preferences",
-        "needs",
-      ].includes(target)
-    )
-      return;
+    if (!isWorkspaceTarget(target)) return;
     event.preventDefault();
     navigate(target);
   });
-  window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
+  // Back/forward restore views without creating another history entry. In-page review
+  // links keep their own native anchor behavior instead of switching to comparison.
+  window.addEventListener("popstate", () => {
+    const target = location.hash.slice(1);
+    if (!target || isWorkspaceTarget(target))
+      navigate(target || "compare", { updateUrl: false });
+  });
+  window.addEventListener("hashchange", () => {
+    const target = location.hash.slice(1);
+    if (isWorkspaceTarget(target) && resolveView(target) !== view)
+      navigate(target, { updateUrl: false });
+  });
   ["pairFirst", "pairSecond"].forEach((id, slot) =>
     $("#" + id).addEventListener("change", (event) =>
       store.setWorkspace({
@@ -166,6 +189,10 @@ export function initApp(app) {
     const { properties, priorities, workspace } = store.state;
     const perspective = perspectiveOf(workspace);
     $("#candidateCount").textContent = `${properties.length}件`;
+    $("#mobileCandidateCount").textContent = `${properties.length}件`;
+    document.querySelectorAll("[data-candidate-scope]").forEach((element) => {
+      element.innerHTML = candidatesMarkup(properties);
+    });
     $("#contextTitle").textContent = perspective.title;
     $("#contextDescription").textContent = perspective.description;
     $("#comparisonContext").setAttribute(
@@ -177,9 +204,7 @@ export function initApp(app) {
       tab.setAttribute("aria-selected", String(selected));
       tab.tabIndex = selected ? 0 : -1;
     });
-    $("#surroundings").hidden = !["access", "all"].includes(
-      workspace.dimension,
-    );
+    $("#accessTools").hidden = !["access", "all"].includes(workspace.dimension);
     $("#preferences").hidden = !["living", "all"].includes(workspace.dimension);
     $("#pairPicker").hidden = !workspace.mobile || properties.length < 2;
     const pair = normalizePair(properties, workspace.pair);
@@ -228,6 +253,7 @@ export function initApp(app) {
   }
   mobile.addEventListener("change", resized);
   store.on("open-guide", () => {
+    show("compare");
     guideMode("numeric");
     openGuide();
   });
@@ -243,11 +269,8 @@ export function initApp(app) {
     show("compare");
   });
   resized();
-  show(location.hash.slice(1), { updateUrl: false });
-  if (
-    ["surroundings", "discovery", "preferences", "compareTable"].includes(
-      location.hash.slice(1),
-    )
-  )
-    navigate(location.hash.slice(1));
+  const initial = location.hash.slice(1);
+  if (isWorkspaceTarget(initial))
+    navigate(initial, { updateUrl: false, focus: false });
+  else show("compare", { updateUrl: false });
 }

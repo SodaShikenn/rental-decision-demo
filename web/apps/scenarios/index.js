@@ -6,7 +6,7 @@ import { scenarioRows } from "./services.js";
 export function initApp(app) {
   const { store } = app.extensions;
   $("#scenarioMount").innerHTML =
-    `<details class="feature-section" id="scenarioSection"><summary>費用・通勤・余暇の組み合わせを考える</summary><p>全候補を同じ条件で試算します。総合点や自動順位はつけません。</p><form id="scenarioForm" class="inline-form"><label>勤務先へ通う想定<select id="scenarioDays">${[0, 1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}" ${n === 3 ? "selected" : ""}>週${n}日${n === 0 ? "（通勤なし）" : ""}</option>`).join("")}</select></label><button class="button">この頻度を希望として確認</button></form><p id="scenarioStatus" role="status"></p><div id="scenarioResults"></div></details>`;
+    `<section class="feature-section" id="scenarioSection" aria-labelledby="scenarioSectionTitle"><h3 id="scenarioSectionTitle">週に通う日数を変えてみる</h3><p>全候補を同じ条件で試算します。総合点や自動順位はつけません。</p><form id="scenarioForm" class="inline-form"><label>勤務先へ通う想定<select id="scenarioDays">${[0, 1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}" ${n === 3 ? "selected" : ""}>週${n}日${n === 0 ? "（通勤なし）" : ""}</option>`).join("")}</select></label><button class="button">この頻度を希望として確認</button></form><p id="scenarioStatus" role="status"></p><div id="scenarioResults"></div></section>`;
   const confirmedDays = store.state.priorities.notes?.find(
     (n) => n.source === "scenario",
   )?.details?.daysPerWeek;

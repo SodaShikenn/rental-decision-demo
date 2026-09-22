@@ -125,8 +125,7 @@ async (page) => {
       },
     }),
   );
-  await page.getByRole("tab", { name: "駅・買い物", exact: true }).click();
-  await page.locator("#commuteSection > summary").click();
+  await page.locator("#tab-commute").click();
   await page.locator("#destinationQuery").fill("新宿駅");
   await page.locator("#destinationForm button").click();
   await page.locator("[data-destination]").click();
@@ -140,11 +139,11 @@ async (page) => {
     throw Error("partial failure missing");
   await page.locator("[data-commute-choice=walking]").click();
   await page.locator("[data-commute-level=prefer]").click();
-  await page.locator("#leisureSection > summary").click();
+  await page.locator("#tab-leisure").click();
   await page.locator("#discoverLeisure").click();
   await page.locator("[data-interest=park]").click();
   await page.locator("#leisurePreferenceForm button").click();
-  await page.locator("#scenarioSection > summary").click();
+  await page.locator("#tab-scenarios").click();
   await page.locator("#scenarioDays").selectOption("0");
   if (
     !(await page.locator("#scenarioResults").textContent()).includes(
@@ -153,8 +152,7 @@ async (page) => {
   )
     throw Error("remote scenario");
   await page.locator("#scenarioForm button").click();
-  await page.getByRole("tab", { name: "設備・契約", exact: true }).click();
-  await page.locator("#reviewsSection > summary").click();
+  await page.locator("#tab-reviews").click();
   await page.locator("#reviewSearch").click();
   await page.locator("[data-review-place]").click();
   await page.locator("[data-review-topic=sound]").click();
@@ -171,7 +169,7 @@ async (page) => {
     "ブラウザ検証用",
   ])
     if (!memo.includes(phrase)) throw Error("memo missing " + phrase);
-  await page.locator("#sharingSection > summary").click();
+  await page.locator("#tab-sharing").click();
   if (
     (await page.locator("#sharePreview").textContent()).includes(
       "ブラウザ検証用",
@@ -215,8 +213,7 @@ async (page) => {
     await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
   )
     throw Error("share mobile overflow");
-  await page.locator("#tab-compare").click();
-  await page.getByRole("tab", { name: "駅・買い物", exact: true }).click();
+  await page.locator("#workspaceSelect").selectOption("surroundings");
   if (
     await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
   )
